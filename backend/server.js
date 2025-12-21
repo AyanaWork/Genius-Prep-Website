@@ -5,6 +5,8 @@ const pool = require('./config/database');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
+const tutorRoutes = require('./routes/tutorRoutes');
+const studentRoutes = require('./routes/studentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,8 +32,10 @@ app.get('/api/test-db', async (req, res) => {
   }
 });
 
-// Auth routes
+// API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/tutors', tutorRoutes);
+app.use('/api/students', studentRoutes);
 
 // Start server
 app.listen(PORT, () => {
