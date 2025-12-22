@@ -5,6 +5,8 @@ import Register from './pages/auth/Register';
 import TutorDashboard from './pages/tutor/TutorDashboard';
 import StudentDashboard from './pages/student/StudentDashboard';
 import authService from './services/auth';
+import TutorProfileForm from './pages/tutor/TutorProfileForm';
+import StudentProfileForm from './pages/student/StudentProfileForm';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRole }) {
@@ -258,6 +260,24 @@ function App() {
           } 
         />
         
+        <Route 
+          path="/tutor/profile/edit" 
+          element={
+            <ProtectedRoute allowedRole="tutor">
+              <TutorProfileForm />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/student/profile/edit" 
+          element={
+            <ProtectedRoute allowedRole="student">
+              <StudentProfileForm />
+            </ProtectedRoute>
+          } 
+        />
+
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

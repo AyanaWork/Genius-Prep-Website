@@ -1,0 +1,230 @@
+.dashboard {
+  min-height: 100vh;
+  background-color: #F9FAFB;
+}
+
+.dashboard-nav {
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+}
+
+.nav-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #4F46E5;
+}
+
+.btn-logout {
+  padding: 8px 16px;
+  background-color: white;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+  background-color: #FEE2E2;
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #6B7280;
+}
+
+.welcome-card {
+  background-color: white;
+  padding: 60px 40px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.welcome-title {
+  font-size: 32px;
+  font-weight: bold;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+.welcome-text {
+  font-size: 18px;
+  color: #6B7280;
+  margin-bottom: 32px;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-primary {
+  background-color: #4F46E5;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #4338CA;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+}
+
+.btn-secondary:hover {
+  background-color: #F9FAFB;
+}
+
+.btn-large {
+  padding: 16px 32px;
+  font-size: 16px;
+}
+
+.profile-overview {
+  background-color: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #4F46E5;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 28px;
+  font-weight: bold;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.profile-email {
+  font-size: 16px;
+  color: #6B7280;
+  margin-bottom: 12px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.status-badge.inactive {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  padding: 20px;
+  background-color: #F9FAFB;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #4F46E5;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #6B7280;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.info-card {
+  padding: 16px;
+  background-color: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 8px;
+}
+
+.info-text {
+  font-size: 14px;
+  color: #1E40AF;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}
