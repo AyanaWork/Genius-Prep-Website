@@ -8,15 +8,25 @@ class TutorProfile {
       bio,
       qualifications,
       subjects,
+      moduleCodes, // NEW: Module codes
       hourlyRate,
       yearsExperience,
       profilePictureUrl
     } = profileData;
 
     const query = `
-      INSERT INTO tutor_profiles 
-      (user_id, display_name, bio, qualifications, subjects, hourly_rate, years_experience, profile_picture_url)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      INSERT INTO tutor_profiles (
+        user_id, 
+        display_name, 
+        bio, 
+        qualifications, 
+        subjects, 
+        module_codes,
+        hourly_rate, 
+        years_experience, 
+        profile_picture_url
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
 
@@ -26,6 +36,7 @@ class TutorProfile {
       bio,
       qualifications,
       subjects,
+      moduleCodes || [], // Default to empty array if not provided
       hourlyRate,
       yearsExperience,
       profilePictureUrl || null
@@ -41,14 +52,22 @@ class TutorProfile {
     return result.rows[0];
   }
 
-  // Get tutor profile by profile ID
+  // Get tutor profile by profile ID (with reviews count and avg rating)
   static async findById(id) {
     const query = `
-      SELECT tp.*, u.email, u.is_verified
+      SELECT 
+        tp.*,
+        u.email,
+        u.is_verified,
+        COUNT(r.id) as review_count,
+        COALESCE(AVG(r.rating), 0) as average_rating
       FROM tutor_profiles tp
       JOIN users u ON tp.user_id = u.id
+      LEFT JOIN reviews r ON r.tutor_id = tp.id AND r.is_published = true
       WHERE tp.id = $1
+      GROUP BY tp.id, u.email, u.is_verified
     `;
+
     const result = await pool.query(query, [id]);
     return result.rows[0];
   }
@@ -60,6 +79,7 @@ class TutorProfile {
       bio,
       qualifications,
       subjects,
+      moduleCodes, // NEW: Module codes
       hourlyRate,
       yearsExperience,
       profilePictureUrl,
@@ -68,17 +88,18 @@ class TutorProfile {
 
     const query = `
       UPDATE tutor_profiles
-      SET 
+      SET
         display_name = COALESCE($1, display_name),
         bio = COALESCE($2, bio),
         qualifications = COALESCE($3, qualifications),
         subjects = COALESCE($4, subjects),
-        hourly_rate = COALESCE($5, hourly_rate),
-        years_experience = COALESCE($6, years_experience),
-        profile_picture_url = COALESCE($7, profile_picture_url),
-        availability_status = COALESCE($8, availability_status),
+        module_codes = COALESCE($5, module_codes),
+        hourly_rate = COALESCE($6, hourly_rate),
+        years_experience = COALESCE($7, years_experience),
+        profile_picture_url = COALESCE($8, profile_picture_url),
+        availability_status = COALESCE($9, availability_status),
         updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = $9
+      WHERE user_id = $10
       RETURNING *
     `;
 
@@ -87,6 +108,7 @@ class TutorProfile {
       bio,
       qualifications,
       subjects,
+      moduleCodes,
       hourlyRate,
       yearsExperience,
       profilePictureUrl,
@@ -100,9 +122,14 @@ class TutorProfile {
   // Get all tutors (with optional filters)
   static async findAll(filters = {}) {
     let query = `
-      SELECT tp.*, u.email
+      SELECT 
+        tp.*,
+        u.email,
+        COUNT(r.id) as review_count,
+        COALESCE(AVG(r.rating), 0) as average_rating
       FROM tutor_profiles tp
       JOIN users u ON tp.user_id = u.id
+      LEFT JOIN reviews r ON r.tutor_id = tp.id AND r.is_published = true
       WHERE u.is_active = true
     `;
 
@@ -116,6 +143,13 @@ class TutorProfile {
       paramCount++;
     }
 
+    // Filter by module code (NEW)
+    if (filters.moduleCode) {
+      query += ` AND $${paramCount} = ANY(tp.module_codes)`;
+      queryParams.push(filters.moduleCode);
+      paramCount++;
+    }
+
     // Filter by availability
     if (filters.availabilityStatus) {
       query += ` AND tp.availability_status = $${paramCount}`;
@@ -123,7 +157,10 @@ class TutorProfile {
       paramCount++;
     }
 
-    query += ' ORDER BY tp.created_at DESC';
+    query += ` 
+      GROUP BY tp.id, u.email
+      ORDER BY tp.created_at DESC
+    `;
 
     const result = await pool.query(query, queryParams);
     return result.rows;
@@ -133,11 +170,12 @@ class TutorProfile {
   static async toggleAvailability(userId) {
     const query = `
       UPDATE tutor_profiles
-      SET availability_status = CASE 
-        WHEN availability_status = 'active' THEN 'inactive'
-        ELSE 'active'
-      END,
-      updated_at = CURRENT_TIMESTAMP
+      SET 
+        availability_status = CASE
+          WHEN availability_status = 'active' THEN 'inactive'
+          ELSE 'active'
+        END,
+        updated_at = CURRENT_TIMESTAMP
       WHERE user_id = $1
       RETURNING availability_status
     `;

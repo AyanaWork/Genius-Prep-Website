@@ -133,8 +133,7 @@ function TutorDashboard() {
 
               <div className="info-card">
                 <p className="info-text">
-                  🚀 Your tutor dashboard is under development. 
-                  Soon you'll be able to view bookings, messages, and more!
+                  The tutor dashboard is under development. 
                 </p>
               </div>
             </div>

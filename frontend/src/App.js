@@ -128,8 +128,8 @@ function Home() {
               <div className="text-5xl mb-4">📝</div>
               <h3 className="text-xl font-bold mb-3">Exam Preparation</h3>
               <p className="text-gray-600">
-                Specialized prep for NBT, SAT, and other standardized tests to 
-                maximize your scores.
+                Specialised prep for NBT, SAT, and other standardized tests to 
+                maximise your scores.
               </p>
             </div>
 
@@ -206,7 +206,7 @@ function Home() {
               <h3 className="text-xl font-bold mb-4">Genius Prep Tuition</h3>
               <p className="text-gray-400">
                 Empowering students across South Africa with quality education 
-                and personalized tutoring.
+                and personalised tutoring.
               </p>
             </div>
             <div>
@@ -226,7 +226,6 @@ function Home() {
           </div>
           <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
             <p>&copy; 2025 Genius Prep Tuition (PTY) LTD. All rights reserved.</p>
-            <p className="mt-2 text-sm">Platform developed by Ayana Modise</p>
           </div>
         </div>
       </footer>

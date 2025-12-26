@@ -138,8 +138,7 @@ function StudentDashboard() {
 
               <div className="info-card">
                 <p className="info-text">
-                  🚀 Your student dashboard is under development. 
-                  Soon you'll be able to find tutors, book sessions, and more!
+                  The student dashboard is under development. 
                 </p>
               </div>
             </div>
