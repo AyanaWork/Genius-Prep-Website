@@ -1,0 +1,55 @@
+:root {
+  /* Primary Colors - Dark Blue Family */
+  --primary-950: #0a1628;
+  --primary-900: #0f2744;
+  --primary-800: #1e3a5f;
+  --primary-700: #2d4d7b;
+  --primary-600: #3b5f97;
+  --primary-500: #4a71b3; /* Main Primary */
+  
+  /* Secondary Colors - Light Blue Family */
+  --secondary-500: #60a5fa; /* Main Secondary */
+  --secondary-400: #7db8fc;
+  --secondary-300: #9acbfe;
+  --secondary-200: #bde0ff;
+  --secondary-100: #dff0ff;
+  --secondary-50: #eff8ff;
+  
+  /* Accent Colors */
+  --accent-success: #10b981;
+  --accent-warning: #f59e0b;
+  --accent-error: #ef4444;
+  --accent-info: #3b82f6;
+  
+  /* Neutral Colors */
+  --gray-900: #111827;
+  --gray-800: #1f2937;
+  --gray-700: #374151;
+  --gray-600: #4b5563;
+  --gray-500: #6b7280;
+  --gray-400: #9ca3af;
+  --gray-300: #d1d5db;
+  --gray-200: #e5e7eb;
+  --gray-100: #f3f4f6;
+  --gray-50: #f9fafb;
+  
+  /* Backgrounds */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-dark: #0f2744;
+  
+  /* Text Colors */
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-on-dark: #ffffff;
+  
+  /* Borders */
+  --border-light: #e5e7eb;
+  --border-medium: #d1d5db;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
