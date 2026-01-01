@@ -26,7 +26,7 @@ function Home() {
               <a href="#services" className="text-gray-700 hover:text-primary-600 transition">
                 Services
               </a>
-              <a href="#tutors" className="text-gray-700 hover:text-primary-600 transition">
+              <a href="/tutors" className="text-gray-700 hover:text-primary-600 transition">
                 Find Tutors
               </a>
               <button

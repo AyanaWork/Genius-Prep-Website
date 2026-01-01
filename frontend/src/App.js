@@ -7,6 +7,8 @@ import TutorDashboard from './pages/tutor/TutorDashboard';
 import StudentDashboard from './pages/student/StudentDashboard';
 import TutorProfileForm from './pages/tutor/TutorProfileForm';
 import StudentProfileForm from './pages/student/StudentProfileForm';
+import PublicTutorProfile from './pages/tutor/PublicTutorProfile'; 
+import BrowseTutors from './pages/BrowseTutors';
 import authService from './services/auth';
 
 // Protected Route Component
@@ -31,6 +33,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/tutors" element={<BrowseTutors />} /> 
+        <Route path="/tutor/:id" element={<PublicTutorProfile />} />
         
         <Route 
           path="/tutor/dashboard" 
