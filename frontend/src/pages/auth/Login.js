@@ -41,7 +41,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-primary-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         {/* Logo/Brand Section */}
         <div className="text-center mb-8">
@@ -122,7 +122,7 @@ function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-primary-600 text-white rounded-lg text-sm font-semibold hover:bg-primary-700 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-secondary-500 text-white rounded-lg text-sm font-semibold hover:bg-primary-600 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>

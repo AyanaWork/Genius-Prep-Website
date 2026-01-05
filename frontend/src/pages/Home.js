@@ -1,4 +1,17 @@
 import React, { useState } from 'react';
+import book from '../assets/book.png';
+import upskill from '../assets/upskill.png';
+import examination from '../assets/examination.png';
+import graduation from '../assets/graduation.png';
+import homeschool from '../assets/homeschool.png';
+import relocate from '../assets/relocate2.png';
+import book2 from '../assets/book2.png';
+import ai from '../assets/ai.png';
+import computer from '../assets/computer.png';
+import whatYouNeed from '../assets/whatYouNeed.png';
+import weNeedYou from '../assets/weNeedYou.png';
+import startLearning from '../assets/startLearning.png';
+
 import { useNavigate } from 'react-router-dom';
 
 function Home() {
@@ -26,7 +39,7 @@ function Home() {
               <a href="#services" className="text-gray-700 hover:text-primary-600 transition">
                 Services
               </a>
-              <a href="/tutors" className="text-gray-700 hover:text-primary-600 transition">
+              <a href="#tutors" className="text-gray-700 hover:text-primary-600 transition">
                 Find Tutors
               </a>
               <button
@@ -37,7 +50,7 @@ function Home() {
               </button>
               <button
                 onClick={() => navigate('/register')}
-                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition shadow-md"
+                className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-700 transition shadow-md"
               >
                 Get Started
               </button>
@@ -67,7 +80,7 @@ function Home() {
               </button>
               <button
                 onClick={() => navigate('/register')}
-                className="block w-full px-6 py-2 bg-primary-600 text-white rounded-lg text-center"
+                className="block w-full px-6 py-2 bg-primary-500 text-white rounded-lg text-center"
               >
                 Get Started
               </button>
@@ -77,7 +90,7 @@ function Home() {
       </nav>
 
       {/* Hero Section - Redesigned */}
-      <section className="pt-24 pb-16 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900">
+      <section className="pt-24 pb-16 bg-primary-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
@@ -95,13 +108,13 @@ function Home() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={() => navigate('/register?role=student')}
-                  className="px-8 py-4 bg-secondary-500 text-white rounded-lg text-lg font-semibold hover:bg-secondary-600 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="px-8 py-4 bg-primary-500 text-white rounded-lg text-lg font-semibold hover:bg-primary-700 transition shadow-lg "
                 >
                   Find a Tutor
                 </button>
                 <button
                   onClick={() => navigate('/register?role=tutor')}
-                  className="px-8 py-4 bg-white text-primary-800 rounded-lg text-lg font-semibold hover:bg-gray-50 transition shadow-lg"
+                  className="px-8 py-4 bg-white text-primary-800 rounded-lg text-lg font-semibold hover:bg-gray-200 transition shadow-lg"
                 >
                   Become a Tutor
                 </button>
@@ -118,7 +131,7 @@ function Home() {
                   <div className="text-sm text-gray-300">Students Helped</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-secondary-400">4.9★</div>
+                  <div className="text-3xl font-bold text-secondary-400">4.9 ★</div>
                   <div className="text-sm text-gray-300">Average Rating</div>
                 </div>
               </div>
@@ -128,39 +141,54 @@ function Home() {
             <div className="hidden lg:block">
               <div className="relative">
                 <div className="absolute inset-0 bg-secondary-500/20 rounded-3xl blur-3xl"></div>
+
                 <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
                   <div className="space-y-4">
+
+                    {/* Book 2 */}
                     <div className="flex items-center gap-4 bg-white/10 p-4 rounded-xl">
-                      <div className="w-12 h-12 bg-secondary-500 rounded-full flex items-center justify-center text-2xl">
-                        📚
+                      <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center">
+                        <img src={book2} alt="Subjects" className="w-7 h-7" />
                       </div>
                       <div className="text-white">
                         <div className="font-semibold">All Subjects Covered</div>
-                        <div className="text-sm text-gray-300">Math, Science, Languages & More</div>
+                        <div className="text-sm text-gray-300">
+                          Math, Science, Languages & More
+                        </div>
                       </div>
                     </div>
+
+                    {/* Graduation */}
                     <div className="flex items-center gap-4 bg-white/10 p-4 rounded-xl">
-                      <div className="w-12 h-12 bg-secondary-500 rounded-full flex items-center justify-center text-2xl">
-                        🎓
+                      <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center">
+                        <img src={graduation} alt="Verified Tutors" className="w-7 h-7" />
                       </div>
                       <div className="text-white">
                         <div className="font-semibold">Verified Tutors</div>
-                        <div className="text-sm text-gray-300">Qualified & Background Checked</div>
+                        <div className="text-sm text-gray-300">
+                          Qualified & Background Checked
+                        </div>
                       </div>
                     </div>
+
+                    {/* Computer */}
                     <div className="flex items-center gap-4 bg-white/10 p-4 rounded-xl">
-                      <div className="w-12 h-12 bg-secondary-500 rounded-full flex items-center justify-center text-2xl">
-                        💻
+                      <div className="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center">
+                        <img src={computer} alt="Online Learning" className="w-7 h-7" />
                       </div>
                       <div className="text-white">
                         <div className="font-semibold">Online & In-Person</div>
-                        <div className="text-sm text-gray-300">Flexible Learning Options</div>
+                        <div className="text-sm text-gray-300">
+                          Flexible Learning Options
+                        </div>
                       </div>
                     </div>
+
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </section>
@@ -180,6 +208,11 @@ function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             {/* Step 1 */}
             <div className="bg-white rounded-2xl p-8 shadow-soft hover:shadow-hover transition text-center">
+              <img
+                src={whatYouNeed}
+                alt="Tell us what you need"
+                className="mx-auto mb-6 w-50 h-auto"
+              />
               <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl font-bold text-primary-600">1</span>
               </div>
@@ -193,6 +226,11 @@ function Home() {
 
             {/* Step 2 */}
             <div className="bg-white rounded-2xl p-8 shadow-soft hover:shadow-hover transition text-center">
+              <img
+                src={weNeedYou}
+                alt="We match you with a tutor"
+                className="mx-auto mb-6 w-50 h-auto"
+              />
               <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl font-bold text-secondary-600">2</span>
               </div>
@@ -206,6 +244,11 @@ function Home() {
 
             {/* Step 3 */}
             <div className="bg-white rounded-2xl p-8 shadow-soft hover:shadow-hover transition text-center">
+              <img
+                src={startLearning}
+                alt="Start learning"
+                className="mx-auto mb-6 w-50 h-auto "
+              />
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl font-bold text-green-600">3</span>
               </div>
@@ -221,7 +264,7 @@ function Home() {
           <div className="text-center mt-12">
             <button
               onClick={() => navigate('/register?role=student')}
-              className="px-10 py-4 bg-primary-600 text-white rounded-lg text-lg font-semibold hover:bg-primary-700 transition shadow-lg"
+              className="px-10 py-4 bg-primary-500 text-white rounded-lg text-lg font-semibold hover:bg-primary-700 transition shadow-lg"
             >
               Request a Tutor Now
             </button>
@@ -244,7 +287,9 @@ function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Service 1 */}
             <div className="bg-gradient-to-br from-primary-50 to-white rounded-2xl p-8 border border-primary-100 hover:border-primary-300 transition">
-              <div className="text-5xl mb-4">📚</div>
+              <div className="text-5xl mb-4">
+                <img src={book} alt="Tutoring" className="w-12 h-12 mb-4" />
+              </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
                 One-on-One Tutoring
               </h3>
@@ -260,7 +305,9 @@ function Home() {
 
             {/* Service 2 */}
             <div className="bg-gradient-to-br from-secondary-50 to-white rounded-2xl p-8 border border-secondary-100 hover:border-secondary-300 transition">
-              <div className="text-5xl mb-4">🏠</div>
+              <div className="text-5xl mb-4">
+                <img src={homeschool} alt="Homeschool" className="w-12 h-12 mb-4" />
+              </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
                 Homeschool Support
               </h3>
@@ -276,7 +323,9 @@ function Home() {
 
             {/* Service 3 */}
             <div className="bg-gradient-to-br from-green-50 to-white rounded-2xl p-8 border border-green-100 hover:border-green-300 transition">
-              <div className="text-5xl mb-4">✈️</div>
+              <div className="text-5xl mb-4">
+                <img src={relocate} alt="Relocation" className="w-16 h-16 mb-4" />
+              </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
                 Relocation Tutoring
               </h3>
@@ -292,7 +341,9 @@ function Home() {
 
             {/* Service 4 */}
             <div className="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-8 border border-purple-100 hover:border-purple-300 transition">
-              <div className="text-5xl mb-4">📝</div>
+              <div className="text-5xl mb-4">
+                <img src={examination} alt="Exams" className="w-12 h-12 mb-4" />
+              </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
                 Exam Preparation
               </h3>
@@ -308,7 +359,9 @@ function Home() {
 
             {/* Service 5 */}
             <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-8 border border-blue-100 hover:border-blue-300 transition">
-              <div className="text-5xl mb-4">🤖</div>
+              <div className="text-5xl mb-4">
+                <img src={ai} alt="AI Assistant" className="w-12 h-12 mb-4" />
+              </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
                 AI Study Assistant
               </h3>
@@ -324,7 +377,9 @@ function Home() {
 
             {/* Service 6 */}
             <div className="bg-gradient-to-br from-orange-50 to-white rounded-2xl p-8 border border-orange-100 hover:border-orange-300 transition">
-              <div className="text-5xl mb-4">💼</div>
+              <div className="text-5xl mb-4">
+                <img src={upskill} alt="Upskilling" className="w-12 h-12 mb-4" />
+              </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">
                 Upskilling Courses
               </h3>
@@ -342,7 +397,7 @@ function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-primary-900 to-primary-800">
+      <section className="py-20 bg-primary-950 ">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
             Ready to Excel in Your Studies?
@@ -353,13 +408,13 @@ function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => navigate('/register?role=student')}
-              className="px-10 py-4 bg-white text-primary-800 rounded-lg text-lg font-semibold hover:bg-gray-50 transition shadow-lg"
+              className="px-10 py-4 bg-white text-primary-800 rounded-lg text-lg font-semibold hover:bg-gray-200 transition shadow-lg"
             >
               Find Your Tutor
             </button>
             <button
               onClick={() => navigate('/register?role=tutor')}
-              className="px-10 py-4 bg-secondary-500 text-white rounded-lg text-lg font-semibold hover:bg-secondary-600 transition shadow-lg"
+              className="px-10 py-4 bg-primary-600 text-white rounded-lg text-lg font-semibold hover:bg-primary-700 transition shadow-lg"
             >
               Become a Tutor
             </button>
@@ -397,7 +452,6 @@ function Home() {
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
             <p>&copy; 2025 Genius Prep Tuition (PTY) LTD. All rights reserved.</p>
-            <p className="mt-2 text-sm">Platform developed by Ayana Modise</p>
           </div>
         </div>
       </footer>

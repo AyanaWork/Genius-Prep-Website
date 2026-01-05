@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import tutor from '../../assets/tutor.png';
+import student from '../../assets/student.png';
 import { useNavigate } from 'react-router-dom';
 import authService from '../../services/auth';
 
@@ -54,7 +56,7 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-primary-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         {/* Logo/Brand Section */}
         <div className="text-center mb-8">
@@ -146,7 +148,9 @@ function Register() {
                     className="sr-only"
                   />
                   <div className="text-center">
-                    <div className="text-3xl mb-2">🎓</div>
+                    <div className="text-3xl mb-2">
+                      <img src={student} alt="Student" className="w-12 h-12 mx-auto" />
+                    </div>
                     <div className={`font-semibold ${formData.role === 'student' ? 'text-primary-700' : 'text-gray-700'}`}>
                       Student
                     </div>
@@ -169,7 +173,9 @@ function Register() {
                     className="sr-only"
                   />
                   <div className="text-center">
-                    <div className="text-3xl mb-2">👨‍🏫</div>
+                    <div className="text-3xl mb-2">
+                      <img src={tutor} alt="Tutor" className="w-12 h-12 mx-auto" />
+                    </div>
                     <div className={`font-semibold ${formData.role === 'tutor' ? 'text-primary-700' : 'text-gray-700'}`}>
                       Tutor
                     </div>
@@ -182,7 +188,7 @@ function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-primary-600 text-white rounded-lg text-sm font-semibold hover:bg-primary-700 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-secondary-500 text-white rounded-lg text-sm font-semibold hover:bg-primary-600 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account...' : 'Register'}
             </button>
