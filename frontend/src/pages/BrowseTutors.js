@@ -11,6 +11,7 @@ function BrowseTutors() {
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({
     subject: '',
+    moduleCode: '',  // ADD THIS
     availabilityStatus: 'active'
   });
 
@@ -35,6 +36,31 @@ function BrowseTutors() {
 
   const handleSubjectFilter = (e) => {
     setFilters({ ...filters, subject: e.target.value });
+  };
+
+  // ADD THIS - Module code filter handler
+  const handleModuleCodeFilter = (e) => {
+    setFilters({ ...filters, moduleCode: e.target.value.toUpperCase() });
+  };
+
+  // ADD THIS - Clear all filters
+  const clearFilters = () => {
+    setFilters({
+      subject: '',
+      moduleCode: '',
+      availabilityStatus: 'active'
+    });
+  };
+
+  // ADD THIS - Get unique module codes from all tutors for suggestions
+  const getAllModuleCodes = () => {
+    const codes = new Set();
+    tutors.forEach(tutor => {
+      if (tutor.module_codes) {
+        tutor.module_codes.forEach(code => codes.add(code));
+      }
+    });
+    return Array.from(codes).sort();
   };
 
   return (
@@ -88,11 +114,12 @@ function BrowseTutors() {
         </div>
       </div>
 
-      {/* Filters Section */}
+      {/* Filters Section - UPDATED */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
+          <div className="grid md:grid-cols-3 gap-4 mb-4">
+            {/* Subject Filter */}
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Filter by Subject
               </label>
@@ -116,7 +143,27 @@ function BrowseTutors() {
                 <option value="Computer Science">Computer Science</option>
               </select>
             </div>
-            <div className="flex-1">
+
+            {/* MODULE CODE FILTER - NEW */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Filter by Module Code
+              </label>
+              <input
+                type="text"
+                value={filters.moduleCode}
+                onChange={handleModuleCodeFilter}
+                placeholder="e.g., WTW114, MAT101"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 uppercase"
+                maxLength={10}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter university module code
+              </p>
+            </div>
+
+            {/* Availability Filter */}
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Availability
               </label>
@@ -131,6 +178,36 @@ function BrowseTutors() {
               </select>
             </div>
           </div>
+
+          {/* Active Filters Display & Clear Button - NEW */}
+          {(filters.subject || filters.moduleCode || filters.availabilityStatus !== 'active') && (
+            <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
+              <span className="text-sm font-medium text-gray-700">Active filters:</span>
+              <div className="flex flex-wrap gap-2">
+                {filters.subject && (
+                  <span className="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
+                    Subject: {filters.subject}
+                  </span>
+                )}
+                {filters.moduleCode && (
+                  <span className="px-3 py-1 bg-secondary-100 text-secondary-700 rounded-full text-sm font-mono font-semibold">
+                    Module: {filters.moduleCode}
+                  </span>
+                )}
+                {filters.availabilityStatus !== 'active' && (
+                  <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+                    {filters.availabilityStatus === '' ? 'All statuses' : 'Not available'}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={clearFilters}
+                className="ml-auto text-sm text-primary-600 hover:text-primary-700 font-medium"
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Results Count */}
@@ -160,7 +237,13 @@ function BrowseTutors() {
           <div className="text-center py-12 bg-white rounded-xl">
             <div className="text-6xl mb-4">🔍</div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No tutors found</h3>
-            <p className="text-gray-600">Try adjusting your filters</p>
+            <p className="text-gray-600 mb-4">Try adjusting your filters</p>
+            <button
+              onClick={clearFilters}
+              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+            >
+              Clear Filters
+            </button>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -231,6 +314,28 @@ function BrowseTutors() {
                       </span>
                     )}
                   </div>
+
+                  {/* MODULE CODES - NEW DISPLAY */}
+                  {tutor.module_codes && tutor.module_codes.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs font-semibold text-gray-600 mb-2 text-center">Module Codes:</p>
+                      <div className="flex flex-wrap gap-2 justify-center">
+                        {tutor.module_codes.slice(0, 3).map((code, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-secondary-50 text-secondary-700 rounded text-xs font-mono font-semibold border border-secondary-200"
+                          >
+                            {code}
+                          </span>
+                        ))}
+                        {tutor.module_codes.length > 3 && (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                            +{tutor.module_codes.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Stats */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">

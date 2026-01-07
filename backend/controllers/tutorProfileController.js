@@ -68,16 +68,15 @@ exports.getTutorById = async (req, res) => {
 // Get all tutors with filters
 exports.getAllTutors = async (req, res) => {
   try {
-    const { subject, availabilityStatus } = req.query;
-    
+    const { subject, moduleCode, availabilityStatus } = req.query;  // Module code gets added here
+   
     const filters = {};
     if (subject) filters.subject = subject;
+    if (moduleCode) filters.moduleCode = moduleCode;  
     if (availabilityStatus) filters.availabilityStatus = availabilityStatus;
 
     const tutors = await TutorProfile.findAll(filters);
-
     res.json({ tutors, count: tutors.length });
-
   } catch (error) {
     console.error('Get tutors error:', error);
     res.status(500).json({ error: 'Failed to fetch tutors' });
