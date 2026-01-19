@@ -10,6 +10,7 @@ import location from '../../assets/location.png';
 import magnifier from '../../assets/magnifier.png';
 import notepad from '../../assets/notepad.png';
 import StarRating from '../../components/common/StarRating';
+import StudentBookings from '../../components/bookings/StudentBookings';
 
 function StudentDashboard() {
   const navigate = useNavigate();
@@ -196,6 +197,20 @@ function StudentDashboard() {
                 <p className="text-purple-100">Get help from GPA</p>
                 <span className="text-xs text-white/80 mt-2 block">(Coming soon)</span>
               </button>
+
+              <button
+                onClick={() => navigate('/gpa')}
+                className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-6 text-left hover:shadow-xl transition"
+              >
+                <div className="text-4xl mb-3">🤖</div>
+                <h3 className="text-xl font-bold mb-2">AI Assistant (GPA)</h3>
+                <p className="text-purple-100">Generate notes, tests & get AI help</p>
+              </button>
+            </div>
+
+            {/* My Bookings Section */}
+            <div className="bg-white rounded-xl shadow-md p-8">
+              <StudentBookings />
             </div>
 
             {/* My Reviews Section */}

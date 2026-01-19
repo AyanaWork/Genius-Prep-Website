@@ -4,6 +4,7 @@ import authService from '../../services/auth';
 import profileService from '../../services/profile';
 import reviewService from '../../services/review';
 import StarRating from '../../components/common/StarRating';
+import TutorBookings from '../../components/bookings/TutorBookings';
 
 function TutorDashboard() {
   const navigate = useNavigate();
@@ -253,6 +254,11 @@ function TutorDashboard() {
                   )}
                 </div>
               )}
+            </div>
+
+            {/* Booking Requests Section */}
+            <div className="bg-white rounded-xl shadow-md p-8">
+              <TutorBookings />
             </div>
 
             {/* Quick Links */}

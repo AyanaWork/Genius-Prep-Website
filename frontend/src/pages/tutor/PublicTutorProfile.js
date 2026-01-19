@@ -6,6 +6,9 @@ import authService from '../../services/auth';
 import StarRating from '../../components/common/StarRating';
 import ReviewsList from '../../components/reviews/ReviewsList';
 import ReviewForm from '../../components/reviews/ReviewForm';
+import BookingForm from '../../components/bookings/BookingForm';
+import bookingService from '../../services/booking';
+
 
 function PublicTutorProfile() {
   const { id } = useParams();
@@ -17,6 +20,7 @@ function PublicTutorProfile() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
   const [canReview, setCanReview] = useState(false);
+  const [showBookingForm, setShowBookingForm] = useState(false);
   
   const currentUser = authService.getCurrentUser();
   const isStudent = currentUser?.role === 'student';
@@ -27,6 +31,11 @@ function PublicTutorProfile() {
       checkCanReview();
     }
   }, [id]);
+
+  useEffect(() => {
+    console.log('Tutor ID from URL:', id);
+    console.log('Current User:', currentUser);
+  }, [id, currentUser]);
 
   const loadTutorProfile = async () => {
     try {
@@ -74,8 +83,22 @@ function PublicTutorProfile() {
       navigate('/login');
       return;
     }
-    // For now, show alert - you'll build booking system later
-    alert('Booking system coming soon! For now, contact the tutor directly.');
+    if (currentUser.role !== 'student') {
+      alert('Only students can request tutors');
+      return;
+    }
+    setShowBookingForm(true);
+  };
+
+  const handleBookingSubmit = async (bookingData) => {
+    try {
+      await bookingService.createBooking(bookingData);
+      setShowBookingForm(false);
+      alert('Booking request sent successfully! The tutor will respond soon.');
+
+    } catch (err) {
+      throw err;
+    }
   };
 
   if (loading) {
@@ -239,6 +262,16 @@ function PublicTutorProfile() {
                 >
                   {editingReview ? 'Edit Your Review' : 'Write a Review'}
                 </button>
+              )}
+
+              {/* Booking Form */}
+              {showBookingForm && (
+                <BookingForm
+                  tutorId={parseInt(id)}
+                  tutorName={tutor.display_name}
+                  onSubmit={handleBookingSubmit}
+                  onCancel={() => setShowBookingForm(false)}
+                />
               )}
             </div>
           </div>

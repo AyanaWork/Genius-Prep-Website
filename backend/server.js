@@ -9,6 +9,9 @@ const tutorRoutes = require('./routes/tutorRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
+const gpaRoutes = require('./routes/gpaRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -40,8 +43,12 @@ app.use('/api/tutors', tutorRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/bookings', bookingRoutes); 
+app.use('/api/gpa', gpaRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Test database connection: http://localhost:${PORT}/api/test-db`);
 });

@@ -19,6 +19,7 @@ CREATE TABLE tutor_profiles (
     bio TEXT,
     qualifications TEXT,
     subjects TEXT[],
+    module_codes TEXT[],
     hourly_rate DECIMAL(10, 2),
     is_elite BOOLEAN DEFAULT FALSE,
     availability_status VARCHAR(20) DEFAULT 'active' CHECK (availability_status IN ('active', 'inactive')),
@@ -59,9 +60,23 @@ CREATE TABLE bookings (
     tutor_id INTEGER REFERENCES tutor_profiles(id) ON DELETE CASCADE,
     subject VARCHAR(255),
     message TEXT,
+    preferred_date DATE, 
+    preferred_time TIME, 
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'completed', 'cancelled')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE gpa_subscriptions (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    subscription_type VARCHAR(20) CHECK (subscription_type IN ('annual', 'semester')),
+    amount DECMINAL(10,2) NOT NULL,
+    start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_date TIMESTAMP NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    payment_reference VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create indexes for better performance
@@ -71,3 +86,4 @@ CREATE INDEX idx_student_profiles_user_id ON student_profiles(user_id);
 CREATE INDEX idx_reviews_tutor_id ON reviews(tutor_id);
 CREATE INDEX idx_bookings_student_id ON bookings(student_id);
 CREATE INDEX idx_bookings_tutor_id ON bookings(tutor_id);
+CREATE INDEX idx_gpa_subscriptions_user_id ON gpa_subscriptions(user_id);

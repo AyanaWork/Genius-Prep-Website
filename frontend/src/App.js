@@ -6,10 +6,12 @@ import Register from './pages/auth/Register';
 import TutorDashboard from './pages/tutor/TutorDashboard';
 import StudentDashboard from './pages/student/StudentDashboard';
 import TutorProfileForm from './pages/tutor/TutorProfileForm';
-import StudentProfileForm from './pages/student/StudentProfileForm';
-import PublicTutorProfile from './pages/tutor/PublicTutorProfile'; 
+import StudentProfileForm from './pages/student/StudentProfileForm'; 
+import PublicTutorProfile from './pages/tutor/PublicTutorProfile';
 import BrowseTutors from './pages/BrowseTutors';
 import authService from './services/auth';
+import GPADashboard from './pages/GPA/GPADashboard';
+import AdminPanel from './pages/Admin/AdminPanel';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRole }) {
@@ -34,7 +36,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/tutors" element={<BrowseTutors />} /> 
-        <Route path="/tutor/:id" element={<PublicTutorProfile />} />
+        <Route path="/tutors/:id" element={<PublicTutorProfile />} />
         
         <Route 
           path="/tutor/dashboard" 
@@ -73,6 +75,19 @@ function App() {
         />
 
         <Route path="*" element={<Navigate to="/" />} />
+
+        {/* GPA Route (both students and tutors can access) */}
+        <Route
+          path="/gpa"
+          element={
+            <ProtectedRoute>
+              <GPADashboard />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route path="/admin" element={<AdminPanel />} />
+        
       </Routes>
     </Router>
   );

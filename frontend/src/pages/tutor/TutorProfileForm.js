@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import profileService from '../../services/profile';
 import ImageUpload from '../../components/common/ImageUpload';
-import ModuleCodeInput from '../../components/common/ModuleCodeInput';
 import './TutorProfileForm.css';
 
 const SUBJECT_OPTIONS = [
@@ -16,13 +15,13 @@ function TutorProfileForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
- 
+  const [moduleCodes, setModuleCodes] = useState('');
+  
   const [formData, setFormData] = useState({
     displayName: '',
     bio: '',
     qualifications: '',
     subjects: [],
-    moduleCodes: [],  // ADD THIS
     hourlyRate: '',
     yearsExperience: '',
     profilePictureUrl: null
@@ -42,13 +41,14 @@ function TutorProfileForm() {
           bio: response.profile.bio || '',
           qualifications: response.profile.qualifications || '',
           subjects: response.profile.subjects || [],
-          moduleCodes: response.profile.module_codes || [],  // ADD THIS
+          moduleCodes: response.profile.module_codes || [],
           hourlyRate: response.profile.hourly_rate || '',
           yearsExperience: response.profile.years_experience || '',
           profilePictureUrl: response.profile.profile_picture_url || null
         });
       }
     } catch (err) {
+      // Profile doesn't exist yet, that's fine
       console.log('No existing profile');
     }
   };
@@ -67,14 +67,6 @@ function TutorProfileForm() {
       subjects: prev.subjects.includes(subject)
         ? prev.subjects.filter(s => s !== subject)
         : [...prev.subjects, subject]
-    }));
-  };
-
-  // ADD THIS - Handler for module codes
-  const handleModuleCodesChange = (newModuleCodes) => {
-    setFormData(prev => ({
-      ...prev,
-      moduleCodes: newModuleCodes
     }));
   };
 
@@ -125,7 +117,7 @@ function TutorProfileForm() {
         bio: formData.bio,
         qualifications: formData.qualifications,
         subjects: formData.subjects,
-        moduleCodes: formData.moduleCodes,  // ADD THIS
+        moduleCodes: moduleCodes.split(',').map(c => c.trim()).filter(Boolean),
         hourlyRate: parseFloat(formData.hourlyRate) || null,
         yearsExperience: parseInt(formData.yearsExperience) || null,
         profilePictureUrl: formData.profilePictureUrl
@@ -135,6 +127,7 @@ function TutorProfileForm() {
       setTimeout(() => {
         navigate('/tutor/dashboard');
       }, 2000);
+
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to save profile');
     } finally {
@@ -156,6 +149,7 @@ function TutorProfileForm() {
               {error}
             </div>
           )}
+
           {success && (
             <div className="message success-message">
               {success}
@@ -239,18 +233,23 @@ function TutorProfileForm() {
             <p className="form-hint">Select all subjects you can teach</p>
           </div>
 
-          {/* MODULE CODES - NEW SECTION */}
           <div className="form-group">
             <label className="form-label">
               University Module Codes
             </label>
-            <ModuleCodeInput
-              moduleCodes={formData.moduleCodes}
-              onChange={handleModuleCodesChange}
+            <input
+              type="text"
+              value={moduleCodes}
+              onChange={(e) => setModuleCodes(e.target.value)}
+              className="form-input"
+              placeholder="e.g., WTW114, PHY161, COS110 (comma-separated)"
             />
+            <p className="form-hint">
+              Add university module codes you can tutor. Separate with commas.
+            </p>
           </div>
 
-          {/* Hourly Rate & Years Experience */}
+          {/* Hourly Rate */}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="hourlyRate" className="form-label">
