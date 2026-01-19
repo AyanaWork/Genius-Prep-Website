@@ -1,12 +1,12 @@
 const openaiService = require('../services/openai');
 const pool = require('../config/database');
 
-// Check if user has active GPA subscription
+// FIXED: Check if user has active GPA subscription
 async function checkSubscription(userId) {
   const query = `
-    SELECT * FROM gpa_subscriptions 
-    WHERE user_id = $1 
-    AND is_active = true 
+    SELECT * FROM gpa_subscriptions
+    WHERE user_id = $1
+    AND is_active = true
     AND end_date > CURRENT_TIMESTAMP
     ORDER BY end_date DESC
     LIMIT 1
@@ -14,6 +14,41 @@ async function checkSubscription(userId) {
   
   const result = await pool.query(query, [userId]);
   return result.rows[0] || null;
+}
+
+// Middleware to enforce subscription check
+async function requireSubscription(req, res, next) {
+  try {
+    const subscription = await checkSubscription(req.userId);
+    
+    if (!subscription) {
+      return res.status(403).json({
+        error: 'GPA subscription required',
+        requiresSubscription: true,
+        message: 'Subscribe to GPA to access AI-powered study tools',
+        prices: {
+          annual: 700,
+          semester: 450
+        }
+      });
+    }
+    
+    // Check if subscription is about to expire (within 7 days)
+    const daysRemaining = Math.ceil((new Date(subscription.end_date) - new Date()) / (1000 * 60 * 60 * 24));
+    
+    if (daysRemaining <= 7) {
+      res.locals.subscriptionWarning = {
+        daysRemaining,
+        expiryDate: subscription.end_date
+      };
+    }
+    
+    req.subscription = subscription;
+    next();
+  } catch (error) {
+    console.error('Subscription check error:', error);
+    return res.status(500).json({ error: 'Failed to verify subscription' });
+  }
 }
 
 // Generate study notes
@@ -30,7 +65,7 @@ exports.generateNotes = async (req, res) => {
     // Check subscription
     const subscription = await checkSubscription(userId);
     if (!subscription) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'GPA subscription required',
         requiresSubscription: true,
         message: 'Subscribe to GPA to access AI-powered study tools'
@@ -45,7 +80,8 @@ exports.generateNotes = async (req, res) => {
       notes: result.content,
       topic,
       educationLevel: educationLevel || 'university',
-      generatedAt: new Date()
+      generatedAt: new Date(),
+      subscriptionWarning: res.locals.subscriptionWarning
     });
 
   } catch (error) {
@@ -68,17 +104,17 @@ exports.generateTest = async (req, res) => {
     // Check subscription
     const subscription = await checkSubscription(userId);
     if (!subscription) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'GPA subscription required',
-        requiresSubscription: true 
+        requiresSubscription: true
       });
     }
 
     // Generate test using OpenAI
     const result = await openaiService.generateTest(
-      subject, 
-      topics, 
-      numQuestions || 10, 
+      subject,
+      topics,
+      numQuestions || 10,
       difficulty || 'medium'
     );
 
@@ -87,7 +123,8 @@ exports.generateTest = async (req, res) => {
       test: result.content,
       subject,
       topics,
-      generatedAt: new Date()
+      generatedAt: new Date(),
+      subscriptionWarning: res.locals.subscriptionWarning
     });
 
   } catch (error) {
@@ -110,9 +147,9 @@ exports.answerQuestion = async (req, res) => {
     // Check subscription
     const subscription = await checkSubscription(userId);
     if (!subscription) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'GPA subscription required',
-        requiresSubscription: true 
+        requiresSubscription: true
       });
     }
 
@@ -123,7 +160,8 @@ exports.answerQuestion = async (req, res) => {
       success: true,
       answer: result.content,
       question,
-      answeredAt: new Date()
+      answeredAt: new Date(),
+      subscriptionWarning: res.locals.subscriptionWarning
     });
 
   } catch (error) {
@@ -146,9 +184,9 @@ exports.analyzeContent = async (req, res) => {
     // Check subscription
     const subscription = await checkSubscription(userId);
     if (!subscription) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'GPA subscription required',
-        requiresSubscription: true 
+        requiresSubscription: true
       });
     }
 
@@ -159,7 +197,8 @@ exports.analyzeContent = async (req, res) => {
       success: true,
       analysis: result.content,
       analysisType: analysisType || 'summary',
-      analyzedAt: new Date()
+      analyzedAt: new Date(),
+      subscriptionWarning: res.locals.subscriptionWarning
     });
 
   } catch (error) {
@@ -168,91 +207,22 @@ exports.analyzeContent = async (req, res) => {
   }
 };
 
-// Translate content
-exports.translateContent = async (req, res) => {
-  try {
-    const userId = req.userId;
-    const { content, targetLanguage } = req.body;
-
-    // Validation
-    if (!content || !targetLanguage) {
-      return res.status(400).json({ error: 'Content and target language are required' });
-    }
-
-    // Check subscription
-    const subscription = await checkSubscription(userId);
-    if (!subscription) {
-      return res.status(403).json({ 
-        error: 'GPA subscription required',
-        requiresSubscription: true 
-      });
-    }
-
-    // Translate using OpenAI
-    const result = await openaiService.translateContent(content, targetLanguage);
-
-    res.json({
-      success: true,
-      translation: result.content,
-      targetLanguage,
-      translatedAt: new Date()
-    });
-
-  } catch (error) {
-    console.error('Translate content error:', error);
-    res.status(500).json({ error: 'Failed to translate content' });
-  }
-};
-
-// Generate memo
-exports.generateMemo = async (req, res) => {
-  try {
-    const userId = req.userId;
-    const { questions } = req.body;
-
-    // Validation
-    if (!questions) {
-      return res.status(400).json({ error: 'Questions are required' });
-    }
-
-    // Check subscription
-    const subscription = await checkSubscription(userId);
-    if (!subscription) {
-      return res.status(403).json({ 
-        error: 'GPA subscription required',
-        requiresSubscription: true 
-      });
-    }
-
-    // Generate memo using OpenAI
-    const result = await openaiService.generateMemo(questions);
-
-    res.json({
-      success: true,
-      memo: result.content,
-      generatedAt: new Date()
-    });
-
-  } catch (error) {
-    console.error('Generate memo error:', error);
-    res.status(500).json({ error: 'Failed to generate memo' });
-  }
-};
-
 // Check subscription status
 exports.checkSubscriptionStatus = async (req, res) => {
   try {
     const userId = req.userId;
-
     const subscription = await checkSubscription(userId);
 
     if (subscription) {
+      const daysRemaining = Math.ceil((new Date(subscription.end_date) - new Date()) / (1000 * 60 * 60 * 24));
+      
       res.json({
         hasSubscription: true,
         subscription: {
           type: subscription.subscription_type,
           endDate: subscription.end_date,
-          daysRemaining: Math.ceil((new Date(subscription.end_date) - new Date()) / (1000 * 60 * 60 * 24))
+          daysRemaining,
+          amount: subscription.amount
         }
       });
     } else {
@@ -265,7 +235,6 @@ exports.checkSubscriptionStatus = async (req, res) => {
         }
       });
     }
-
   } catch (error) {
     console.error('Check subscription error:', error);
     res.status(500).json({ error: 'Failed to check subscription' });
@@ -298,7 +267,7 @@ exports.createSubscription = async (req, res) => {
 
     // Create subscription
     const query = `
-      INSERT INTO gpa_subscriptions 
+      INSERT INTO gpa_subscriptions
       (user_id, subscription_type, amount, start_date, end_date, payment_reference, is_active)
       VALUES ($1, $2, $3, $4, $5, $6, true)
       RETURNING *
