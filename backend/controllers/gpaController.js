@@ -1,9 +1,12 @@
 const openaiService = require('../services/openai');
 const pool = require('../config/database');
 
-// FIXED: Check if user has active GPA subscription
-async function checkSubscription(userId) {
-  const query = `
+const FREE_USAGE_LIMIT = 5;
+
+// Check if user has active GPA subscription OR free tier access
+async function checkGPAAccess(userId) {
+  // Check for subscription
+  const subQuery = `
     SELECT * FROM gpa_subscriptions
     WHERE user_id = $1
     AND is_active = true
@@ -12,43 +15,49 @@ async function checkSubscription(userId) {
     LIMIT 1
   `;
   
-  const result = await pool.query(query, [userId]);
-  return result.rows[0] || null;
+  const subResult = await pool.query(subQuery, [userId]);
+  
+  if (subResult.rows[0]) {
+    return {
+      hasAccess: true,
+      type: 'subscription',
+      subscription: subResult.rows[0]
+    };
+  }
+
+  // Check free tier usage
+  const usageQuery = `SELECT * FROM gpa_usage WHERE user_id = $1`;
+  let usageResult = await pool.query(usageQuery, [userId]);
+  
+  // Create usage record if doesn't exist
+  if (usageResult.rows.length === 0) {
+    const createQuery = `INSERT INTO gpa_usage (user_id, usage_count) VALUES ($1, 0) RETURNING *`;
+    usageResult = await pool.query(createQuery, [userId]);
+  }
+  
+  const usage = usageResult.rows[0];
+  
+  if (usage.usage_count < FREE_USAGE_LIMIT) {
+    return {
+      hasAccess: true,
+      type: 'free',
+      remaining: FREE_USAGE_LIMIT - usage.usage_count,
+      usageCount: usage.usage_count
+    };
+  }
+  
+  return {
+    hasAccess: false,
+    type: 'limit_reached',
+    usageCount: usage.usage_count
+  };
 }
 
-// Middleware to enforce subscription check
-async function requireSubscription(req, res, next) {
-  try {
-    const subscription = await checkSubscription(req.userId);
-    
-    if (!subscription) {
-      return res.status(403).json({
-        error: 'GPA subscription required',
-        requiresSubscription: true,
-        message: 'Subscribe to GPA to access AI-powered study tools',
-        prices: {
-          annual: 700,
-          semester: 450
-        }
-      });
-    }
-    
-    // Check if subscription is about to expire (within 7 days)
-    const daysRemaining = Math.ceil((new Date(subscription.end_date) - new Date()) / (1000 * 60 * 60 * 24));
-    
-    if (daysRemaining <= 7) {
-      res.locals.subscriptionWarning = {
-        daysRemaining,
-        expiryDate: subscription.end_date
-      };
-    }
-    
-    req.subscription = subscription;
-    next();
-  } catch (error) {
-    console.error('Subscription check error:', error);
-    return res.status(500).json({ error: 'Failed to verify subscription' });
-  }
+// Increment usage counter
+async function incrementUsage(userId) {
+  const query = `UPDATE gpa_usage SET usage_count = usage_count + 1 WHERE user_id = $1 RETURNING usage_count`;
+  const result = await pool.query(query, [userId]);
+  return result.rows[0];
 }
 
 // Generate study notes
@@ -57,23 +66,26 @@ exports.generateNotes = async (req, res) => {
     const userId = req.userId;
     const { topic, educationLevel } = req.body;
 
-    // Validation
     if (!topic) {
       return res.status(400).json({ error: 'Topic is required' });
     }
 
-    // Check subscription
-    const subscription = await checkSubscription(userId);
-    if (!subscription) {
+    const access = await checkGPAAccess(userId);
+    
+    if (!access.hasAccess) {
       return res.status(403).json({
-        error: 'GPA subscription required',
+        error: 'GPA usage limit reached',
         requiresSubscription: true,
-        message: 'Subscribe to GPA to access AI-powered study tools'
+        message: `You've used all ${FREE_USAGE_LIMIT} free AI generations. Subscribe to GPA for unlimited access!`,
+        prices: { annual: 700, semester: 450 }
       });
     }
 
-    // Generate notes using OpenAI
     const result = await openaiService.generateNotes(topic, educationLevel || 'university');
+
+    if (access.type === 'free') {
+      await incrementUsage(userId);
+    }
 
     res.json({
       success: true,
@@ -81,12 +93,14 @@ exports.generateNotes = async (req, res) => {
       topic,
       educationLevel: educationLevel || 'university',
       generatedAt: new Date(),
-      subscriptionWarning: res.locals.subscriptionWarning
+      accessInfo: access.type === 'free' ? {
+        remaining: access.remaining - 1,
+        limit: FREE_USAGE_LIMIT
+      } : { type: 'unlimited' }
     });
-
   } catch (error) {
     console.error('Generate notes error:', error);
-    res.status(500).json({ error: 'Failed to generate notes' });
+    res.status(500).json({ error: error.message || 'Failed to generate notes' });
   }
 };
 
@@ -96,21 +110,20 @@ exports.generateTest = async (req, res) => {
     const userId = req.userId;
     const { subject, topics, numQuestions, difficulty } = req.body;
 
-    // Validation
     if (!subject || !topics) {
       return res.status(400).json({ error: 'Subject and topics are required' });
     }
 
-    // Check subscription
-    const subscription = await checkSubscription(userId);
-    if (!subscription) {
+    const access = await checkGPAAccess(userId);
+    
+    if (!access.hasAccess) {
       return res.status(403).json({
-        error: 'GPA subscription required',
-        requiresSubscription: true
+        error: 'GPA usage limit reached',
+        requiresSubscription: true,
+        message: `You've used all ${FREE_USAGE_LIMIT} free AI generations. Subscribe to GPA for unlimited access!`
       });
     }
 
-    // Generate test using OpenAI
     const result = await openaiService.generateTest(
       subject,
       topics,
@@ -118,18 +131,24 @@ exports.generateTest = async (req, res) => {
       difficulty || 'medium'
     );
 
+    if (access.type === 'free') {
+      await incrementUsage(userId);
+    }
+
     res.json({
       success: true,
       test: result.content,
       subject,
       topics,
       generatedAt: new Date(),
-      subscriptionWarning: res.locals.subscriptionWarning
+      accessInfo: access.type === 'free' ? {
+        remaining: access.remaining - 1,
+        limit: FREE_USAGE_LIMIT
+      } : { type: 'unlimited' }
     });
-
   } catch (error) {
     console.error('Generate test error:', error);
-    res.status(500).json({ error: 'Failed to generate test' });
+    res.status(500).json({ error: error.message || 'Failed to generate test' });
   }
 };
 
@@ -139,34 +158,37 @@ exports.answerQuestion = async (req, res) => {
     const userId = req.userId;
     const { question, context } = req.body;
 
-    // Validation
     if (!question) {
       return res.status(400).json({ error: 'Question is required' });
     }
 
-    // Check subscription
-    const subscription = await checkSubscription(userId);
-    if (!subscription) {
+    const access = await checkGPAAccess(userId);
+    
+    if (!access.hasAccess) {
       return res.status(403).json({
-        error: 'GPA subscription required',
+        error: 'GPA usage limit reached',
         requiresSubscription: true
       });
     }
 
-    // Get answer from OpenAI
     const result = await openaiService.answerQuestion(question, context);
+
+    if (access.type === 'free') {
+      await incrementUsage(userId);
+    }
 
     res.json({
       success: true,
       answer: result.content,
       question,
       answeredAt: new Date(),
-      subscriptionWarning: res.locals.subscriptionWarning
+      accessInfo: access.type === 'free' ? {
+        remaining: access.remaining - 1
+      } : { type: 'unlimited' }
     });
-
   } catch (error) {
     console.error('Answer question error:', error);
-    res.status(500).json({ error: 'Failed to answer question' });
+    res.status(500).json({ error: error.message || 'Failed to answer question' });
   }
 };
 
@@ -176,34 +198,37 @@ exports.analyzeContent = async (req, res) => {
     const userId = req.userId;
     const { content, analysisType } = req.body;
 
-    // Validation
     if (!content) {
       return res.status(400).json({ error: 'Content is required' });
     }
 
-    // Check subscription
-    const subscription = await checkSubscription(userId);
-    if (!subscription) {
+    const access = await checkGPAAccess(userId);
+    
+    if (!access.hasAccess) {
       return res.status(403).json({
-        error: 'GPA subscription required',
+        error: 'GPA usage limit reached',
         requiresSubscription: true
       });
     }
 
-    // Analyze using OpenAI
     const result = await openaiService.analyzeContent(content, analysisType || 'summary');
+
+    if (access.type === 'free') {
+      await incrementUsage(userId);
+    }
 
     res.json({
       success: true,
       analysis: result.content,
       analysisType: analysisType || 'summary',
       analyzedAt: new Date(),
-      subscriptionWarning: res.locals.subscriptionWarning
+      accessInfo: access.type === 'free' ? {
+        remaining: access.remaining - 1
+      } : { type: 'unlimited' }
     });
-
   } catch (error) {
     console.error('Analyze content error:', error);
-    res.status(500).json({ error: 'Failed to analyze content' });
+    res.status(500).json({ error: error.message || 'Failed to analyze content' });
   }
 };
 
@@ -211,28 +236,33 @@ exports.analyzeContent = async (req, res) => {
 exports.checkSubscriptionStatus = async (req, res) => {
   try {
     const userId = req.userId;
-    const subscription = await checkSubscription(userId);
+    const access = await checkGPAAccess(userId);
 
-    if (subscription) {
-      const daysRemaining = Math.ceil((new Date(subscription.end_date) - new Date()) / (1000 * 60 * 60 * 24));
-      
+    if (access.hasAccess && access.type === 'subscription') {
       res.json({
         hasSubscription: true,
         subscription: {
-          type: subscription.subscription_type,
-          endDate: subscription.end_date,
-          daysRemaining,
-          amount: subscription.amount
+          type: access.subscription.subscription_type,
+          endDate: access.subscription.end_date,
+          daysRemaining: Math.ceil((new Date(access.subscription.end_date) - new Date()) / (1000 * 60 * 60 * 24))
         }
+      });
+    } else if (access.hasAccess && access.type === 'free') {
+      res.json({
+        hasSubscription: false,
+        freeTier: {
+          used: access.usageCount,
+          remaining: access.remaining,
+          limit: FREE_USAGE_LIMIT
+        },
+        prices: { annual: 700, semester: 450 }
       });
     } else {
       res.json({
         hasSubscription: false,
-        message: 'No active GPA subscription',
-        prices: {
-          annual: 700,
-          semester: 450
-        }
+        limitReached: true,
+        message: 'You have used all your free AI generations. Subscribe to continue.',
+        prices: { annual: 700, semester: 450 }
       });
     }
   } catch (error) {
@@ -241,18 +271,16 @@ exports.checkSubscriptionStatus = async (req, res) => {
   }
 };
 
-// Create subscription (for now, manual/admin only)
+// Create subscription
 exports.createSubscription = async (req, res) => {
   try {
     const userId = req.userId;
     const { subscriptionType, paymentReference } = req.body;
 
-    // Validation
     if (!subscriptionType || !['annual', 'semester'].includes(subscriptionType)) {
       return res.status(400).json({ error: 'Invalid subscription type' });
     }
 
-    // Calculate dates and amount
     const startDate = new Date();
     const endDate = new Date();
     let amount;
@@ -265,7 +293,6 @@ exports.createSubscription = async (req, res) => {
       amount = 450;
     }
 
-    // Create subscription
     const query = `
       INSERT INTO gpa_subscriptions
       (user_id, subscription_type, amount, start_date, end_date, payment_reference, is_active)
@@ -287,7 +314,6 @@ exports.createSubscription = async (req, res) => {
       message: 'GPA subscription activated!',
       subscription: result.rows[0]
     });
-
   } catch (error) {
     console.error('Create subscription error:', error);
     res.status(500).json({ error: 'Failed to create subscription' });

@@ -12,6 +12,7 @@ import BrowseTutors from './pages/BrowseTutors';
 import authService from './services/auth';
 import GPADashboard from './pages/GPA/GPADashboard';
 import AdminPanel from './pages/Admin/AdminPanel';
+import { PaymentSuccess, PaymentCancel } from './pages/Payment/PaymentPages';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRole }) {
@@ -87,7 +88,9 @@ function App() {
         />
         
         <Route path="/admin" element={<AdminPanel />} />
-        
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/payment/cancel" element={<PaymentCancel />} />
+
       </Routes>
     </Router>
   );

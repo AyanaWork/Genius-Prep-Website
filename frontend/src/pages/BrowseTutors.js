@@ -158,7 +158,7 @@ function BrowseTutors() {
         {/* Tutors Grid */}
         {!loading && tutors.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl">
-            <div className="text-6xl mb-4">🔍</div>
+            <div className="text-6xl mb-4">🔍︎</div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No tutors found</h3>
             <p className="text-gray-600">Try adjusting your filters</p>
           </div>
@@ -174,7 +174,7 @@ function BrowseTutors() {
                 <div className="h-32 bg-gradient-to-br from-primary-500 to-primary-600 relative">
                   {tutor.is_elite && (
                     <div className="absolute top-3 right-3 px-3 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-bold">
-                      ⭐ Elite
+                      ★ Elite
                     </div>
                   )}
                 </div>

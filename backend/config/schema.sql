@@ -79,6 +79,27 @@ CREATE TABLE gpa_subscriptions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS gpa_usage (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    usage_count INTEGER DEFAULT 0,
+    last_reset_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Payment tracking table
+CREATE TABLE IF NOT EXISTS payment_pending (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    payment_id VARCHAR(255) UNIQUE NOT NULL,
+    payfast_payment_id VARCHAR(255),
+    subscription_type VARCHAR(20) CHECK (subscription_type IN ('annual', 'semester')),
+    amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_tutor_profiles_user_id ON tutor_profiles(user_id);
@@ -87,3 +108,6 @@ CREATE INDEX idx_reviews_tutor_id ON reviews(tutor_id);
 CREATE INDEX idx_bookings_student_id ON bookings(student_id);
 CREATE INDEX idx_bookings_tutor_id ON bookings(tutor_id);
 CREATE INDEX idx_gpa_subscriptions_user_id ON gpa_subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_gpa_usage_user_id ON gpa_usage(user_id);
+CREATE INDEX IF NOT EXISTS idx_payment_pending_user_id ON payment_pending(user_id);
+CREATE INDEX IF NOT EXISTS idx_payment_pending_payment_id ON payment_pending(payment_id);

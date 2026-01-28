@@ -1,6 +1,6 @@
 .dashboard {
   min-height: 100vh;
-  background-color: #F9FAFB;
+  background-color: #f9fafb;
 }
 
 .dashboard-nav {
@@ -21,14 +21,14 @@
 .nav-title {
   font-size: 20px;
   font-weight: bold;
-  color: #4F46E5;
+  color: #4f46e5;
 }
 
 .btn-logout {
   padding: 8px 16px;
   background-color: white;
-  color: #DC2626;
-  border: 1px solid #FCA5A5;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -37,7 +37,7 @@
 }
 
 .btn-logout:hover {
-  background-color: #FEE2E2;
+  background-color: #fee2e2;
 }
 
 .dashboard-content {
@@ -54,7 +54,7 @@
   text-align: center;
   padding: 40px;
   font-size: 18px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 /* Welcome Card (No Profile Yet) */
@@ -75,7 +75,7 @@
 
 .welcome-text {
   font-size: 18px;
-  color: #6B7280;
+  color: #6b7280;
   margin-bottom: 32px;
   max-width: 500px;
   margin-left: auto;
@@ -94,22 +94,22 @@
 }
 
 .btn-primary {
-  background-color: #4F46E5;
+  background-color: #4f46e5;
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #4338CA;
+  background-color: #4338ca;
 }
 
 .btn-secondary {
   background-color: white;
   color: #374151;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #d1d5db;
 }
 
 .btn-secondary:hover {
-  background-color: #F9FAFB;
+  background-color: #f9fafb;
 }
 
 .btn-large {
@@ -131,7 +131,7 @@
   gap: 24px;
   margin-bottom: 32px;
   padding-bottom: 32px;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .profile-avatar {
@@ -139,7 +139,7 @@
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #4F46E5;
+  border: 3px solid #4f46e5;
 }
 
 .profile-info {
@@ -155,7 +155,7 @@
 
 .profile-email {
   font-size: 16px;
-  color: #6B7280;
+  color: #6b7280;
   margin-bottom: 12px;
 }
 
@@ -168,8 +168,8 @@
 .meta-badge {
   display: inline-block;
   padding: 6px 12px;
-  background-color: #EFF6FF;
-  color: #1E40AF;
+  background-color: #eff6ff;
+  color: #1e40af;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
@@ -185,7 +185,7 @@
 
 .stat-card {
   padding: 20px;
-  background-color: #F9FAFB;
+  background-color: #f9fafb;
   border-radius: 8px;
   text-align: center;
 }
@@ -193,20 +193,20 @@
 .stat-value {
   font-size: 32px;
   font-weight: bold;
-  color: #4F46E5;
+  color: #4f46e5;
   margin-bottom: 8px;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 /* Subjects Section */
 .subjects-section {
   margin-bottom: 32px;
   padding: 20px;
-  background-color: #F9FAFB;
+  background-color: #f9fafb;
   border-radius: 8px;
 }
 
@@ -227,7 +227,7 @@
   display: inline-block;
   padding: 8px 16px;
   background-color: white;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
   color: #374151;
@@ -244,14 +244,14 @@
 /* Info Card */
 .info-card {
   padding: 16px;
-  background-color: #EFF6FF;
-  border: 1px solid #BFDBFE;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
   border-radius: 8px;
 }
 
 .info-text {
   font-size: 14px;
-  color: #1E40AF;
+  color: #1e40af;
   margin: 0;
 }
 

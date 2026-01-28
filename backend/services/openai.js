@@ -1,18 +1,52 @@
 const OpenAI = require('openai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+let openai;
+try {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not set in environment variables');
+  }
+  
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  });
+  console.log('✅ OpenAI client initialized successfully');
+} catch (error) {
+  console.error('❌ Failed to initialize OpenAI client:', error.message);
+}
 
 class OpenAIService {
-  // Generate study notes from a topic
-  async generateNotes(topic, educationLevel = 'university') {
+  
+  async _makeRequest(requestFn, errorContext) {
+    if (!openai) {
+      throw new Error('OpenAI client not initialized. Check your API key.');
+    }
+
     try {
+      return await requestFn();
+    } catch (error) {
+      console.error(`OpenAI ${errorContext} error:`, error);
+      
+      if (error.code === 'insufficient_quota') {
+        throw new Error('OpenAI API quota exceeded. Please contact support.');
+      } else if (error.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a moment.');
+      } else if (error.status === 401) {
+        throw new Error('Invalid API key. Please contact support.');
+      } else if (error.message?.includes('API key')) {
+        throw new Error('API key configuration error. Please contact support.');
+      }
+      
+      throw new Error(`Failed to ${errorContext}`);
+    }
+  }
+
+  async generateNotes(topic, educationLevel = 'university') {
+    return this._makeRequest(async () => {
       const prompt = `Create comprehensive study notes on "${topic}" for ${educationLevel} students in South Africa.
 
 Include:
 1. Key Concepts and Definitions
-2. Important Formulas or Principles
+2. Important Formulas or Principles (if applicable)
 3. Practical Examples
 4. Summary Points
 5. Study Tips
@@ -20,7 +54,7 @@ Include:
 Format the response with clear headers and bullet points. Make it easy to understand and study from.`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini", // Using cheaper model for notes
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -40,15 +74,11 @@ Format the response with clear headers and bullet points. Make it easy to unders
         content: response.choices[0].message.content,
         usage: response.usage
       };
-    } catch (error) {
-      console.error('OpenAI notes generation error:', error);
-      throw new Error('Failed to generate notes');
-    }
+    }, 'generate notes');
   }
 
-  // Generate a practice test/exam
   async generateTest(subject, topics, numQuestions = 10, difficulty = 'medium') {
-    try {
+    return this._makeRequest(async () => {
       const prompt = `Create a practice test for ${subject} covering: ${topics}
 
 Requirements:
@@ -88,16 +118,12 @@ Then create a SEPARATE MEMO section with:
         content: response.choices[0].message.content,
         usage: response.usage
       };
-    } catch (error) {
-      console.error('OpenAI test generation error:', error);
-      throw new Error('Failed to generate test');
-    }
+    }, 'generate test');
   }
 
-  // Answer academic questions
   async answerQuestion(question, context = '') {
-    try {
-      const prompt = context 
+    return this._makeRequest(async () => {
+      const prompt = context
         ? `Context: ${context}\n\nQuestion: ${question}\n\nProvide a detailed academic answer.`
         : question;
 
@@ -122,15 +148,11 @@ Then create a SEPARATE MEMO section with:
         content: response.choices[0].message.content,
         usage: response.usage
       };
-    } catch (error) {
-      console.error('OpenAI question answer error:', error);
-      throw new Error('Failed to answer question');
-    }
+    }, 'answer question');
   }
 
-  // Analyze text content (from PDF or manual input)
   async analyzeContent(content, analysisType = 'summary') {
-    try {
+    return this._makeRequest(async () => {
       let prompt;
       
       switch (analysisType) {
@@ -178,15 +200,11 @@ Then create a SEPARATE MEMO section with:
         content: response.choices[0].message.content,
         usage: response.usage
       };
-    } catch (error) {
-      console.error('OpenAI content analysis error:', error);
-      throw new Error('Failed to analyze content');
-    }
+    }, 'analyze content');
   }
 
-  // Translate content to another language
   async translateContent(content, targetLanguage) {
-    try {
+    return this._makeRequest(async () => {
       const prompt = `Translate this academic content to ${targetLanguage}. Maintain academic terminology and accuracy:\n\n${content}`;
 
       const response = await openai.chat.completions.create({
@@ -210,46 +228,7 @@ Then create a SEPARATE MEMO section with:
         content: response.choices[0].message.content,
         usage: response.usage
       };
-    } catch (error) {
-      console.error('OpenAI translation error:', error);
-      throw new Error('Failed to translate content');
-    }
-  }
-
-  // Generate memo/solutions for questions
-  async generateMemo(questions) {
-    try {
-      const prompt = `Create a detailed memorandum (marking guideline) for these questions:\n\n${questions}\n\nInclude:
-- Correct answers
-- Step-by-step solutions
-- Mark allocation
-- Common mistakes to avoid`;
-
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are creating marking guidelines for South African academic assessments."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        max_tokens: 2500,
-        temperature: 0.5
-      });
-
-      return {
-        success: true,
-        content: response.choices[0].message.content,
-        usage: response.usage
-      };
-    } catch (error) {
-      console.error('OpenAI memo generation error:', error);
-      throw new Error('Failed to generate memo');
-    }
+    }, 'translate content');
   }
 }
 

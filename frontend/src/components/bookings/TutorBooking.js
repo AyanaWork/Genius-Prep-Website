@@ -149,7 +149,7 @@ function TutorBookings() {
       {/* Bookings List */}
       {filteredBookings.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <div className="text-5xl mb-4">📋</div>
+          <div className="text-5xl mb-4">✎𓂃</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             No {filter !== 'all' ? filter : ''} booking requests
           </h3>

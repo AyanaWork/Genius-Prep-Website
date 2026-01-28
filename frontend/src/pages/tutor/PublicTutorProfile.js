@@ -2,40 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import profileService from '../../services/profile';
 import reviewService from '../../services/review';
+import bookingService from '../../services/booking';
 import authService from '../../services/auth';
 import StarRating from '../../components/common/StarRating';
-import ReviewsList from '../../components/reviews/ReviewsList';
 import ReviewForm from '../../components/reviews/ReviewForm';
+import ReviewsList from '../../components/reviews/ReviewsList';
 import BookingForm from '../../components/bookings/BookingForm';
-import bookingService from '../../services/booking';
-
 
 function PublicTutorProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+  const currentUser = authService.getCurrentUser();
+  const isStudent = currentUser?.role === 'student';
+
   const [tutor, setTutor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [editingReview, setEditingReview] = useState(null);
-  const [canReview, setCanReview] = useState(false);
   const [showBookingForm, setShowBookingForm] = useState(false);
-  
-  const currentUser = authService.getCurrentUser();
-  const isStudent = currentUser?.role === 'student';
+  const [canReview, setCanReview] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
 
   useEffect(() => {
     loadTutorProfile();
     if (isStudent) {
       checkCanReview();
     }
-  }, [id]);
-
-  useEffect(() => {
-    console.log('Tutor ID from URL:', id);
-    console.log('Current User:', currentUser);
-  }, [id, currentUser]);
+  }, [id, isStudent]);
 
   const loadTutorProfile = async () => {
     try {
@@ -80,13 +73,19 @@ function PublicTutorProfile() {
 
   const handleRequestTutor = () => {
     if (!currentUser) {
-      navigate('/login');
+      // Not logged in - redirect to login/register
+      if (window.confirm('You need to be logged in to request a tutor. Would you like to register or login?')) {
+        navigate('/register');
+      }
       return;
     }
+
     if (currentUser.role !== 'student') {
-      alert('Only students can request tutors');
+      alert('Only students can request tutoring sessions. Please switch to a student account.');
       return;
     }
+
+    // Show booking form
     setShowBookingForm(true);
   };
 
@@ -94,8 +93,9 @@ function PublicTutorProfile() {
     try {
       await bookingService.createBooking(bookingData);
       setShowBookingForm(false);
-      alert('Booking request sent successfully! The tutor will respond soon.');
-
+      alert('Booking request sent successfully! The tutor will review your request.');
+      // Optionally navigate to bookings page
+      navigate('/student/dashboard');
     } catch (err) {
       throw err;
     }
@@ -116,7 +116,7 @@ function PublicTutorProfile() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="text-6xl mb-4">😞</div>
+          <div className="text-6xl mb-4">😕</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Tutor Not Found</h2>
           <p className="text-gray-600 mb-6">{error || 'This tutor profile does not exist.'}</p>
           <button
@@ -245,14 +245,34 @@ function PublicTutorProfile() {
                 </div>
               </div>
 
-              {/* Request Button */}
-              <button
-                onClick={handleRequestTutor}
-                disabled={tutor.availability_status !== 'active'}
-                className="w-full py-3 px-6 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Request Tutor
-              </button>
+              {/* Booking Form */}
+              {showBookingForm ? (
+                <div className="mb-3">
+                  <BookingForm
+                    tutorId={tutor.id}
+                    tutorName={tutor.display_name}
+                    onSubmit={handleBookingSubmit}
+                    onCancel={() => setShowBookingForm(false)}
+                  />
+                </div>
+              ) : (
+                <>
+                  {/* Request Button */}
+                  <button
+                    onClick={handleRequestTutor}
+                    disabled={tutor.availability_status !== 'active'}
+                    className="w-full py-3 px-6 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed mb-3"
+                  >
+                    Request Tutor
+                  </button>
+
+                  {tutor.availability_status !== 'active' && (
+                    <p className="text-sm text-gray-500 text-center mb-3">
+                      This tutor is currently unavailable
+                    </p>
+                  )}
+                </>
+              )}
 
               {/* Review Button for Students */}
               {isStudent && canReview && !showReviewForm && (
@@ -262,16 +282,6 @@ function PublicTutorProfile() {
                 >
                   {editingReview ? 'Edit Your Review' : 'Write a Review'}
                 </button>
-              )}
-
-              {/* Booking Form */}
-              {showBookingForm && (
-                <BookingForm
-                  tutorId={parseInt(id)}
-                  tutorName={tutor.display_name}
-                  onSubmit={handleBookingSubmit}
-                  onCancel={() => setShowBookingForm(false)}
-                />
               )}
             </div>
           </div>
@@ -323,7 +333,7 @@ function PublicTutorProfile() {
                   {tutor.module_codes.map((code, index) => (
                     <span
                       key={index}
-                      className="px-4 py-2 bg-secondary-50 text-secondary-700 rounded-lg font-mono font-semibold border border-secondary-200"
+                      className="px-3 py-1 bg-blue-50 text-blue-700 rounded-md font-mono text-sm border border-blue-200"
                     >
                       {code}
                     </span>
@@ -332,31 +342,56 @@ function PublicTutorProfile() {
               </div>
             )}
 
+            {/* Teaching Preferences */}
+            {(tutor.teaching_mode || tutor.location) && (
+              <div className="bg-white rounded-xl shadow-md p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Teaching Details</h2>
+                <div className="space-y-3">
+                  {tutor.teaching_mode && (
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🖳</span>
+                      <div>
+                        <p className="font-medium text-gray-900">Teaching Mode</p>
+                        <p className="text-gray-600 capitalize">{tutor.teaching_mode}</p>
+                      </div>
+                    </div>
+                  )}
+                  {tutor.location && (
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">⟟</span>
+                      <div>
+                        <p className="font-medium text-gray-900">Location</p>
+                        <p className="text-gray-600">{tutor.location}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Review Form */}
-            {showReviewForm && isStudent && (
-              <ReviewForm
-                tutorId={parseInt(id)}
-                existingReview={editingReview}
-                onSubmit={handleReviewSubmit}
-                onCancel={() => {
-                  setShowReviewForm(false);
-                  setEditingReview(null);
-                }}
-              />
+            {showReviewForm && (
+              <div className="bg-white rounded-xl shadow-md p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  {editingReview ? 'Edit Your Review' : 'Write a Review'}
+                </h2>
+                <ReviewForm
+                  tutorId={tutor.id}
+                  initialData={editingReview}
+                  onSubmit={handleReviewSubmit}
+                  onCancel={() => {
+                    setShowReviewForm(false);
+                    setEditingReview(null);
+                  }}
+                />
+              </div>
             )}
 
             {/* Reviews Section */}
-            <ReviewsList
-              tutorId={parseInt(id)}
-              showForm={(review) => {
-                setEditingReview(review);
-                setShowReviewForm(true);
-              }}
-              onReviewSubmitted={() => {
-                loadTutorProfile();
-                checkCanReview();
-              }}
-            />
+            <div className="bg-white rounded-xl shadow-md p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Student Reviews</h2>
+              <ReviewsList tutorId={tutor.id} />
+            </div>
           </div>
         </div>
       </div>

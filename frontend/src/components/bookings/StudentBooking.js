@@ -103,7 +103,7 @@ function StudentBookings() {
 
       {bookings.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <div className="text-5xl mb-4">📚</div>
+          <div className="text-5xl mb-4">🕮</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">No bookings yet</h3>
           <p className="text-gray-600 mb-6">Start by finding a tutor and requesting a session!</p>
           <button

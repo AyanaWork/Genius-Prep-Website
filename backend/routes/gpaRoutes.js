@@ -17,7 +17,5 @@ router.post('/generate-notes', gpaController.generateNotes);
 router.post('/generate-test', gpaController.generateTest);
 router.post('/answer-question', gpaController.answerQuestion);
 router.post('/analyze-content', gpaController.analyzeContent);
-router.post('/translate', gpaController.translateContent);
-router.post('/generate-memo', gpaController.generateMemo);
 
 module.exports = router;

@@ -54,20 +54,25 @@ class GPAService {
     return response.data;
   }
 
-  // Translate content
-  async translateContent(content, targetLanguage) {
-    const response = await api.post('/gpa/translate', {
-      content,
-      targetLanguage
-    });
-    return response.data;
-  }
-
   // Generate memo
   async generateMemo(questions) {
     const response = await api.post('/gpa/generate-memo', {
       questions
     });
+    return response.data;
+  }
+
+  // Initiate payment
+  async initiatePayment(subscriptionType) {
+    const response = await api.post('/payments/generate', {
+      subscriptionType
+    });
+    return response.data;
+  }
+
+  // Check payment status
+  async checkPaymentStatus(paymentId) {
+    const response = await api.get(`/payments/status/${paymentId}`);
     return response.data;
   }
 }
