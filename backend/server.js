@@ -55,6 +55,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/chat', chatRoutes);
 
+app.use('/api/payments/notify', express.raw({ type: 'application/x-www-form-urlencoded' }));
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

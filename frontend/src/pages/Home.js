@@ -100,7 +100,8 @@ function Home() {
                 <>
                   <a href="#process" className="text-white hover:text-[#4A90E2] font-medium transition">Our Process</a>
                   <a href="#options" className="text-white hover:text-[#4A90E2] font-medium transition">Tutoring Options</a>
-                  <button onClick={() => navigate('/login')} className="text-white hover:text-[#4A90E2] font-medium transition">Login</button>
+                  <a href="#courses" className="text-white hover:text-[#4A90E2] font-medium transition">Courses & Schools</a>
+                  <button onClick={() => navigate('/login')} className="text-white hover:text-[#4A90E2] font-medium transition">      Login</button>
                 </>
               ) : (
                 <>
@@ -314,7 +315,7 @@ function Home() {
                   <img 
                     src={option.image} 
                     alt={option.title}
-                    className="w-20 h-20 object-contain"
+                    className="w-40 h-40 object-contain"
                     onError={(e) => {
                       e.target.style.display = 'none';
                       e.target.nextSibling.style.display = 'block';
@@ -339,7 +340,7 @@ function Home() {
       </section>
 
       {/* Courses & School Subjects Section */}
-      <section className="relative min-h-screen flex items-center justify-center py-20">
+      <section id="courses" className="relative min-h-screen flex items-center justify-center py-20">
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
