@@ -71,7 +71,7 @@ CREATE TABLE gpa_subscriptions (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     subscription_type VARCHAR(20) CHECK (subscription_type IN ('annual', 'semester')),
-    amount DECMINAL(10,2) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
     start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     end_date TIMESTAMP NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
