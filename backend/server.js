@@ -18,14 +18,17 @@ const chatRoutes = require('./routes/chatRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Middleware - CORS MUST BE FIRST!
 app.use(cors({
   origin: [
-    'https://genius-prep-website.vercel.app/',
+    'https://genius-prep-website.vercel.app',
     'http://localhost:3000'
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json({ limit: '10mb' }));
 
 // Routes
@@ -62,4 +65,3 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Test database connection: http://localhost:${PORT}/api/test-db`);
 });
-
