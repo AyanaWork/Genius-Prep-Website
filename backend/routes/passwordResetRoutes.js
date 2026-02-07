@@ -89,7 +89,7 @@ router.post('/forgot-password', async (req, res) => {
                 <a href="${resetUrl}" class="button">Reset Password</a>
               </div>
               <div class="warning">
-                <strong>⚠️ Important:</strong>
+                <strong>?? Important:</strong>
                 <ul>
                   <li>This link will expire in 1 hour</li>
                   <li>If you didn't request this, please ignore this email</li>
@@ -102,8 +102,8 @@ router.post('/forgot-password', async (req, res) => {
               <p>Best regards,<br><strong>Genius Prep Tuition Team</strong></p>
             </div>
             <div class="footer">
-              <p>© 2026 Genius Prep Tuition. All rights reserved.</p>
-              <p>📧 hello@geniuspreptuition.co.za | 📞 071 961 7185</p>
+              <p>(c) 2026 Genius Prep Tuition. All rights reserved.</p>
+              <p>?? hello@geniuspreptuition.co.za | ?? 071 961 7185</p>
             </div>
           </div>
         </body>
@@ -201,7 +201,7 @@ router.post('/reset-password', async (req, res) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1>✓ Password Reset Successful</h1>
+              <h1>? Password Reset Successful</h1>
             </div>
             <div class="content">
               <div class="success">
@@ -214,7 +214,7 @@ router.post('/reset-password', async (req, res) => {
               <p>Best regards,<br><strong>Genius Prep Tuition Team</strong></p>
             </div>
             <div class="footer">
-              <p>© 2026 Genius Prep Tuition. All rights reserved.</p>
+              <p>(c) 2026 Genius Prep Tuition. All rights reserved.</p>
             </div>
           </div>
         </body>

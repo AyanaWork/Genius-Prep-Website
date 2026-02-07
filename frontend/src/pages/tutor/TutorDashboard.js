@@ -145,7 +145,7 @@ function TutorDashboard() {
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
                     >
-                      📈 Dashboard
+                      📊 Dashboard
                     </button>
                     <button
                       onClick={() => {
@@ -154,7 +154,7 @@ function TutorDashboard() {
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
                     >
-                      ✎ Edit Profile
+                      ✏️ Edit Profile
                     </button>
                     <button
                       onClick={() => {
@@ -163,7 +163,7 @@ function TutorDashboard() {
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
                     >
-                      🗒 Manage Bookings
+                      📅 Manage Bookings
                     </button>
                     <button
                       onClick={() => {
@@ -172,7 +172,7 @@ function TutorDashboard() {
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
                     >
-                      ★ My Reviews
+                      ⭐ My Reviews
                     </button>
                     <button
                       onClick={() => {
@@ -181,7 +181,7 @@ function TutorDashboard() {
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
                     >
-                      ֎ GPA AI
+                      🤖 GPA AI
                     </button>
                     <button
                       onClick={() => {
@@ -190,14 +190,14 @@ function TutorDashboard() {
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
                     >
-                      👁 View Public Profile
+                      👁️ View Public Profile
                     </button>
                     <div className="border-t border-gray-100 mt-2 pt-2">
                       <button
                         onClick={handleLogout}
                         className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
                       >
-                        ⍈ Logout
+                        🚪 Logout
                       </button>
                     </div>
                   </div>
@@ -227,7 +227,7 @@ function TutorDashboard() {
 
             {reviews.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl">
-                <div className="text-5xl mb-4">✎ᝰ</div>
+                <div className="text-5xl mb-4">⭐</div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No reviews yet</h3>
                 <p className="text-gray-600">Start teaching and students will leave reviews here</p>
               </div>
@@ -295,6 +295,84 @@ function TutorDashboard() {
         ) : (
           // Dashboard Overview
           <div className="space-y-8">
+            {/* Approval Status Banner */}
+            {profile.approval_status && profile.approval_status !== 'approved' && (
+              <div className={`p-6 rounded-xl border-l-4 shadow-sm ${
+                profile.approval_status === 'rejected' 
+                  ? 'bg-red-50 border-red-500' 
+                  : 'bg-yellow-50 border-yellow-500'
+              }`}>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    {profile.approval_status === 'rejected' ? (
+                      <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg className="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className={`text-lg font-bold mb-2 ${
+                      profile.approval_status === 'rejected' ? 'text-red-800' : 'text-yellow-800'
+                    }`}>
+                      Profile Status: {profile.approval_status.charAt(0).toUpperCase() + profile.approval_status.slice(1)}
+                    </h3>
+                    {profile.approval_status === 'pending' && (
+                      <div>
+                        <p className="text-yellow-800 mb-2">
+                          Your profile is currently under review by our admin team. You'll be able to accept bookings once your profile is approved.
+                        </p>
+                        <p className="text-sm text-yellow-700">
+                          This usually takes 24-48 hours. We'll notify you once your profile is approved.
+                        </p>
+                      </div>
+                    )}
+                    {profile.approval_status === 'rejected' && (
+                      <div>
+                        <p className="text-red-800 mb-2">
+                          Unfortunately, your profile was not approved at this time.
+                        </p>
+                        {profile.rejection_reason && (
+                          <p className="text-sm text-red-700 bg-red-100 p-3 rounded-lg mt-2">
+                            <strong>Reason:</strong> {profile.rejection_reason}
+                          </p>
+                        )}
+                        <button
+                          onClick={() => navigate('/tutor/profile/edit')}
+                          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                        >
+                          Update Profile
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Success Banner for Approved */}
+            {profile.approval_status === 'approved' && (
+              <div className="p-6 rounded-xl border-l-4 bg-green-50 border-green-500 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <svg className="w-6 h-6 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <h3 className="text-lg font-bold text-green-800 mb-1">
+                      ✅ Profile Approved!
+                    </h3>
+                    <p className="text-green-700">
+                      Your profile is live and you can now accept student bookings. Start teaching!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Rest of the dashboard... */}
             {/* Profile Header */}
             <div className="bg-white rounded-xl shadow-md p-8">
               <div className="flex items-start justify-between flex-wrap gap-6">
@@ -381,7 +459,7 @@ function TutorDashboard() {
                 onClick={() => setActiveView('bookings')}
                 className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition text-left"
               >
-                <div className="text-3xl mb-3">🗒</div>
+                <div className="text-3xl mb-3">📅</div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Manage Bookings</h3>
                 <p className="text-sm text-gray-600">View and respond to booking requests from students</p>
               </button>
@@ -389,7 +467,7 @@ function TutorDashboard() {
                 onClick={() => setActiveView('reviews')}
                 className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition text-left"
               >
-                <div className="text-3xl mb-3">★</div>
+                <div className="text-3xl mb-3">⭐</div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">View All Reviews</h3>
                 <p className="text-sm text-gray-600">See what students are saying about you</p>
               </button>
@@ -397,97 +475,10 @@ function TutorDashboard() {
                 onClick={() => profile.id && navigate(`/tutors/${profile.id}`)}
                 className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition text-left"
               >
-                <div className="text-3xl mb-3">👁</div>
+                <div className="text-3xl mb-3">👁️</div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Public Profile</h3>
                 <p className="text-sm text-gray-600">Preview how students see your profile</p>
               </button>
-            </div>
-
-            {/* Recent Reviews (Preview) */}
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Recent Reviews</h2>
-                {reviews.length > 3 && (
-                  <button
-                    onClick={() => setActiveView('reviews')}
-                    className="text-primary-600 hover:text-primary-700 font-medium text-sm"
-                  >
-                    View All →
-                  </button>
-                )}
-              </div>
-
-              {reviews.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-xl">
-                  <div className="text-5xl mb-4">✎ᝰ</div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No reviews yet</h3>
-                  <p className="text-gray-600">Start teaching and students will leave reviews here</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {reviews.slice(0, 3).map((review) => (
-                    <div key={review.id} className="border border-gray-200 rounded-lg p-6 hover:border-primary-300 transition">
-                      <div className="flex items-start gap-4">
-                        {review.student_picture ? (
-                          <img
-                            src={review.student_picture}
-                            alt={review.student_name}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-primary-100"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200">
-                            <span className="text-primary-600 font-semibold">
-                              {review.student_name?.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-semibold text-gray-900">{review.student_name}</h4>
-                            <span className="text-sm text-gray-500">
-                              {new Date(review.created_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <div className="mb-2 flex items-center gap-1">
-                            {[...Array(5)].map((_, i) => (
-                              <svg
-                                key={i}
-                                className={`w-4 h-4 ${i < review.rating ? 'text-[#60a5fa] fill-current' : 'text-gray-300'}`}
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                              >
-                                <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                              </svg>
-                            ))}
-                          </div>
-                          {review.review_text && (
-                            <p className="text-gray-700 leading-relaxed">{review.review_text}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Info Card */}
-            <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl p-6 border border-blue-100">
-              <div className="flex items-start gap-4">
-                <div className="text-4xl">💡</div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Your Dashboard is Ready!</h3>
-                  <p className="text-gray-700 text-sm leading-relaxed mb-4">
-                    Manage your bookings, update your profile, and track your teaching performance all in one place.
-                  </p>
-                  <button
-                    onClick={() => profile.id && navigate(`/tutors/${profile.id}`)}
-                    className="px-6 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition text-sm"
-                  >
-                    Preview Your Public Profile
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         )}

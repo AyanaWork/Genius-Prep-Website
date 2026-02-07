@@ -1,65 +1,137 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/api';
-import paymentService from '../../services/payment';
+import gpaService from '../../services/gpa';
 
 function SubscriptionPage() {
   const navigate = useNavigate();
-  const [plans, setPlans] = useState({});
-  const [currentPlan, setCurrentPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processingPlan, setProcessingPlan] = useState(null);
+  const [currentPlan, setCurrentPlan] = useState(null);
 
-  useEffect(() => {
-    fetchPlans();
-    fetchCurrentSubscription();
-  }, []);
-
-  const fetchPlans = async () => {
-    try {
-      const response = await api.get('/payments/plans');
-      setPlans(response.data.plans);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching plans:', error);
-      setLoading(false);
+  // UPDATED PRICING - Daily: R100, Monthly: R250, Semester: R450
+  const plans = {
+    TRIAL: {
+      name: 'Free Trial',
+      price: 0,
+      queries: 5,
+      duration: 'trial',
+      features: [
+        '5 AI queries total',
+        'Basic study assistance',
+        'Limited features',
+        'Perfect for trying out GPA AI'
+      ]
+    },
+    DAILY: {
+      name: 'Daily Pass',
+      price: 100,
+      queries: -1, // Unlimited
+      duration: 'day',
+      features: [
+        '24-hour access',
+        'Unlimited queries',
+        'All AI features',
+        'Study notes generation',
+        'Practice questions',
+        'Instant summaries'
+      ]
+    },
+    MONTHLY: {
+      name: 'Monthly Plan',
+      price: 250,
+      queries: -1, // Unlimited
+      duration: 'month',
+      features: [
+        '30-day access',
+        'Unlimited queries',
+        'All AI features',
+        'Study notes generation',
+        'Practice questions',
+        'Conversation history',
+        'Priority support',
+        'Best value for students'
+      ]
+    },
+    SEMESTER: {
+      name: 'Semester Plan',
+      price: 450,
+      queries: -1, // Unlimited
+      duration: 'semester',
+      features: [
+        '6-month access',
+        'Unlimited queries',
+        'All AI features',
+        'Study notes generation',
+        'Practice questions',
+        'Conversation history',
+        'Priority support',
+        'Exam preparation tools',
+        'Best long-term value!'
+      ]
     }
   };
 
-  const fetchCurrentSubscription = async () => {
+  useEffect(() => {
+    checkSubscription();
+  }, []);
+
+  const checkSubscription = async () => {
     try {
-      const response = await api.get('/gpa/subscription');
-      setCurrentPlan(response.data.subscription?.subscription_type || 'FREE');
+      const response = await gpaService.checkSubscription();
+      if (response.subscription) {
+        setCurrentPlan(response.subscription.subscription_type);
+      }
     } catch (error) {
-      console.error('Error fetching subscription:', error);
+      console.error('Check subscription error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSubscribe = async (planType) => {
+    // Free trial - just activate
+    if (planType === 'TRIAL') {
+      try {
+        setProcessingPlan(planType);
+        await gpaService.activateSubscription(planType);
+        alert('Trial activated! You now have 5 free queries.');
+        navigate('/gpa');
+      } catch (error) {
+        alert(error.response?.data?.error || 'Failed to activate trial');
+      } finally {
+        setProcessingPlan(null);
+      }
+      return;
+    }
+
+    // Paid plans - redirect to payment
     try {
       setProcessingPlan(planType);
-
-      // Free plan doesn't need payment
-      if (planType === 'FREE') {
-        const response = await api.post('/payments/gpa/initiate', {
-          subscriptionType: 'FREE'
-        });
-        alert('Free subscription activated!');
-        navigate('/gpa');
-        return;
-      }
-
-      // Initiate payment
-      const response = await paymentService.initiatePayment(planType);
+      const response = await gpaService.createSubscriptionPayment(planType);
       
-      if (response.success) {
-        // Submit to PayFast
-        paymentService.submitToPayFast(response.paymentUrl, response.paymentData);
+      if (response.payment && response.payment.url) {
+        // Create a form and submit to PayFast
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = response.payment.url;
+
+        // Add all payment data as hidden fields
+        Object.keys(response.payment.data).forEach(key => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = response.payment.data[key];
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      } else {
+        throw new Error('Payment URL not received');
       }
     } catch (error) {
-      console.error('Error subscribing:', error);
-      alert('Failed to process subscription. Please try again.');
-    } finally {
+      console.error('Subscription error:', error);
+      alert(error.response?.data?.error || 'Failed to process subscription');
       setProcessingPlan(null);
     }
   };
@@ -68,7 +140,7 @@ function SubscriptionPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
           <p className="mt-4 text-gray-600">Loading subscription plans...</p>
         </div>
       </div>
@@ -97,19 +169,25 @@ function SubscriptionPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {Object.entries(plans).map(([planType, plan]) => {
             const isCurrentPlan = currentPlan === planType;
-            const isPremium = planType === 'UNLIMITED';
+            const isPopular = planType === 'MONTHLY'; // Monthly is most popular
+            const isBestValue = planType === 'SEMESTER'; // Semester is best value
             
             return (
               <div
                 key={planType}
                 className={`relative bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${
-                  isPremium ? 'border-4 border-blue-500' : 'border border-gray-200'
+                  isPopular || isBestValue ? 'border-4 border-blue-500' : 'border border-gray-200'
                 }`}
               >
-                {/* Premium Badge */}
-                {isPremium && (
+                {/* Popular/Best Value Badge */}
+                {isPopular && (
                   <div className="absolute top-0 right-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1 text-sm font-bold rounded-bl-lg">
                     MOST POPULAR
+                  </div>
+                )}
+                {isBestValue && (
+                  <div className="absolute top-0 right-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-1 text-sm font-bold rounded-bl-lg">
+                    BEST VALUE
                   </div>
                 )}
 
@@ -138,8 +216,15 @@ function SubscriptionPage() {
                           <span className="text-4xl font-bold text-gray-900">
                             R{plan.price}
                           </span>
-                          <span className="text-gray-600 ml-2">/month</span>
+                          <span className="text-gray-600 ml-2">
+                            /{plan.duration === 'day' ? 'day' : plan.duration === 'month' ? 'month' : 'semester'}
+                          </span>
                         </div>
+                        {plan.duration === 'semester' && (
+                          <p className="text-sm text-green-600 mt-1 font-semibold">
+                            Save R1050 vs monthly!
+                          </p>
+                        )}
                       </>
                     )}
                   </div>
@@ -150,7 +235,7 @@ function SubscriptionPage() {
                       {plan.queries === -1 ? '∞' : plan.queries}
                     </div>
                     <div className="text-gray-600 text-sm">
-                      {plan.queries === -1 ? 'Unlimited queries' : 'Queries per month'}
+                      {plan.queries === -1 ? 'Unlimited queries' : `${plan.queries} queries total`}
                     </div>
                   </div>
 
@@ -173,7 +258,7 @@ function SubscriptionPage() {
                     className={`w-full py-3 px-6 rounded-xl font-semibold text-lg transition-all duration-300 ${
                       isCurrentPlan
                         ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                        : isPremium
+                        : isPopular || isBestValue
                         ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl'
                         : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
                     }`}
@@ -188,14 +273,42 @@ function SubscriptionPage() {
                       </span>
                     ) : isCurrentPlan ? (
                       'Current Plan'
+                    ) : plan.price === 0 ? (
+                      'Start Free Trial'
                     ) : (
-                      `Subscribe Now`
+                      `Subscribe for R${plan.price}`
                     )}
                   </button>
                 </div>
               </div>
             );
           })}
+        </div>
+
+        {/* Value Comparison */}
+        <div className="mt-12 max-w-4xl mx-auto bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border-2 border-blue-200">
+          <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+            💰 Price Comparison
+          </h3>
+          <div className="grid md:grid-cols-3 gap-6 text-center">
+            <div>
+              <p className="text-gray-600 mb-2">Daily Pass</p>
+              <p className="text-3xl font-bold text-gray-900">R100</p>
+              <p className="text-sm text-gray-500 mt-1">per day</p>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-md">
+              <p className="text-gray-600 mb-2">Monthly Plan</p>
+              <p className="text-3xl font-bold text-blue-600">R250</p>
+              <p className="text-sm text-gray-500 mt-1">per month</p>
+              <p className="text-xs text-green-600 font-semibold mt-2">Save R50/month!</p>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-300">
+              <p className="text-gray-600 mb-2">Semester Plan</p>
+              <p className="text-3xl font-bold text-green-600">R450</p>
+              <p className="text-sm text-gray-500 mt-1">for 6 months</p>
+              <p className="text-xs text-green-700 font-bold mt-2">Save R1050 total!</p>
+            </div>
+          </div>
         </div>
 
         {/* FAQ Section */}
@@ -208,14 +321,14 @@ function SubscriptionPage() {
             <div className="bg-white rounded-xl p-6 shadow-md">
               <h3 className="font-bold text-gray-900 mb-2">How does billing work?</h3>
               <p className="text-gray-600">
-                All plans are billed monthly. You can cancel anytime and your subscription will remain active until the end of your billing period.
+                Daily plans give you 24-hour access. Monthly plans renew every 30 days. Semester plans give you 6 months of access with one payment.
               </p>
             </div>
 
             <div className="bg-white rounded-xl p-6 shadow-md">
               <h3 className="font-bold text-gray-900 mb-2">Can I upgrade or downgrade?</h3>
               <p className="text-gray-600">
-                Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate the difference.
+                Yes! You can purchase any plan at any time. If upgrading from a shorter to longer plan, you'll get the best value.
               </p>
             </div>
 
@@ -230,6 +343,15 @@ function SubscriptionPage() {
               <h3 className="font-bold text-gray-900 mb-2">Is there a free trial?</h3>
               <p className="text-gray-600">
                 Yes! Everyone starts with a free trial that includes 5 AI queries. No credit card required to start.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-md">
+              <h3 className="font-bold text-gray-900 mb-2">Which plan should I choose?</h3>
+              <p className="text-gray-600">
+                <strong>Daily Pass (R100):</strong> Perfect for quick exam prep or last-minute studying.<br/>
+                <strong>Monthly Plan (R250):</strong> Best for regular students who need ongoing help.<br/>
+                <strong>Semester Plan (R450):</strong> Best value for serious students planning ahead - save R1050!
               </p>
             </div>
           </div>
@@ -249,7 +371,7 @@ function SubscriptionPage() {
                 <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                 <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              <span>Cancel Anytime</span>
+              <span>Instant Access</span>
             </div>
             <div className="flex items-center gap-2 text-gray-600">
               <svg className="w-6 h-6 text-purple-500" fill="currentColor" viewBox="0 0 20 20">

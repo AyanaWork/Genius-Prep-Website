@@ -109,6 +109,66 @@ class PaymentService {
   }
 
   /**
+   * Gets GPA subscription pricing
+   * @returns {Promise} Pricing structure for daily, monthly, semester
+   */
+  async getGPAPricing() {
+    try {
+      const response = await api.get('/payments/gpa/pricing');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching GPA pricing:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Creates GPA subscription payment (NEW PRICING)
+   * @param {string} subscriptionType - 'daily', 'monthly', 'semester'
+   * @returns {Promise} Payment data for PayFast
+   */
+  async createGPASubscription(subscriptionType) {
+    try {
+      const response = await api.post('/payments/gpa/subscribe', {
+        subscriptionType
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating GPA subscription:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Creates booking payment (with hours)
+   * @param {number} bookingId - Booking ID
+   * @returns {Promise} Payment data for PayFast
+   */
+  async createBookingPayment(bookingId) {
+    try {
+      const response = await api.post('/payments/booking', { bookingId });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating booking payment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Checks subscription status
+   * @returns {Promise} Subscription status and details
+   */
+  async checkSubscriptionStatus() {
+    try {
+      const response = await api.get('/payments/subscription/status');
+      return response.data;
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Submit payment data to PayFast
    * Creates a form and submits it to PayFast payment page
    * @param {string} paymentUrl - PayFast payment URL

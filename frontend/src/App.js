@@ -11,7 +11,8 @@ import PublicTutorProfile from './pages/tutor/PublicTutorProfile';
 import BrowseTutors from './pages/BrowseTutors';
 import authService from './services/auth';
 import GPADashboard from './pages/GPA/GPADashboard';
-import AdminPanel from './pages/Admin/AdminPanel';
+import TutorApprovalPanel from './pages/Admin/TutorApprovalPanel';
+import AdminDashboard from './pages/Admin/AdminDashboard';
 import SubscriptionPage from './pages/GPA/SubscriptionPage';
 import PaymentSuccess from './pages/Payment/PaymentSuccess';
 import PaymentCancel from './pages/Payment/PaymentCancel';
@@ -89,10 +90,11 @@ function App() {
           }
         />
         
-        <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/admin/tutors" element={<TutorApprovalPanel />} />
         <Route path="/subscription" element={<SubscriptionPage />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/cancel" element={<PaymentCancel />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

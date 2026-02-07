@@ -34,7 +34,7 @@ function PublicTutorProfile() {
     try {
       setLoading(true);
       const response = await profileService.getTutorById(id);
-      setTutor(response.profile);
+      setTutor(response.tutor);
     } catch (err) {
       setError('Failed to load tutor profile');
       console.error('Load tutor error:', err);
@@ -250,7 +250,8 @@ function PublicTutorProfile() {
                 <div className="mb-3">
                   <BookingForm
                     tutorId={tutor.id}
-                    tutorName={tutor.display_name}
+                    tutorName={`${tutor.first_name} ${tutor.last_name}`}
+                    hourlyRate={tutor.hourly_rate}
                     onSubmit={handleBookingSubmit}
                     onCancel={() => setShowBookingForm(false)}
                   />

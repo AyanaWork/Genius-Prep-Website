@@ -19,11 +19,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+app.use(cors());
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    process.env.FRONTEND_URL
-  ].filter(Boolean),
+  origin: 'http://localhost:3000', 
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -57,10 +55,9 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/chat', chatRoutes);
 
-app.use('/api/payments/notify', express.raw({ type: 'application/x-www-form-urlencoded' }));
-
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Test database connection: http://localhost:${PORT}/api/test-db`);
 });
+

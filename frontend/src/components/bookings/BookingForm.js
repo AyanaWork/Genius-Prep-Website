@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 
-function BookingForm({ tutorId, tutorName, onSubmit, onCancel }) {
+function BookingForm({ tutorId, tutorName, hourlyRate, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     subject: '',
     message: '',
     preferredDate: '',
-    preferredTime: ''
+    preferredTime: '',
+    numberOfHours: 3 // Minimum 3 hours
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Calculate total amount
+  const totalAmount = (formData.numberOfHours * hourlyRate).toFixed(2);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,7 +20,13 @@ function BookingForm({ tutorId, tutorName, onSubmit, onCancel }) {
     setLoading(true);
 
     if (!formData.subject) {
-      setError('Please select a subject');
+      setError('Please enter a subject');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.numberOfHours < 3) {
+      setError('Minimum booking is 3 hours');
       setLoading(false);
       return;
     }
@@ -24,7 +34,8 @@ function BookingForm({ tutorId, tutorName, onSubmit, onCancel }) {
     try {
       await onSubmit({
         tutorId,
-        ...formData
+        ...formData,
+        totalAmount
       });
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to submit booking request');
@@ -59,6 +70,40 @@ function BookingForm({ tutorId, tutorName, onSubmit, onCancel }) {
             placeholder="e.g., Mathematics, Physics"
             required
           />
+        </div>
+
+        {/* Number of Hours */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Number of Hours <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            min="3"
+            value={formData.numberOfHours}
+            onChange={(e) => setFormData({...formData, numberOfHours: parseInt(e.target.value) || 3})}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+            required
+          />
+          <p className="text-sm text-gray-500 mt-1">Minimum: 3 hours</p>
+        </div>
+
+        {/* Price Breakdown */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex justify-between mb-2">
+            <span className="text-sm text-gray-700">Hourly Rate:</span>
+            <span className="text-sm font-semibold">R{hourlyRate}</span>
+          </div>
+          <div className="flex justify-between mb-2">
+            <span className="text-sm text-gray-700">Number of Hours:</span>
+            <span className="text-sm font-semibold">{formData.numberOfHours}</span>
+          </div>
+          <div className="border-t border-blue-300 pt-2 mt-2">
+            <div className="flex justify-between">
+              <span className="font-bold text-gray-900">Total Amount:</span>
+              <span className="font-bold text-primary-600 text-lg">R{totalAmount}</span>
+            </div>
+          </div>
         </div>
 
         {/* Message */}
@@ -109,13 +154,13 @@ function BookingForm({ tutorId, tutorName, onSubmit, onCancel }) {
             disabled={loading}
             className="flex-1 py-3 px-6 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition disabled:opacity-50"
           >
-            {loading ? 'Sending Request...' : 'Send Request'}
+            {loading ? 'Processing...' : `Pay R${totalAmount} & Book`}
           </button>
           {onCancel && (
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition"
+              className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               Cancel
             </button>

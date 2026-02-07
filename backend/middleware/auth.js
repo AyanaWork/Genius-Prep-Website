@@ -13,6 +13,10 @@ const auth = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Add user info to request
+    req.user = {
+      id: decoded.userId,
+      role: decoded.role
+    };
     req.userId = decoded.userId;
     req.userRole = decoded.role;
 

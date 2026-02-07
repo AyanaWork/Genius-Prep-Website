@@ -1,17 +1,38 @@
 const Booking = require('../models/Booking');
 const StudentProfile = require('../models/StudentProfile');
 const TutorProfile = require('../models/TutorProfile');
+const pool = require('../config/database');
 
-// Create a new booking request
 exports.createBooking = async (req, res) => {
   try {
     const userId = req.userId;
-    const { tutorId, subject, message, preferredDate, preferredTime } = req.body;
+    const { 
+      tutorId, 
+      subject, 
+      message, 
+      preferredDate, 
+      preferredTime,
+      numberOfHours,  // NEW
+      totalAmount     // NEW
+    } = req.body;
 
     // Validation
     if (!tutorId || !subject) {
       return res.status(400).json({
         error: 'Tutor ID and subject are required'
+      });
+    }
+
+    // Validate minimum hours
+    if (!numberOfHours || numberOfHours < 3) {
+      return res.status(400).json({
+        error: 'Minimum booking is 3 hours'
+      });
+    }
+
+    if (!totalAmount || totalAmount <= 0) {
+      return res.status(400).json({
+        error: 'Invalid total amount'
       });
     }
 
@@ -38,6 +59,14 @@ exports.createBooking = async (req, res) => {
       });
     }
 
+    // Verify total amount calculation
+    const calculatedTotal = (numberOfHours * tutorProfile.hourly_rate).toFixed(2);
+    if (parseFloat(totalAmount) !== parseFloat(calculatedTotal)) {
+      return res.status(400).json({
+        error: 'Total amount does not match hourly rate × number of hours'
+      });
+    }
+
     // Check for existing pending booking
     const existingBooking = await Booking.checkExistingPending(
       studentProfile.id,
@@ -50,19 +79,90 @@ exports.createBooking = async (req, res) => {
       });
     }
 
-    // Create booking
-    const booking = await Booking.create({
-      studentId: studentProfile.id,
+    // Create booking in database with new fields
+    const bookingResult = await pool.query(`
+      INSERT INTO bookings (
+        student_id, 
+        tutor_id, 
+        subject, 
+        message, 
+        preferred_date, 
+        preferred_time,
+        number_of_hours,
+        total_amount,
+        payment_status,
+        status
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending', 'pending')
+      RETURNING *
+    `, [
+      studentProfile.id,
       tutorId,
       subject,
-      message,
-      preferredDate,
-      preferredTime
-    });
+      message || null,
+      preferredDate || null,
+      preferredTime || null,
+      numberOfHours,
+      totalAmount
+    ]);
+
+    const booking = bookingResult.rows[0];
+
+    // Get user info for payment
+    const userResult = await pool.query(
+      'SELECT email FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Get student name from profile
+    const studentName = studentProfile.display_name || 'Student';
+    const studentNames = studentName.split(' ');
+    const firstName = studentNames[0] || 'Student';
+    const lastName = studentNames.slice(1).join(' ') || 'User';
+
+    // Create PayFast payment
+    const PayFastUtils = require('../utils/payfastUtils');
+    
+    const paymentData = PayFastUtils.createPaymentData(
+      {
+        merchantId: process.env.PAYFAST_MERCHANT_ID,
+        merchantKey: process.env.PAYFAST_MERCHANT_KEY,
+        passphrase: process.env.PAYFAST_PASSPHRASE,
+        returnUrl: `${process.env.FRONTEND_URL}/payment/success`,
+        cancelUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
+        notifyUrl: `${process.env.BACKEND_URL}/api/payments/notify`
+      },
+      {
+        paymentId: PayFastUtils.generatePaymentId(userId, 'BOOKING'),
+        userId: userId,
+        amount: totalAmount,
+        itemName: `Tutoring Session - ${subject}`,
+        itemDescription: `${numberOfHours} hours with ${tutorProfile.display_name || 'tutor'}`,
+        firstName: firstName,
+        lastName: lastName,
+        email: user.email,
+        type: 'booking',
+        customInt1: booking.id // Store booking ID for later reference
+      }
+    );
+
+    const payfastUrl = process.env.PAYFAST_MODE === 'sandbox'
+      ? 'https://sandbox.payfast.co.za/eng/process'
+      : 'https://www.payfast.co.za/eng/process';
 
     res.status(201).json({
-      message: 'Booking request sent successfully',
-      booking
+      message: 'Booking created successfully. Please complete payment.',
+      booking,
+      payment: {
+        url: payfastUrl,
+        data: paymentData
+      }
     });
 
   } catch (error) {

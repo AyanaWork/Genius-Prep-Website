@@ -22,7 +22,11 @@ router.get('/stats', adminController.getStats);
 router.get('/users', adminController.getAllUsers);
 
 // Tutors management
-router.get('/tutors', adminController.getAllTutors);
+router.get('/tutors/pending', adminController.getPendingTutors);
+router.get('/tutors/:tutorId', adminController.getTutorById);
+router.post('/tutors/:tutorId/approve', adminController.approveTutor);
+router.post('/tutors/:tutorId/reject', adminController.rejectTutor);
+router.get('/tutors', adminController.getAllTutorsAdmin);
 router.patch('/tutors/:tutorId/elite', adminController.toggleTutorElite);
 
 // Subscriptions management
