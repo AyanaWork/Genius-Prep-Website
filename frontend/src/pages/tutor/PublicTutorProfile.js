@@ -22,6 +22,10 @@ function PublicTutorProfile() {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [reviewStats, setReviewStats] = useState({ totalReviews: 0, averageRating: 0 });
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
 
   useEffect(() => {
     loadTutorProfile();
@@ -42,6 +46,28 @@ function PublicTutorProfile() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        setReviewsLoading(true);
+        const response = await reviewService.getTutorReviews(id);
+        setReviews(response.reviews || []);
+        setReviewStats(response.stats || { totalReviews: 0, averageRating: 0 });
+      } catch (err) {
+        console.error('Load reviews error:', err);
+        // Don't show error - just set empty arrays
+        setReviews([]);
+        setReviewStats({ totalReviews: 0, averageRating: 0 });
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    if (id) {
+      loadReviews();
+    }
+  }, [id]);
 
   const checkCanReview = async () => {
     try {
@@ -391,7 +417,19 @@ function PublicTutorProfile() {
             {/* Reviews Section */}
             <div className="bg-white rounded-xl shadow-md p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Student Reviews</h2>
-              <ReviewsList tutorId={tutor.id} />
+
+              {reviewsLoading ? (
+                <div className="text-center py-8">
+                  <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : reviews.length === 0 ? (
+                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                  <p className="text-gray-600">No reviews yet</p>
+                  <p className="text-sm text-gray-500 mt-2">Be the first to review!</p>
+                </div>
+              ) : (
+                <ReviewsList reviews={reviews} />
+              )}
             </div>
           </div>
         </div>

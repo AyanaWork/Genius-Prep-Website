@@ -525,9 +525,32 @@ function Home() {
             </div>
           </div>
 
-          <div className="mt-8 pt-8 border-t border-white/10 text-center text-gray-400">
-            <p>&copy; 2026 Genius Prep Tuition. All rights reserved.</p>
+          <div className="mt-8 pt-8 border-t border-gray-700 text-center">
+            <div className="flex justify-center gap-6 mb-4">
+              <button
+                onClick={() => navigate('/terms')}
+                className="text-gray-400 hover:text-white transition text-sm"
+              >
+                Terms & Conditions
+              </button>
+              <button
+                onClick={() => navigate('/privacy')}
+                className="text-gray-400 hover:text-white transition text-sm"
+              >
+                Privacy Policy
+              </button>
+              <button
+                onClick={() => navigate('/refund-policy')}
+                className="text-gray-400 hover:text-white transition text-sm"
+              >
+                Refund Policy
+              </button>
+            </div>
+            <p className="text-gray-500 text-sm">
+              © {new Date().getFullYear()} Genius Prep Tuition. All rights reserved.
+            </p>
           </div>
+
         </div>
       </footer>
     </div>

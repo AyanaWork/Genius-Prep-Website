@@ -320,4 +320,56 @@ exports.createSubscription = async (req, res) => {
   }
 };
 
+// Analyze uploaded PDF content
+exports.analyzePDF = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { pdfText, analysisType } = req.body;
+
+    if (!pdfText) {
+      return res.status(400).json({ error: 'PDF text content is required' });
+    }
+
+    // Check if it's too long (max ~15000 characters)
+    if (pdfText.length > 15000) {
+      return res.status(400).json({ 
+        error: 'PDF content is too long. Please upload a smaller document (max ~10 pages)' 
+      });
+    }
+
+    const access = await checkGPAAccess(userId);
+    
+    if (!access.hasAccess) {
+      return res.status(403).json({
+        error: 'GPA usage limit reached',
+        requiresSubscription: true,
+        message: `You've used all ${FREE_USAGE_LIMIT} free AI generations. Subscribe to GPA for unlimited access!`
+      });
+    }
+
+    const result = await openaiService.analyzeContent(
+      pdfText, 
+      analysisType || 'summary'
+    );
+
+    if (access.type === 'free') {
+      await incrementUsage(userId);
+    }
+
+    res.json({
+      success: true,
+      analysis: result.content,
+      analysisType: analysisType || 'summary',
+      generatedAt: new Date(),
+      accessInfo: access.type === 'free' ? {
+        remaining: access.remaining - 1,
+        limit: FREE_USAGE_LIMIT
+      } : { type: 'unlimited' }
+    });
+  } catch (error) {
+    console.error('Analyze PDF error:', error);
+    res.status(500).json({ error: error.message || 'Failed to analyze PDF' });
+  }
+};
+
 module.exports = exports;

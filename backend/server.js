@@ -7,7 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ============================================
-// CORS CONFIGURATION - 
+// CORS CONFIGURATION 
 // ============================================
 const allowedOrigins = [
   'https://genius-prep-website.vercel.app',
@@ -32,9 +32,6 @@ app.use(cors({
   preflightContinue: false,
   optionsSuccessStatus: 204
 }));
-
-// Handle preflight requests explicitly
-app.options('*', cors());
 
 // ============================================
 // BODY PARSER MIDDLEWARE

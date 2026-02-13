@@ -14,7 +14,7 @@ function TutorBookings() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState('all'); // all, pending, accepted, completed
+  const [activeTab, setActiveTab] = useState('pending'); // pending, accepted, completed, declined
 
   useEffect(() => {
     loadBookings();
@@ -40,16 +40,19 @@ function TutorBookings() {
     }
   };
 
-  const handleUpdateStatus = async (bookingId, status) => {
+  const handleUpdateStatus = async (bookingId, newStatus) => {
+    if (!window.confirm(`Change status to ${newStatus}?`)) return;
+
     try {
-      await bookingService.updateBookingStatus(bookingId, status);
-      await loadBookings(); // Reload bookings
-      alert(`Booking ${status} successfully`);
+      await bookingService.updateBookingStatus(bookingId, newStatus);
+      await loadBookings();
+      alert('Status updated!');
     } catch (err) {
-      alert(`Failed to ${status} booking`);
-      console.error('Update booking error:', err);
+      console.error('Update error:', err);
+      alert('Failed to update status');
     }
   };
+
 
   const getStatusBadgeClass = (status) => {
     switch (status) {
@@ -83,10 +86,9 @@ function TutorBookings() {
     return timeString;
   };
 
-  const filteredBookings = bookings.filter(booking => {
-    if (filter === 'all') return true;
-    return booking.status === filter;
-  });
+  const filteredBookings = bookings.filter(
+    booking => booking.status === activeTab
+  );
 
   if (loading) {
     return (
@@ -129,19 +131,20 @@ function TutorBookings() {
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 border-b border-gray-200">
-        {['all', 'pending', 'accepted', 'completed'].map((filterOption) => (
+      {/* Status Tabs */}
+      <div className="flex gap-2 mb-6 border-b border-gray-200">
+        {['pending', 'accepted', 'completed', 'declined'].map((tab) => (
           <button
-            key={filterOption}
-            onClick={() => setFilter(filterOption)}
+            key={tab}
+            onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 font-medium transition ${
-              filter === filterOption
+              activeTab === tab
                 ? 'text-primary-600 border-b-2 border-primary-600'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
+            {tab.charAt(0).toUpperCase() + tab.slice(1)} (
+            {bookings.filter(b => b.status === tab).length})
           </button>
         ))}
       </div>
@@ -151,12 +154,12 @@ function TutorBookings() {
         <div className="text-center py-12 bg-gray-50 rounded-xl">
           <div className="text-5xl mb-4">✎𓂃</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No {filter !== 'all' ? filter : ''} booking requests
+            No {activeTab} booking requests
           </h3>
           <p className="text-gray-600">
-            {filter === 'pending' 
-              ? 'You don\'t have any pending requests at the moment.'
-              : 'Booking requests will appear here when students request sessions with you.'}
+            {activeTab === 'pending'
+              ? "You don't have any pending requests at the moment."
+              : `You don't have any ${activeTab} bookings right now.`}
           </p>
         </div>
       ) : (
@@ -241,14 +244,42 @@ function TutorBookings() {
                       </button>
                     </>
                   )}
+
                   {booking.status === 'accepted' && (
+                    <>
+                      <button
+                        onClick={() => handleUpdateStatus(booking.id, 'completed')}
+                        className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                      >
+                        Mark as Completed
+                      </button>
+                      <button
+                        onClick={() => handleUpdateStatus(booking.id, 'declined')}
+                        className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                      >
+                        Cancel / Decline
+                      </button>
+                    </>
+                  )}
+
+                  {booking.status === 'declined' && (
                     <button
-                      onClick={() => handleUpdateStatus(booking.id, 'completed')}
-                      className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                      onClick={() => handleUpdateStatus(booking.id, 'accepted')}
+                      className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                     >
-                      Mark as Completed
+                      Move to Accepted
                     </button>
                   )}
+
+                  {booking.status === 'completed' && (
+                    <button
+                      onClick={() => handleUpdateStatus(booking.id, 'accepted')}
+                      className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                    >
+                      Move to Accepted
+                    </button>
+                  )}
+
                 </div>
               </div>
             </div>

@@ -34,21 +34,36 @@ class PaymentService {
   }
 
   /**
-   * Generic payment initiation 
-   * @param {string} planType - Plan type 
+   * Generic payment initiation - FIXED VERSION
+   * @param {string} planType - Plan type ('semester', 'annual', etc.)
    * @returns {Promise} Payment data
    */
   async initiatePayment(planType) {
-    // If it's a subscription plan
-    if (['FREE', 'BASIC', 'PREMIUM', 'UNLIMITED'].includes(planType)) {
-      return this.initiateGPAPayment(planType);
+    try {
+      // For GPA subscriptions (semester/annual)
+      const response = await api.post('/payments/generate', {
+        subscriptionType: planType
+      });
+      
+      // Return in the format expected by SubscriptionPage
+      return {
+        success: true,
+        paymentData: response.data.paymentData,
+        paymentUrl: response.data.paymentUrl
+      };
+    } catch (error) {
+      console.error('Error initiating payment:', error);
+      throw error;
     }
-    
-    // Otherwise treat as custom payment
-    const response = await api.post('/payments/generate', {
-      subscriptionType: planType
-    });
-    return response.data;
+  }
+
+  /**
+   * Initialize payment - ALIAS for compatibility
+   * @param {string} subscriptionType - 'semester' or 'annual'
+   * @returns {Promise} Payment data
+   */
+  async initializePayment(subscriptionType) {
+    return this.initiatePayment(subscriptionType);
   }
 
   /**
@@ -193,7 +208,6 @@ class PaymentService {
     // Adds form to page and submit
     document.body.appendChild(form);
     form.submit();
-    
   }
 
   /**

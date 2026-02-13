@@ -77,64 +77,46 @@ function AdminDashboard() {
     }
   };
 
-  const approveTutor = async (tutorId) => {
-    if (!window.confirm('Are you sure you want to approve this tutor?')) {
-      return;
-    }
+  const changeStatusToApproved = async (tutorId) => {
+    if (!window.confirm('Change status to APPROVED?')) return;
 
     setActionLoading(true);
     try {
       const token = localStorage.getItem('token');
       await axios.post(
         `${API_URL}/admin/tutors/${tutorId}/approve`,
-        { adminNotes: 'Approved' },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+        { adminNotes: 'Status changed' },
+        { headers: { Authorization: `Bearer ${token}` }}
       );
-      
-      alert('Tutor approved successfully!');
+
+      alert('Status changed to APPROVED');
       setShowModal(false);
       loadData();
     } catch (err) {
-      console.error('Approve error:', err);
-      alert(err.response?.data?.error || 'Failed to approve tutor');
+      alert('Failed: ' + err.message);
     } finally {
       setActionLoading(false);
     }
   };
 
-  const rejectTutor = async (tutorId) => {
-    if (!rejectReason.trim()) {
-      alert('Please provide a reason for rejection');
-      return;
-    }
-
-    if (!window.confirm('Are you sure you want to reject this tutor?')) {
-      return;
-    }
+  const changeStatusToRejected = async (tutorId) => {
+    const reason = prompt('Reason for rejection:');
+    if (!reason) return;
 
     setActionLoading(true);
     try {
       const token = localStorage.getItem('token');
       await axios.post(
         `${API_URL}/admin/tutors/${tutorId}/reject`,
-        { 
-          reason: rejectReason,
-          adminNotes: rejectReason 
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+        { reason },
+        { headers: { Authorization: `Bearer ${token}` }}
       );
-      
-      alert('Tutor application rejected');
+
+      alert('Status changed to REJECTED');
       setShowModal(false);
-      setRejectReason('');
       loadData();
     } catch (err) {
-      console.error('Reject error:', err);
-      alert(err.response?.data?.error || 'Failed to reject tutor');
+      alert('Failed: ' + err.message);
     } finally {
       setActionLoading(false);
     }
@@ -413,43 +395,31 @@ function AdminDashboard() {
                 </div>
               )}
 
-              {/* Actions - Only show for pending tutors */}
-              {selectedTutor.approval_status === 'pending' && (
-                <div className="border-t border-gray-200 pt-6">
-                  <h4 className="font-bold text-gray-900 mb-4">Review Actions</h4>
-                  
-                  <div className="space-y-4">
-                    <button
-                      onClick={() => approveTutor(selectedTutor.id)}
-                      disabled={actionLoading}
-                      className="w-full py-3 px-6 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50"
-                    >
-                      {actionLoading ? 'Processing...' : 'Approve Tutor'}
-                    </button>
+              {/* Change Status Section */}
+              <div className="border-t border-gray-200 pt-6">
+                <h4 className="font-bold text-gray-900 mb-4">Change Status</h4>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Rejection Reason
-                      </label>
-                      <textarea
-                        value={rejectReason}
-                        onChange={(e) => setRejectReason(e.target.value)}
-                        rows={3}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                        placeholder="Provide a reason for rejection..."
-                      />
-                    </div>
+                {selectedTutor.approval_status !== 'approved' && (
+                  <button
+                    onClick={() => changeStatusToApproved(selectedTutor.id)}
+                    disabled={actionLoading}
+                    className="w-full py-3 px-6 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50 mb-3"
+                  >
+                    {actionLoading ? 'Processing...' : 'Change to APPROVED'}
+                  </button>
+                )}
 
-                    <button
-                      onClick={() => rejectTutor(selectedTutor.id)}
-                      disabled={actionLoading}
-                      className="w-full py-3 px-6 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
-                    >
-                      {actionLoading ? 'Processing...' : 'Reject Application'}
-                    </button>
-                  </div>
-                </div>
-              )}
+                {selectedTutor.approval_status !== 'rejected' && (
+                  <button
+                    onClick={() => changeStatusToRejected(selectedTutor.id)}
+                    disabled={actionLoading}
+                    className="w-full py-3 px-6 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                  >
+                    {actionLoading ? 'Processing...' : 'Change to REJECTED'}
+                  </button>
+                )}
+              </div>
+
             </div>
           </div>
         </div>

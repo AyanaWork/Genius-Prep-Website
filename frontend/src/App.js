@@ -16,6 +16,9 @@ import AdminDashboard from './pages/Admin/AdminDashboard';
 import SubscriptionPage from './pages/GPA/SubscriptionPage';
 import PaymentSuccess from './pages/Payment/PaymentSuccess';
 import PaymentCancel from './pages/Payment/PaymentCancel';
+import TermsAndConditions from './pages/Legal/TermsAndConditions';
+import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
+import RefundPolicy from './pages/Legal/RefundPolicy';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRole }) {
@@ -95,6 +98,11 @@ function App() {
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/cancel" element={<PaymentCancel />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+        {/* Legal Pages */}
+        <Route path="/terms" element={<TermsAndConditions />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/refund-policy" element={<RefundPolicy />} />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

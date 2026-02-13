@@ -62,10 +62,46 @@ class GPAService {
     return response.data;
   }
 
+  // Get all conversations
+  async getConversations() {
+    const response = await api.get('/gpa/conversations');
+    return response.data;
+  }
+
+  // Get specific conversation
+  async getConversation(conversationId) {
+    const response = await api.get(`/gpa/conversations/${conversationId}`);
+    return response.data;
+  }
+
+  // Save conversation
+  async saveConversation(conversationId, title, messages) {
+    const response = await api.post('/gpa/conversations', {
+      conversationId,
+      title,
+      messages
+    });
+    return response.data;
+  }
+
+  // Delete conversation
+  async deleteConversation(conversationId) {
+    const response = await api.delete(`/gpa/conversations/${conversationId}`);
+    return response.data;
+  }
+
   // Initiate payment
   async initiatePayment(subscriptionType) {
     const response = await api.post('/payments/generate', {
       subscriptionType
+    });
+    return response.data;
+  }
+
+  async analyzePDF(pdfText, analysisType = 'summary') {
+    const response = await api.post('/gpa/analyze-pdf', {
+      pdfText,
+      analysisType
     });
     return response.data;
   }

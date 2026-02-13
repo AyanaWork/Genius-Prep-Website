@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import paymentService from '../../services/payment';
 
 function BookingForm({ tutorId, tutorName, hourlyRate, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
@@ -32,13 +33,42 @@ function BookingForm({ tutorId, tutorName, hourlyRate, onSubmit, onCancel }) {
     }
 
     try {
-      await onSubmit({
+      // Step 1: Create booking
+      const bookingResponse = await onSubmit({
         tutorId,
         ...formData,
         totalAmount
       });
+
+      if (bookingResponse && bookingResponse.booking) {
+        const bookingId = bookingResponse.booking.id;
+        
+        // Step 2: Process payment
+        const paymentResponse = await paymentService.createBookingPayment(bookingId);
+
+        if (paymentResponse && paymentResponse.paymentUrl && paymentResponse.paymentData) {
+          // Create form and submit to PayFast
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = paymentResponse.paymentUrl;
+
+          Object.keys(paymentResponse.paymentData).forEach(key => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = paymentResponse.paymentData[key];
+            form.appendChild(input);
+          });
+
+          document.body.appendChild(form);
+          form.submit();
+        } else {
+          alert('Booking created but payment failed. Contact support.');
+        }
+      }
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to submit booking request');
+      console.error('Error:', err);
+      setError(err.response?.data?.error || 'Failed to process booking');
     } finally {
       setLoading(false);
     }
@@ -154,7 +184,7 @@ function BookingForm({ tutorId, tutorName, hourlyRate, onSubmit, onCancel }) {
             disabled={loading}
             className="flex-1 py-3 px-6 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition disabled:opacity-50"
           >
-            {loading ? 'Processing...' : `Pay R${totalAmount} & Book`}
+            {loading ? 'Processing...' : `Request Booking`}
           </button>
           {onCancel && (
             <button
