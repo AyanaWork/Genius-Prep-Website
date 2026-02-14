@@ -3,30 +3,40 @@ const cloudinary = require('../config/cloudinary');
 // Upload image to Cloudinary
 exports.uploadImage = async (req, res) => {
   try {
-    // Check if file exists
-    if (!req.body.image) {
-      return res.status(400).json({ error: 'No image provided' });
+    console.log('📸 Upload request received');
+    console.log('File:', req.file);
+
+    if (!req.file) {
+      console.log('❌ No file in request');
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(req.body.image, {
-      folder: 'genius-prep/profiles',
-      resource_type: 'image',
+    console.log('📤 Uploading to Cloudinary...');
+    console.log('File path:', req.file.path);
+
+    // Upload to Cloudinary - FIXED: Use req.file.path
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'genius-prep',
+      resource_type: 'auto',
       transformation: [
-        { width: 500, height: 500, crop: 'fill', gravity: 'face' },
+        { width: 500, height: 500, crop: 'limit' },
         { quality: 'auto' }
       ]
     });
 
-    res.json({
-      message: 'Image uploaded successfully',
-      url: result.secure_url,
-      publicId: result.public_id
-    });
+    console.log('✅ Upload successful:', result.secure_url);
 
+    res.json({
+      success: true,
+      url: result.secure_url,
+      public_id: result.public_id
+    });
   } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ error: 'Failed to upload image' });
+    console.error('❌ Upload error:', error);
+    res.status(500).json({ 
+      error: 'Failed to upload image',
+      details: error.message 
+    });
   }
 };
 
@@ -36,15 +46,24 @@ exports.deleteImage = async (req, res) => {
     const { publicId } = req.body;
 
     if (!publicId) {
-      return res.status(400).json({ error: 'No public ID provided' });
+      return res.status(400).json({ error: 'Public ID required' });
     }
+
+    console.log('🗑️ Deleting image:', publicId);
 
     await cloudinary.uploader.destroy(publicId);
 
-    res.json({ message: 'Image deleted successfully' });
+    console.log('✅ Image deleted successfully');
 
+    res.json({
+      success: true,
+      message: 'Image deleted successfully'
+    });
   } catch (error) {
-    console.error('Delete error:', error);
-    res.status(500).json({ error: 'Failed to delete image' });
+    console.error('❌ Delete error:', error);
+    res.status(500).json({ 
+      error: 'Failed to delete image',
+      details: error.message 
+    });
   }
 };
