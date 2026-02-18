@@ -40,14 +40,15 @@ exports.generatePayment = async (req, res) => {
     const { subscriptionType } = req.body;
 
     // Validate subscription type
-    if (!subscriptionType || !['annual', 'semester'].includes(subscriptionType)) {
+    if (!subscriptionType || !['annual', 'semester', 'monthly', 'daily'].includes(subscriptionType)) {
       return res.status(400).json({ 
-        error: 'Invalid subscription type. Must be "annual" or "semester"' 
+        error: 'Invalid subscription type. Must be "annual", "semester", "monthly", or "daily"' 
       });
     }
 
     // Set amount based on subscription type
-    const amount = subscriptionType === 'annual' ? 700 : 450;
+    const amountMap = { annual: 700, semester: 450, monthly: 250, daily: 100 };
+    const amount = amountMap[subscriptionType];
 
     // Generate unique payment ID
     const paymentId = `GPA_${userId}_${Date.now()}`;
@@ -62,6 +63,10 @@ exports.generatePayment = async (req, res) => {
     // Trim and validate credentials
     const merchantId = String(PAYFAST_CONFIG.merchant_id).trim();
     const merchantKey = String(PAYFAST_CONFIG.merchant_key).trim();
+
+     const durationMap = { annual: '12 months', semester: '6 months', monthly: '1 month', daily: '1 day' };
+     const labelMap = { annual: 'Annual', semester: 'Semester', monthly: 'Monthly', daily: 'Daily' };
+
 
     console.log('Generating payment for:', {
       userId,
@@ -83,8 +88,8 @@ exports.generatePayment = async (req, res) => {
       email_address: userEmail,
       m_payment_id: paymentId,
       amount: amount.toFixed(2),
-      item_name: `GPA ${subscriptionType === 'annual' ? 'Annual' : 'Semester'} Subscription`,
-      item_description: `Genius Prep Accelerator - ${subscriptionType === 'annual' ? '12 months' : '6 months'} unlimited access`,
+      item_name: `GPA ${labelMap[subscriptionType]} Subscription`,
+      item_description: `Genius Prep Accelerator - ${durationMap[subscriptionType]} unlimited access`,
       custom_int1: userId,
       custom_str1: 'gpa_subscription',
       custom_str2: subscriptionType
@@ -111,8 +116,8 @@ exports.generatePayment = async (req, res) => {
       success: true,
       paymentData,
       paymentUrl: process.env.PAYFAST_MODE === 'live'
-        ? 'https://www.payfast.co.za/eng/process'
-        : 'https://sandbox.payfast.co.za/eng/process'
+      ? 'https://www.payfast.co.za/eng/process'        
+      : 'https://sandbox.payfast.co.za/eng/process'   
     });
 
   } catch (error) {
@@ -168,8 +173,12 @@ exports.handleNotification = async (req, res) => {
       
       if (subscriptionType === 'annual') {
         endDate.setFullYear(endDate.getFullYear() + 1);
-      } else {
+      } else if (subscriptionType === 'semester') {
         endDate.setMonth(endDate.getMonth() + 6);
+      } else if (subscriptionType === 'monthly') {
+        endDate.setMonth(endDate.getMonth() + 1);
+      } else if (subscriptionType === 'daily') {
+        endDate.setDate(endDate.getDate() + 1);
       }
 
       await pool.query(`
@@ -338,8 +347,8 @@ exports.createBookingPayment = async (req, res) => {
       success: true,
       paymentData,
       paymentUrl: process.env.PAYFAST_MODE === 'live'
-        ? 'https://sandbox.payfast.co.za/eng/process'
-        : 'https://www.payfast.co.za/eng/process'
+      ? 'https://www.payfast.co.za/eng/process'
+      : 'https://sandbox.payfast.co.za/eng/process'
     });
 
   } catch (error) {

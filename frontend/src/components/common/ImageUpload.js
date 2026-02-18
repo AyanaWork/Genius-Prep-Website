@@ -57,7 +57,6 @@ function ImageUpload({ currentImage, onImageChange }) {
               className="file-input"
             />
             <div className="upload-content">
-              <div className="upload-icon">📷</div>
               <p className="upload-text">Click to upload image</p>
               <p className="upload-hint">PNG, JPG up to 5MB</p>
             </div>

@@ -237,7 +237,7 @@ function TutorProfileForm() {
                   Profile Status: {formData.approval_status.charAt(0).toUpperCase() + formData.approval_status.slice(1)}
                 </p>
                 {formData.approval_status === 'pending' && (
-                  <p className="text-sm">Your profile is awaiting admin approval. You'll be able to accept bookings once approved.</p>
+                  <p className="text-sm">Your profile is awaiting admin approval. You'll be able to accept bookings once ap-proved.</p>
                 )}
                 {formData.approval_status === 'approved' && (
                   <p className="text-sm">✓ Your profile has been approved! You can now accept student bookings.</p>
@@ -331,7 +331,7 @@ function TutorProfileForm() {
                   {formData.subjects.map((subject) => (
                     <span
                       key={subject}
-                      className="inline-flex items-center px-4 py-2 bg-white border-2 border-primary-200 text-primary-700 rounded-full font-medium shadow-sm"
+                      className="inline-flex items-center px-4 py-2 bg-white border-2 border-primary-200 text-primary-700 round-ed-full font-medium shadow-sm"
                     >
                       {subject}
                       <button
@@ -428,7 +428,7 @@ function TutorProfileForm() {
                     name="hourlyRate"
                     value={formData.hourlyRate}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 fo-cus:border-transparent transition"
                     placeholder="150"
                     min="0"
                     step="10"
@@ -445,7 +445,7 @@ function TutorProfileForm() {
                   name="yearsExperience"
                   value={formData.yearsExperience}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 fo-cus:border-transparent transition"
                   placeholder="3"
                   min="0"
                 />
@@ -573,7 +573,7 @@ function TutorProfileForm() {
               <button
                 type="button"
                 onClick={() => navigate('/tutor/dashboard')}
-                className="px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition"
+                className="px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transi-tion"
               >
                 Cancel
               </button>

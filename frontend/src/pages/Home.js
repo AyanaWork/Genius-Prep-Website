@@ -123,6 +123,12 @@ function Home() {
                   >
                     GPA AI
                   </button>
+                  <button
+                    onClick={() => navigate('/pricing-legal')}
+                    className="text-gray-700 hover:text-[#4A90E2] font-medium transition"
+                  >
+                    Pricing & Legal
+                  </button>
                 </>
               )}
             </div>
@@ -544,6 +550,12 @@ function Home() {
                 className="text-gray-400 hover:text-white transition text-sm"
               >
                 Refund Policy
+              </button>
+              <button 
+                onClick={() => navigate('/pricing-legal')} 
+                className="text-gray-400 hover:text-[#4A90E2] transition"
+              >
+                Pricing & Legal
               </button>
             </div>
             <p className="text-gray-500 text-sm">

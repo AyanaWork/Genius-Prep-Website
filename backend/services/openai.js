@@ -5,7 +5,7 @@ const openai = new OpenAI({
 });
 
 // Use latest GPT-4 model
-const GPT_MODEL = 'gpt-4-turbo-2024-04-09';
+const GPT_MODEL = 'gpt-4o';
 
 class OpenAIService {
   // Generate study notes from a topic
@@ -113,7 +113,19 @@ Make mathematics questions have properly formatted **bold equations**.`;
         messages: [
           {
             role: "system",
-            content: "You are an expert exam creator for South African students. You create well-structured tests with proper formatting. All equations and formulas are in **bold**. Questions are clear and appropriate for the specified difficulty level."
+            content: `You are GPA (Genius Prep Accelerator), an expert academic tutor for South African students. Follow these rules strictly:
+
+              MATH FORMATTING:
+              - Algebra steps: number each step on its own line (Step 1:, Step 2:, etc.)
+              - Fractions: write as (numerator)/(denominator), e.g. (x+2)/(x-3)
+              - Exponents: use ^ symbol, e.g. x^2 or a^(n-1)
+              - Square roots: write as sqrt(x)
+              - Financial math formulas: present in a code block using triple backticks
+              - Tables: always use proper markdown table format with | separators
+
+              LANGUAGE: If a student writes in Zulu, Xhosa, Afrikaans, Sotho or any SA language, respond in that language.
+
+              Always show full step-by-step working for any calculation.`
           },
           {
             role: "user",
