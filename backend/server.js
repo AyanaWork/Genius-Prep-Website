@@ -11,8 +11,10 @@ const PORT = process.env.PORT || 5000;
 // ============================================
 const allowedOrigins = [
   'https://genius-prep-website.vercel.app',
+  'https://genius-prep-tuition.vercel.app',
+  process.env.FRONTEND_URL,
   'http://localhost:3000'
-];
+].filter(Boolean); // removes undefined entries
 
 app.use(cors({
   origin: function (origin, callback) {
