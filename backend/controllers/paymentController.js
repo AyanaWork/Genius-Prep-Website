@@ -272,6 +272,7 @@ exports.createBookingPayment = async (req, res) => {
     const userId = req.userId;
     const { bookingId } = req.body;
 
+    console.log('Auth userId:', userId, 'BookingId:', bookingId, 'Type:', typeof userId, typeof bookingId);
     console.log('Creating booking payment for:', { userId, bookingId });
 
     // Get booking details
