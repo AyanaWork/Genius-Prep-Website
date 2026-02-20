@@ -15,7 +15,7 @@ exports.uploadImage = async (req, res) => {
           {
             folder: 'genius-prep/profiles',
             resource_type: 'auto',
-            transformation: req.file.minetype.startsWith('image/') ? [
+            transformation: req.file.mimetype.startsWith('image/') ? [
               { width: 500, height: 500, crop: 'fill', gravity: 'face' },
               { quality: 'auto' }
             ] : []
