@@ -110,8 +110,11 @@ exports.generatePayment = async (req, res) => {
     
     console.log('Payment data before signature:', paymentData);
     
+    console.log('Passphrase being used:', JSON.stringify(process.env.PAYFAST_PASSPHRASE));
+    console.log('Passphrase length:', process.env.PAYFAST_PASSPHRASE?.length);
+    
     // Generate signature
-    const signature = generateSignature(paymentData, PAYFAST_CONFIG.passphrase);
+    const signature = generateSignature(paymentData, process.env.PAYFAST_PASSPHRASE);
     paymentData.signature = signature;
     
     console.log('Generated signature:', signature);

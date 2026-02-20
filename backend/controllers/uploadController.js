@@ -14,11 +14,11 @@ exports.uploadImage = async (req, res) => {
         const stream = cloudinary.uploader.upload_stream(
           {
             folder: 'genius-prep/profiles',
-            resource_type: 'image',
-            transformation: [
+            resource_type: 'auto',
+            transformation: req.file.minetype.startsWith('image/') ? [
               { width: 500, height: 500, crop: 'fill', gravity: 'face' },
               { quality: 'auto' }
-            ]
+            ] : []
           },
           (error, result) => {
             if (error) reject(error);
