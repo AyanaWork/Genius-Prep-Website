@@ -16,19 +16,19 @@ function generateSignature(data, passPhrase = null) {
   let pfOutput = '';
   sortedKeys.forEach(key => {
     if (key !== 'signature' && data[key] !== '' && data[key] !== null && data[key] !== undefined) {
-      pfOutput += `${key}=${encodeURIComponent(String(data[key]).trim()).replace(/%20/g, '+')}&`;
+      pfOutput += `${key}=${encodeURIComponent(String(data[key]).trim())}&`;
     }
   });
 
   pfOutput = pfOutput.slice(0, -1);
   
   if (passPhrase && passPhrase.trim() !== '') {
-    pfOutput += `&passphrase=${encodeURIComponent(passPhrase.trim()).replace(/%20/g, '+')}`;
+    pfOutput += `&passphrase=${encodeURIComponent(passPhrase.trim())}`;
   }
 
-  console.log('Signature string (first 100 chars):', pfOutput.substring(0, 100));
+  console.log('Full signature string:', pfOutput);
   
-  return require('crypto').createHash('md5').update(pfOutput).digest('hex');
+  return crypto.createHash('md5').update(pfOutput).digest('hex');
 }
 
 // Generate payment for GPA subscription

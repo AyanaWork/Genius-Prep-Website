@@ -173,9 +173,9 @@ function TutorProfileForm() {
       });
 
       setSuccess('Profile updated successfully! Your profile is now pending admin approval.');
-      
-      // Reload profile to get updated data
-      await loadProfile();
+      setTimeout(() => {
+        navigate('/tutor/dashboard');
+      }, 1500);
       
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to update profile');
