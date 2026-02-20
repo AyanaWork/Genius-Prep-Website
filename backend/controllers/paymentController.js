@@ -103,13 +103,13 @@ exports.generatePayment = async (req, res) => {
       amount: amount.toFixed(2),
       item_name: `GPA ${labelMap[subscriptionType]} Subscription`,
       item_description: `Genius Prep Accelerator - ${durationMap[subscriptionType]} unlimited access`,
-      custom_int1: userId,
+      custom_int1: String(userId),
       custom_str1: 'gpa_subscription',
       custom_str2: subscriptionType
     };
     
     console.log('Payment data before signature:', paymentData);
-    
+
     console.log('Passphrase being used:', JSON.stringify(process.env.PAYFAST_PASSPHRASE));
     console.log('Passphrase length:', process.env.PAYFAST_PASSPHRASE?.length);
     
@@ -351,8 +351,8 @@ exports.createBookingPayment = async (req, res) => {
       amount: parseFloat(amount).toFixed(2),
       item_name: `Tutoring: ${booking.subject}`,
       item_description: `${booking.number_of_hours} hours with ${booking.tutor_name || 'tutor'}`,
-      custom_int1: userId,
-      custom_int2: bookingId,
+      custom_int1: String(userId),
+      custom_int2: String(bookingId),
       custom_str1: 'tutor_booking'
     };
 
