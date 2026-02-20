@@ -4,11 +4,11 @@ class StudentProfile {
   // Create student profile
   static async create(userId, profileData) {
     const {
-      displayName,
-      educationLevel,
-      subjectsInterested,
+      display_name: displayName,
+      education_level: educationLevel,
+      subjects_interested: subjectsInterested,
       location,
-      profilePictureUrl
+      profile_picture_url: profilePictureUrl
     } = profileData;
 
     const query = `
@@ -40,11 +40,11 @@ class StudentProfile {
   // Update student profile
   static async update(userId, profileData) {
     const {
-      displayName,
-      educationLevel,
-      subjectsInterested,
+      display_name: displayName,
+      education_level: educationLevel,
+      subjects_interested: subjectsInterested,
       location,
-      profilePictureUrl
+      profile_picture_url: profilePictureUrl
     } = profileData;
 
     const query = `
