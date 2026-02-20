@@ -51,8 +51,19 @@ class ProfileService {
 
   // Image upload
   async uploadImage(imageData) {
-    const response = await api.post('/upload/image', { image: imageData });
-    return response.data;
+    // imageData can be a File object (from input) or base64 string
+    if (imageData instanceof File) {
+      const formData = new FormData();
+      formData.append('image', imageData);
+      const response = await api.post('/upload/image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return response.data;
+    } else {
+      // base64 string
+      const response = await api.post('/upload/image', { image: imageData });
+      return response.data;
+    }
   }
 }
 

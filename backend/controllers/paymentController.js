@@ -11,26 +11,24 @@ const PAYFAST_CONFIG = {
 
 // Generate payment signature
 function generateSignature(data, passPhrase = null) {
-  // Create parameter string
-  let pfOutput = '';
   const sortedKeys = Object.keys(data).sort();
   
+  let pfOutput = '';
   sortedKeys.forEach(key => {
-    if (key !== 'signature') {
-      pfOutput += `${key}=${encodeURIComponent(data[key].toString().trim()).replace(/%20/g, '+')}&`;
+    if (key !== 'signature' && data[key] !== '' && data[key] !== null && data[key] !== undefined) {
+      pfOutput += `${key}=${encodeURIComponent(String(data[key]).trim()).replace(/%20/g, '+')}&`;
     }
   });
 
-  // Remove last ampersand
-  let getString = pfOutput.slice(0, -1);
+  pfOutput = pfOutput.slice(0, -1);
   
-  if (passPhrase) {
-    getString += `&passphrase=${encodeURIComponent(passPhrase.trim()).replace(/%20/g, '+')}`;
+  if (passPhrase && passPhrase.trim() !== '') {
+    pfOutput += `&passphrase=${encodeURIComponent(passPhrase.trim()).replace(/%20/g, '+')}`;
   }
 
-  console.log('Signature string:', getString);
+  console.log('Signature string (first 100 chars):', pfOutput.substring(0, 100));
   
-  return crypto.createHash('md5').update(getString).digest('hex');
+  return require('crypto').createHash('md5').update(pfOutput).digest('hex');
 }
 
 // Generate payment for GPA subscription
@@ -61,8 +59,23 @@ exports.generatePayment = async (req, res) => {
     const userEmail = userResult.rows[0].email;
 
     // Trim and validate credentials
-    const merchantId = String(PAYFAST_CONFIG.merchant_id).trim();
-    const merchantKey = String(PAYFAST_CONFIG.merchant_key).trim();
+    const merchantId = String(PAYFAST_CONFIG.merchant_id || '').trim().replace(/\s+/g, '');
+    const merchantKey = String(PAYFAST_CONFIG.merchant_key || '').trim().replace(/\s+/g, '');
+    const passphrase = String(PAYFAST_CONFIG.passphrase || '').trim();
+
+    console.log('PayFast credentials check:', {
+      merchantIdLength: merchantId.length,
+      merchantKeyLength: merchantKey.length,
+      hasPassphrase: !!passphrase
+    });
+
+    if (merchantKey.length !== 13) {
+      console.error(`CRITICAL: Merchant key is ${merchantKey.length} characters, expected 13. Key: "${merchantKey}"`);
+      return res.status(500).json({ 
+        error: 'Payment configuration error. Please contact support.',
+        details: `Merchant key length: ${merchantKey.length}`
+      });
+    }
 
      const durationMap = { annual: '12 months', semester: '6 months', monthly: '1 month', daily: '1 day' };
      const labelMap = { annual: 'Annual', semester: 'Semester', monthly: 'Monthly', daily: 'Daily' };
@@ -303,9 +316,23 @@ exports.createBookingPayment = async (req, res) => {
     });
 
     // Trim credentials
-    const merchantId = String(process.env.PAYFAST_MERCHANT_ID).trim();
-    const merchantKey = String(process.env.PAYFAST_MERCHANT_KEY).trim();
-    const passphrase = String(process.env.PAYFAST_PASSPHRASE).trim();
+    const merchantId = String(process.env.PAYFAST_MERCHANT_ID || '').trim().replace(/\s+/g, '');
+    const merchantKey = String(process.env.PAYFAST_MERCHANT_KEY || '').trim().replace(/\s+/g, '');
+    const passphrase = String(process.env.PAYFAST_PASSPHRASE || '').trim();
+
+    console.log('PayFast credentials check:', {
+      merchantIdLength: merchantId.length,
+      merchantKeyLength: merchantKey.length,
+      hasPassphrase: !!passphrase
+    });
+
+    if (merchantKey.length !== 13) {
+      console.error(`CRITICAL: Merchant key is ${merchantKey.length} characters, expected 13. Key: "${merchantKey}"`);
+      return res.status(500).json({ 
+        error: 'Payment configuration error. Please contact support.',
+        details: `Merchant key length: ${merchantKey.length}`
+      });
+    }
 
     // Create payment data 
     const paymentData = {

@@ -64,25 +64,29 @@ function StudentDashboard() {
           </button>
           
           <div className="flex items-center gap-4">
-            {/* Navigation Items */}
-            <button
-              onClick={() => navigate('/')}
-              className="text-gray-700 hover:text-primary-600 transition font-medium"
-            >
-              Home
-            </button>
-            <button
-              onClick={() => navigate('/tutors')}
-              className="text-gray-700 hover:text-primary-600 transition font-medium"
-            >
-              Browse Tutors
-            </button>
-            <button
-              onClick={() => navigate('/gpa')}
-              className="text-gray-700 hover:text-primary-600 transition font-medium"
-            >
-              GPA AI
-            </button>
+            {/* Navigation Items - only shows if profile exists */}
+            {profile && (
+              <>
+                <button
+                  onClick={() => navigate('/')}
+                  className="text-gray-700 hover:text-primary-600 transition font-medium"
+                >
+                  Home
+                </button>
+                <button
+                  onClick={() => navigate('/tutors')}
+                  className="text-gray-700 hover:text-primary-600 transition font-medium"
+                >
+                  Browse Tutors
+                </button>
+                <button
+                  onClick={() => navigate('/gpa')}
+                  className="text-gray-700 hover:text-primary-600 transition font-medium"
+                >
+                  GPA AI
+                </button>
+              </>
+            )}
             
             {/* Profile Dropdown */}
             <div className="relative">
@@ -117,50 +121,31 @@ function StudentDashboard() {
                     </p>
                     <p className="text-xs text-gray-500">{currentUser?.email}</p>
                   </div>
-                  <button
-                    onClick={() => {
-                      setActiveView('overview');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
-                  >
-                    📈 Dashboard
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate('/student/profile/edit');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
-                  >
-                    ✎ Edit Profile
-                  </button>
-                  <button
-                    onClick={() => {
-                      setActiveView('bookings');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
-                  >
-                    🗒 My Bookings
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate('/gpa');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
-                  >
-                    ⚛ GPA AI
-                  </button>
-                  <div className="border-t border-gray-100 mt-2 pt-2">
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
-                    >
-                      ⍈ Logout
-                    </button>
-                  </div>
+                    {profile ? (
+                      <>
+                        <button onClick={() => { setActiveView('overview'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                          📈 Dashboard
+                        </button>
+                        <button onClick={() => { navigate('/student/profile/edit'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                          ✏️ Edit Profile
+                        </button>
+                        <button onClick={() => { setActiveView('bookings'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                          📅 My Bookings
+                        </button>
+                        <button onClick={() => { navigate('/gpa'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                          🤖 GPA AI
+                        </button>
+                      </>
+                    ) : (
+                      <button onClick={() => { navigate('/student/profile/edit'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                        ✏️ Create Profile
+                      </button>
+                    )}
+                    <div className="border-t border-gray-100 mt-2 pt-2">
+                      <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">
+                        🚪 Logout
+                      </button>
+                    </div>
                 </div>
               )}
             </div>

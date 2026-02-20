@@ -103,8 +103,8 @@ app.use((err, req, res, next) => {
 // START SERVER
 // ============================================
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`✅ CORS enabled for: ${allowedOrigins.join(', ')}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`CORS enabled for: ${allowedOrigins.join(', ')}`);
   console.log(`Test database connection: http://localhost:${PORT}/api/test-db`);
 });
 

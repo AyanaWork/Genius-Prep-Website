@@ -30,31 +30,29 @@ function AdminDashboard() {
         headers: { Authorization: `Bearer ${token}` }
       };
 
-      // Load pending tutors or all tutors based on tab
       let tutorsResponse;
       if (activeTab === 'pending') {
         tutorsResponse = await axios.get(`${API_URL}/admin/tutors/pending`, config);
       } else {
-        tutorsResponse = await axios.get(`${API_URL}/admin/tutors`, config);
+        // Pass status as query param for approved/rejected
+        tutorsResponse = await axios.get(
+          `${API_URL}/admin/tutors?status=${activeTab}`, 
+          config
+        );
       }
       
-      let tutorsData = tutorsResponse.data.tutors || [];
-      
-      // Filter based on active tab if needed
-      if (activeTab === 'approved') {
-        tutorsData = tutorsData.filter(t => t.approval_status === 'approved');
-      } else if (activeTab === 'rejected') {
-        tutorsData = tutorsData.filter(t => t.approval_status === 'rejected');
-      }
-      
+      const tutorsData = tutorsResponse.data.tutors || [];
       setTutors(tutorsData);
 
-      // Load platform stats
       const statsResponse = await axios.get(`${API_URL}/admin/stats`, config);
       setStats(statsResponse.data);
     } catch (err) {
       console.error('Load data error:', err);
-      setError('Failed to load data');
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setError('Unauthorized. Please log in as admin.');
+      } else {
+        setError('Failed to load data. Check your connection.');
+      }
     } finally {
       setLoading(false);
     }
@@ -130,6 +128,37 @@ function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Navbar */}
+      <nav className="bg-white shadow sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between items-center h-16">
+            <button
+              onClick={() => navigate('/')}
+              className="text-2xl font-bold text-primary-800 hover:text-primary-900 transition"
+            >
+              Genius Prep Tuition
+            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/admin/dashboard')}
+                className="text-gray-700 hover:text-primary-600 transition font-medium"
+              >
+                Dashboard
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('token');
+                  navigate('/');
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-6">

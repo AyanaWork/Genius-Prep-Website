@@ -34,19 +34,20 @@ function Login() {
 
     try {
       const response = await authService.login(formData.email, formData.password);
+      const user = response.user;
       
-      if (response.user) {
-        // Navigate based on role
-        if (response.user.role === 'student') {
-          navigate('/student/dashboard');
-        } else if (response.user.role === 'tutor') {
-          navigate('/tutor/dashboard');
-        } else {
-          navigate('/');
-        }
+      // Proper redirect for all roles
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (user.role === 'tutor') {
+        navigate('/tutor/dashboard');
+      } else if (user.role === 'student') {
+        navigate('/student/dashboard');
+      } else {
+        navigate('/');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
+      setError(err.response?.data?.error || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
