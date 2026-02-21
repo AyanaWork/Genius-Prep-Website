@@ -289,6 +289,7 @@ exports.createBookingPayment = async (req, res) => {
     `;
 
     const bookingResult = await pool.query(bookingQuery, [bookingId, userId]);
+    console.log('Booking query result rows:', bookingResult.rows.length, 'userId:', userId, 'bookingId:', bookingId);
 
     if (bookingResult.rows.length === 0) {
       return res.status(404).json({ error: 'Booking not found or unauthorized' });
