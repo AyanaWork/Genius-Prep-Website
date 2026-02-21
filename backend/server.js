@@ -87,7 +87,12 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/gpa', gpaRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentRoutes);
+console.log('Payment routes registered');
 app.use('/api/chat', chatRoutes);
+
+app.get('/api/test-payment-route', (req, res) => {
+  res.json({ message: 'Payment routes loaded', version: '1.0.1' });
+});
 
 // ============================================
 // ERROR HANDLING
