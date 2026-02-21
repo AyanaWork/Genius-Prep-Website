@@ -35,31 +35,16 @@ function StudentBookings() {
     try {
       setPaymentLoading(true);
       console.log('Initiating payment for booking:', bookingId);
-      
-      // Call payment service to create booking payment
+
       const paymentResponse = await paymentService.createBookingPayment(bookingId);
 
       console.log('Payment response:', paymentResponse);
 
-      if (paymentResponse && paymentResponse.paymentUrl && paymentResponse.paymentData) {
-        // Create form and redirect to PayFast
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = paymentResponse.paymentUrl;
-
-        Object.keys(paymentResponse.paymentData).forEach(key => {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = key;
-          input.value = paymentResponse.paymentData[key];
-          form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        console.log('Submitting payment form to PayFast...');
-        form.submit();
+      if (paymentResponse && paymentResponse.paymentUrl) {
+        // Redirect to Paystack payment page
+        window.location.href = paymentResponse.paymentUrl;
       } else {
-        throw new Error('Payment setup failed - missing payment URL or data');
+        throw new Error('Payment setup failed - missing payment URL');
       }
     } catch (err) {
       console.error('Payment error:', err);
@@ -117,10 +102,10 @@ function StudentBookings() {
   const formatDate = (dateString) => {
     if (!dateString) return 'Not specified';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-ZA', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-ZA', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
@@ -193,7 +178,7 @@ function StudentBookings() {
                     </div>
                   )}
                   <div>
-                    <h3 
+                    <h3
                       className="text-lg font-bold text-gray-900 cursor-pointer hover:text-primary-600 transition"
                       onClick={() => navigate(`/tutors/${booking.tutor_id}`)}
                     >
@@ -220,8 +205,8 @@ function StudentBookings() {
                   </span>
                   {booking.payment_status && (
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPaymentBadgeClass(booking.payment_status)}`}>
-                      {booking.payment_status === 'completed' || booking.payment_status === 'paid' 
-                        ? '✓ Paid' 
+                      {booking.payment_status === 'completed' || booking.payment_status === 'paid'
+                        ? '✓ Paid'
                         : booking.payment_status === 'pending'
                         ? 'Payment Pending'
                         : booking.payment_status}
@@ -304,8 +289,8 @@ function StudentBookings() {
                   </button>
 
                   {/* PAY NOW BUTTON - Only show if tutor accepted and payment pending */}
-                  {booking.status === 'accepted' && 
-                   booking.payment_status === 'pending' && 
+                  {booking.status === 'accepted' &&
+                   booking.payment_status === 'pending' &&
                    booking.total_amount && (
                     <button
                       onClick={() => handlePayNow(booking.id, booking.total_amount)}

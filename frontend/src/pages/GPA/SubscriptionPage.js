@@ -94,30 +94,16 @@ function SubscriptionPage() {
     try {
       console.log('Initiating subscription:', selectedPlan);
 
-      // Use the subscriptionType value from the selected plan
       const response = await paymentService.initiatePayment(plans[selectedPlan].subscriptionType);
 
       console.log('Payment response:', response);
 
-      if (!response.success || !response.paymentData || !response.paymentUrl) {
+      if (response && response.paymentUrl) {
+        // Redirect to Paystack payment page
+        window.location.href = response.paymentUrl;
+      } else {
         throw new Error('Invalid payment response from server');
       }
-
-      // Create form and submit to PayFast
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = response.paymentUrl;
-
-      Object.keys(response.paymentData).forEach(key => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = response.paymentData[key];
-        form.appendChild(input);
-      });
-
-      document.body.appendChild(form);
-      form.submit();
 
     } catch (err) {
       console.error('Payment error:', err);
@@ -235,7 +221,7 @@ function SubscriptionPage() {
             Selected: <span className="font-semibold text-blue-600">{plans[selectedPlan].name}</span>
           </p>
           <p className="mt-2 text-sm text-gray-500">
-            🔒 Secure payment powered by PayFast
+            🔒 Secure payment powered by Paystack
           </p>
         </div>
 
@@ -263,7 +249,7 @@ function SubscriptionPage() {
             </div>
             <div>
               <h3 className="font-bold text-gray-900 mb-1">Is payment secure?</h3>
-              <p className="text-gray-600">Absolutely. All payments are processed securely through PayFast, South Africa's leading payment gateway. We never store your card details.</p>
+              <p className="text-gray-600">Absolutely. All payments are processed securely through Paystack, a trusted payment gateway. We never store your card details.</p>
             </div>
             <div>
               <h3 className="font-bold text-gray-900 mb-1">Need help?</h3>
