@@ -255,8 +255,6 @@ exports.createBookingPayment = async (req, res) => {
 
     console.log('Creating booking payment:', { userId, bookingId });
 
-    // IMPORTANT: bookings.student_id = student_profiles.id (NOT users.id)
-    // So we must join through student_profiles to match on users.id
     const bookingResult = await pool.query(
       `SELECT 
         b.*,
@@ -308,13 +306,6 @@ exports.createBookingPayment = async (req, res) => {
         ]
       },
       callbackUrl
-    );
-
-    await pool.query('DELETE FROM payment_pending WHERE user_id = $1', [userId]);
-    await pool.query(
-      `INSERT INTO payment_pending (user_id, payment_id, subscription_type, amount)
-       VALUES ($1, $2, $3, $4)`,
-      [userId, paymentId, 'booking', amount]
     );
 
     console.log('Booking Paystack transaction initialized:', transaction.reference);

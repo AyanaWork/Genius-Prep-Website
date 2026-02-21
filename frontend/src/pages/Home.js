@@ -125,7 +125,7 @@ function Home() {
                   </button>
                   <button
                     onClick={() => navigate('/pricing-legal')}
-                    className="text-gray-700 hover:text-[#4A90E2] font-medium transition"
+                    className="text-white hover:text-[#4A90E2] font-medium transition"
                   >
                     Pricing & Legal
                   </button>
