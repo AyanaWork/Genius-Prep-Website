@@ -87,11 +87,6 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/gpa', gpaRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentRoutes);
-// Direct booking payment route (temporary fix)
-const auth = require('./middleware/auth');
-const paymentController = require('./controllers/paymentController');
-app.post('/api/payments/booking', auth, paymentController.createBookingPayment);
-console.log('Payment routes registered');
 app.use('/api/chat', chatRoutes);
 
 app.get('/api/test-payment-route', (req, res) => {
