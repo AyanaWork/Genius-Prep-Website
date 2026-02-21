@@ -6,7 +6,7 @@ const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 
 // initialize a Paystack transaction
 async function initializeTransaction(email, amountInRands, metadata, callbackUrl) {
-  const amountInKobo = Math.round(amountInRands * 100); // Paystack uses kobo (cents)
+  const amountInKobo = Math.round(amountInRands * 100);
 
   const response = await axios.post(
     `${PAYSTACK_BASE_URL}/transaction/initialize`,
@@ -25,10 +25,9 @@ async function initializeTransaction(email, amountInRands, metadata, callbackUrl
     }
   );
 
-  return response.data.data; // { authorization_url, access_code, reference }
+  return response.data.data;
 }
 
-// Helper: verify a Paystack transaction
 async function verifyTransaction(reference) {
   const response = await axios.get(
     `${PAYSTACK_BASE_URL}/transaction/verify/${reference}`,
@@ -56,9 +55,6 @@ exports.generatePayment = async (req, res) => {
     }
 
     const amountMap = { annual: 700, semester: 450, monthly: 250, daily: 100 };
-    const durationMap = { annual: '12 months', semester: '6 months', monthly: '1 month', daily: '1 day' };
-    const labelMap = { annual: 'Annual', semester: 'Semester', monthly: 'Monthly', daily: 'Daily' };
-
     const amount = amountMap[subscriptionType];
     const paymentId = `GPA_${userId}_${Date.now()}`;
 
@@ -88,7 +84,6 @@ exports.generatePayment = async (req, res) => {
       callbackUrl
     );
 
-    // Store pending payment
     await pool.query('DELETE FROM payment_pending WHERE user_id = $1', [userId]);
     await pool.query(
       `INSERT INTO payment_pending (user_id, payment_id, subscription_type, amount)
@@ -115,7 +110,7 @@ exports.generatePayment = async (req, res) => {
 };
 
 // ============================================
-// GPA PAYMENT WEBHOOK 
+// GPA PAYMENT WEBHOOK
 // ============================================
 exports.handleNotification = async (req, res) => {
   try {
@@ -138,7 +133,7 @@ exports.handleNotification = async (req, res) => {
 
         if (pendingResult.rows.length === 0) {
           console.error('Pending GPA payment not found:', paymentId);
-          return res.status(200).send('OK'); // Always return 200 to Paystack
+          return res.status(200).send('OK');
         }
 
         const pending = pendingResult.rows[0];
@@ -176,12 +171,12 @@ exports.handleNotification = async (req, res) => {
 
   } catch (error) {
     console.error('Webhook error:', error);
-    res.status(200).send('OK'); // Always return 200 to Paystack
+    res.status(200).send('OK');
   }
 };
 
 // ============================================
-// BOOKING PAYMENT NOTIFICATION 
+// BOOKING PAYMENT NOTIFICATION
 // ============================================
 exports.handleBookingNotification = async (req, res) => {
   try {
@@ -260,6 +255,8 @@ exports.createBookingPayment = async (req, res) => {
 
     console.log('Creating booking payment:', { userId, bookingId });
 
+    // IMPORTANT: bookings.student_id = student_profiles.id (NOT users.id)
+    // So we must join through student_profiles to match on users.id
     const bookingResult = await pool.query(
       `SELECT 
         b.*,
@@ -267,9 +264,10 @@ exports.createBookingPayment = async (req, res) => {
         tp.display_name as tutor_name,
         tp.hourly_rate
        FROM bookings b
-       JOIN users u ON b.student_id = u.id
+       JOIN student_profiles sp ON b.student_id = sp.id
+       JOIN users u ON sp.user_id = u.id
        LEFT JOIN tutor_profiles tp ON b.tutor_id = tp.id
-       WHERE b.id = $1 AND b.student_id = $2`,
+       WHERE b.id = $1 AND sp.user_id = $2`,
       [bookingId, userId]
     );
 
