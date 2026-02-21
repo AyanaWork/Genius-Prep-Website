@@ -1,8 +1,14 @@
 const OpenAI = require('openai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+let openai = null;
+
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  });
+} else {
+  console.warn('WARNING: OPENAI_API_KEY not set - GPA features will be disabled');
+}
 
 // Use latest GPT-4 model
 const GPT_MODEL = 'gpt-4o';
@@ -10,6 +16,7 @@ const GPT_MODEL = 'gpt-4o';
 class OpenAIService {
   // Generate study notes from a topic
   async generateNotes(topic, educationLevel = 'university') {
+    if (!openai) throw new Error('GPA service not available - API key not configured');
     try {
       const prompt = `Create comprehensive, well-structured study notes on "${topic}" for ${educationLevel} students in South Africa.
 
@@ -75,6 +82,7 @@ Make it visually clear, easy to scan, and perfect for studying.`;
 
   // Generate a practice test/exam
   async generateTest(subject, topics, numQuestions = 10, difficulty = 'medium') {
+    if (!openai) throw new Error('GPA service not available - API key not configured');
     try {
       const prompt = `Create a well-formatted practice test for ${subject} covering: ${topics}
 
@@ -149,6 +157,7 @@ Make mathematics questions have properly formatted **bold equations**.`;
 
   // Answer a question
   async answerQuestion(question, context = null) {
+    if (!openai) throw new Error('GPA service not available - API key not configured');
     try {
       let prompt = `Question: ${question}`;
       
@@ -193,6 +202,7 @@ Make mathematics questions have properly formatted **bold equations**.`;
 
   // Analyze content (for PDF summaries)
   async analyzeContent(content, analysisType = 'summary') {
+    if (!openai) throw new Error('GPA service not available - API key not configured');
     try {
       let prompt = '';
       
