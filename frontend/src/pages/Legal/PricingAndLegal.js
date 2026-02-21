@@ -66,23 +66,89 @@ function PricingAndLegal() {
               <h3 className="text-2xl font-bold text-[#2c3e50] mb-6 text-center">
                 GPA — Genius Prep Accelerator (AI Tool)
               </h3>
-              <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                {/* Semester Plan */}
-                <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 hover:border-[#4A90E2] transition shadow-sm">
-                  <h4 className="text-xl font-bold text-[#2c3e50] mb-2">Semester</h4>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+
+                {/* Daily Plan */}
+                <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#4A90E2] transition shadow-sm flex flex-col">
+                  <h4 className="text-xl font-bold text-[#2c3e50] mb-1">Daily</h4>
+                  <p className="text-gray-500 text-xs mb-4">Perfect for exam day or a single study session</p>
                   <div className="flex items-end gap-1 mb-4">
-                    <span className="text-5xl font-black text-[#4A90E2]">R450</span>
-                    <span className="text-gray-500 mb-2">/ 6 months</span>
+                    <span className="text-4xl font-black text-[#4A90E2]">R100</span>
+                    <span className="text-gray-500 mb-1">/ 1 day</span>
                   </div>
-                  <ul className="space-y-3 mb-6">
+                  <ul className="space-y-2 mb-6 flex-1">
+                    {[
+                      'Full GPA AI access for 24 hours',
+                      'Generate notes, tests & memos',
+                      'Upload & analyse PDF documents',
+                      'Multilingual academic support',
+                      'All subjects & faculties',
+                    ].map((f, i) => (
+                      <li key={i} className="flex items-start gap-2 text-gray-700 text-sm">
+                        <span className="text-green-500 font-bold mt-0.5">✓</span> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={() => navigate('/subscription')}
+                    className="w-full py-3 bg-gray-100 text-[#2c3e50] rounded-lg font-semibold hover:bg-gray-200 transition"
+                  >
+                    Get Started
+                  </button>
+                </div>
+
+                {/* Monthly Plan */}
+                <div className="bg-white rounded-2xl border-2 border-blue-400 p-6 hover:border-[#4A90E2] transition shadow-sm flex flex-col relative">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-bold">
+                    Popular
+                  </div>
+                  <h4 className="text-xl font-bold text-[#2c3e50] mb-1">Monthly</h4>
+                  <p className="text-gray-500 text-xs mb-4">Great for ongoing study support</p>
+                  <div className="flex items-end gap-1 mb-4">
+                    <span className="text-4xl font-black text-[#4A90E2]">R250</span>
+                    <span className="text-gray-500 mb-1">/ month</span>
+                  </div>
+                  <ul className="space-y-2 mb-6 flex-1">
+                    {[
+                      'Full GPA AI access for 30 days',
+                      'Generate notes, tests & memos',
+                      'Upload & analyse PDF documents',
+                      'Multilingual academic support',
+                      'All subjects & faculties',
+                      'Priority support',
+                    ].map((f, i) => (
+                      <li key={i} className="flex items-start gap-2 text-gray-700 text-sm">
+                        <span className="text-green-500 font-bold mt-0.5">✓</span> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={() => navigate('/subscription')}
+                    className="w-full py-3 bg-[#4A90E2] text-white rounded-lg font-semibold hover:bg-blue-600 transition"
+                  >
+                    Get Started
+                  </button>
+                </div>
+
+                {/* Semester Plan */}
+                <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#4A90E2] transition shadow-sm flex flex-col">
+                  <h4 className="text-xl font-bold text-[#2c3e50] mb-1">Semester</h4>
+                  <p className="text-gray-500 text-xs mb-4">Ideal for a full academic semester</p>
+                  <div className="flex items-end gap-1 mb-4">
+                    <span className="text-4xl font-black text-[#4A90E2]">R450</span>
+                    <span className="text-gray-500 mb-1">/ 6 months</span>
+                  </div>
+                  <ul className="space-y-2 mb-6 flex-1">
                     {[
                       'Full GPA AI access for 6 months',
                       'Generate notes, tests & memos',
                       'Upload & analyse PDF documents',
                       'Multilingual academic support',
                       'All subjects & faculties',
+                      'Priority support',
+                      'Save vs monthly plan',
                     ].map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-gray-700">
+                      <li key={i} className="flex items-start gap-2 text-gray-700 text-sm">
                         <span className="text-green-500 font-bold mt-0.5">✓</span> {f}
                       </li>
                     ))}
@@ -96,25 +162,28 @@ function PricingAndLegal() {
                 </div>
 
                 {/* Annual Plan */}
-                <div className="bg-[#1a2332] rounded-2xl border-2 border-[#4A90E2] p-8 shadow-lg relative">
+                <div className="bg-[#1a2332] rounded-2xl border-2 border-[#4A90E2] p-6 shadow-lg relative flex flex-col">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#4A90E2] text-white px-4 py-1 rounded-full text-sm font-bold">
                     Best Value
                   </div>
-                  <h4 className="text-xl font-bold text-white mb-2">Annual</h4>
+                  <h4 className="text-xl font-bold text-white mb-1">Annual</h4>
+                  <p className="text-gray-400 text-xs mb-4">Best value — full year of academic support</p>
                   <div className="flex items-end gap-1 mb-4">
-                    <span className="text-5xl font-black text-[#4A90E2]">R700</span>
-                    <span className="text-gray-400 mb-2">/ year</span>
+                    <span className="text-4xl font-black text-[#4A90E2]">R700</span>
+                    <span className="text-gray-400 mb-1">/ year</span>
                   </div>
-                  <ul className="space-y-3 mb-6">
+                  <ul className="space-y-2 mb-6 flex-1">
                     {[
                       'Full GPA AI access for 12 months',
                       'Generate notes, tests & memos',
                       'Upload & analyse PDF documents',
                       'Multilingual academic support',
                       'All subjects & faculties',
+                      'Priority support',
+                      'Early access to new features',
                       'Save R200 vs two semesters',
                     ].map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-gray-300">
+                      <li key={i} className="flex items-start gap-2 text-gray-300 text-sm">
                         <span className="text-green-400 font-bold mt-0.5">✓</span> {f}
                       </li>
                     ))}
@@ -126,6 +195,7 @@ function PricingAndLegal() {
                     Get Started
                   </button>
                 </div>
+
               </div>
             </div>
 
@@ -145,7 +215,7 @@ function PricingAndLegal() {
                     <li>• Minimum booking: <strong>3 hours per session</strong></li>
                     <li>• Full payment required at time of booking confirmation</li>
                     <li>• All prices in South African Rand (ZAR)</li>
-                    <li>• Secure payment via PayFast</li>
+                    <li>• Secure payment via Paystack</li>
                   </ul>
                 </div>
                 <button
@@ -160,7 +230,7 @@ function PricingAndLegal() {
             {/* Payment Security Note */}
             <div className="bg-green-50 border border-green-200 rounded-xl p-6 max-w-3xl mx-auto text-center">
               <p className="text-green-800 font-semibold">
-                🔒 All payments are processed securely through PayFast — South Africa's leading payment gateway.
+                🔒 All payments are processed securely through Paystack — a trusted payment gateway.
                 We never store your card details.
               </p>
             </div>
@@ -185,7 +255,7 @@ function PricingAndLegal() {
               { title: '1. Introduction', text: 'Welcome to Genius Prep Tuition (PTY) LTD. By accessing or using our platform at geniuspreptuition.co.za, you agree to be bound by these Terms and Conditions. Please read them carefully before using our services.' },
               { title: '2. Services', text: 'We offer academic tutoring (online and in-person), home-school support, relocation tutoring, exam preparation, academic coaching, upskilling courses, and access to the GPA AI tool.' },
               { title: '3. User Accounts', text: 'Users must provide accurate information, maintain account security, and notify us of unauthorized use. We may suspend accounts that violate these terms.' },
-              { title: '4. Payment Terms', text: 'Minimum booking is 3 hours. Full payment is required before session confirmation. GPA subscriptions are billed at R700/year or R450/semester. Payments are processed via PayFast.' },
+              { title: '4. Payment Terms', text: 'Minimum booking is 3 hours. Full payment is required before session confirmation. GPA subscriptions are available at R100/day, R250/month, R450/semester, or R700/year. Payments are processed via Paystack.' },
               { title: '5. Governing Law', text: 'These terms are governed by the laws of the Republic of South Africa. Disputes are subject to the jurisdiction of Gauteng courts.' },
             ].map((section, i) => (
               <section key={i}>
@@ -218,9 +288,9 @@ function PricingAndLegal() {
             <p className="text-gray-500 text-sm">Last updated: January 2025 | POPIA Compliant</p>
 
             {[
-              { title: 'What We Collect', text: 'We collect identity info (name, photo), contact info (email, phone), academic info, payment info (processed by PayFast — we do not store card details), and usage data.' },
+              { title: 'What We Collect', text: 'We collect identity info (name, photo), contact info (email, phone), academic info, payment info (processed by Paystack — we do not store card details), and usage data.' },
               { title: 'How We Use It', text: 'To manage your account, match students with tutors, process bookings and payments, provide the GPA tool, and improve our platform.' },
-              { title: 'Who We Share With', text: 'We share with tutors (booking details only), PayFast (payment processing), Cloudinary (image storage), and OpenAI (GPA queries — no personal data shared). We never sell your data.' },
+              { title: 'Who We Share With', text: 'We share with tutors (booking details only), Paystack (payment processing), Cloudinary (image storage), and OpenAI (GPA queries — no personal data shared). We never sell your data.' },
               { title: 'Your Rights (POPIA)', text: 'You have the right to access, correct, or delete your personal information, and to object to its processing. Contact us at hello@geniuspreptuition.co.za.' },
             ].map((section, i) => (
               <section key={i}>
