@@ -15,6 +15,23 @@ function BookingForm({ tutorId, tutorName, hourlyRate, onSubmit, onCancel }) {
   // Calculate total amount
   const totalAmount = (formData.numberOfHours * hourlyRate).toFixed(2);
 
+  // Mobile-friendly hour controls
+  const incrementHours = () => {
+    setFormData(prev => ({
+      ...prev,
+      numberOfHours: prev.numberOfHours + 1
+    }));
+  };
+
+  const decrementHours = () => {
+    if (formData.numberOfHours > 3) {
+      setFormData(prev => ({
+        ...prev,
+        numberOfHours: prev.numberOfHours - 1
+      }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -102,20 +119,59 @@ function BookingForm({ tutorId, tutorName, hourlyRate, onSubmit, onCancel }) {
           />
         </div>
 
-        {/* Number of Hours */}
+        {/* Number of Hours - Mobile Friendly */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Number of Hours <span className="text-red-500">*</span>
           </label>
-          <input
-            type="number"
-            min="3"
-            value={formData.numberOfHours}
-            onChange={(e) => setFormData({...formData, numberOfHours: parseInt(e.target.value) || 3})}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-            required
-          />
-          <p className="text-sm text-gray-500 mt-1">Minimum: 3 hours</p>
+          
+          {/* Button Controls */}
+          <div className="flex items-center gap-3">
+            {/* Minus Button */}
+            <button
+              type="button"
+              onClick={decrementHours}
+              disabled={formData.numberOfHours <= 3}
+              className="w-12 h-12 flex items-center justify-center bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 active:bg-gray-300 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Decrease hours"
+            >
+              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+              </svg>
+            </button>
+
+            {/* Hours Input */}
+            <div className="flex-1 relative">
+              <input
+                type="number"
+                min="3"
+                value={formData.numberOfHours}
+                onChange={(e) => setFormData({...formData, numberOfHours: Math.max(3, parseInt(e.target.value) || 3)})}
+                className="w-full px-4 py-3 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                inputMode="numeric"
+              />
+              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                <span className="text-sm text-gray-500">hrs</span>
+              </div>
+            </div>
+
+            {/* Plus Button */}
+            <button
+              type="button"
+              onClick={incrementHours}
+              className="w-12 h-12 flex items-center justify-center bg-primary-600 border border-primary-600 rounded-lg hover:bg-primary-700 active:bg-primary-800 transition"
+              aria-label="Increase hours"
+            >
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Helper Text */}
+          <p className="text-sm text-gray-500 mt-2">
+            Minimum: 3 hours • Tap − or + to adjust
+          </p>
         </div>
 
         {/* Price Breakdown */}
@@ -151,7 +207,7 @@ function BookingForm({ tutorId, tutorName, hourlyRate, onSubmit, onCancel }) {
         </div>
 
         {/* Preferred Date & Time */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Preferred Date
@@ -178,7 +234,7 @@ function BookingForm({ tutorId, tutorName, hourlyRate, onSubmit, onCancel }) {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             type="submit"
             disabled={loading}
