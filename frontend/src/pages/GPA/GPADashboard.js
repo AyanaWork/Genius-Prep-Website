@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import gpaService from '../../services/gpa';
 import authService from '../../services/auth';
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import MainNavbar from '../../components/MainNavbar';
 
 function GPADashboard() {
@@ -10,23 +13,20 @@ function GPADashboard() {
   const currentUser = authService.getCurrentUser();
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-  
+
   const [hasSubscription, setHasSubscription] = useState(false);
   const [subscription, setSubscription] = useState(null);
   const [freeTier, setFreeTier] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  // Conversation management
+
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [messages, setMessages] = useState([]);
-  
-  // Input and generation
+
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
-  
-  // PDF upload
+
   const [uploadingPDF, setUploadingPDF] = useState(false);
   const [pdfFile, setPdfFile] = useState(null);
 
@@ -47,7 +47,6 @@ function GPADashboard() {
     try {
       setLoading(true);
       const status = await gpaService.checkSubscription();
-      
       if (status.hasSubscription) {
         setHasSubscription(true);
         setSubscription(status.subscription);
@@ -70,32 +69,23 @@ function GPADashboard() {
     try {
       const response = await gpaService.getConversations();
       const convos = response.conversations || [];
-
       setConversations(convos.map(c => ({
         id: c.conversation_id,
         title: c.title,
         messages: Array.isArray(c.messages) ? c.messages : [],
         createdAt: c.created_at
       })));
-
       if (convos.length > 0 && !activeConversation) {
         const firstConvo = convos[0];
         setActiveConversation(firstConvo.conversation_id);
-        
-        // Properly parse messages
         let parsedMessages = [];
         if (Array.isArray(firstConvo.messages)) {
           parsedMessages = firstConvo.messages;
         } else if (typeof firstConvo.messages === 'string') {
-          try {
-            parsedMessages = JSON.parse(firstConvo.messages);
-          } catch (e) {
-            console.error('Failed to parse messages:', e);
-          }
+          try { parsedMessages = JSON.parse(firstConvo.messages); } catch (e) {}
         }
         setMessages(parsedMessages);
       }
-
     } catch (error) {
       console.error('Load conversations error:', error);
     }
@@ -103,15 +93,9 @@ function GPADashboard() {
 
   const saveCurrentConversation = async () => {
     if (!activeConversation || messages.length === 0) return;
-
     try {
       const conversation = conversations.find(c => c.id === activeConversation);
-
-      await gpaService.saveConversation(
-        activeConversation,
-        conversation?.title || 'New Chat',
-        messages
-      );
+      await gpaService.saveConversation(activeConversation, conversation?.title || 'New Chat', messages);
     } catch (error) {
       console.error('Save conversation error:', error);
     }
@@ -119,14 +103,7 @@ function GPADashboard() {
 
   const createNewConversation = async () => {
     const newConvoId = `conv_${Date.now()}`;
-
-    const newConvo = {
-      id: newConvoId,
-      title: 'New Chat',
-      messages: [],
-      createdAt: new Date().toISOString()
-    };
-
+    const newConvo = { id: newConvoId, title: 'New Chat', messages: [], createdAt: new Date().toISOString() };
     try {
       await gpaService.saveConversation(newConvoId, 'New Chat', []);
       setConversations([newConvo, ...conversations]);
@@ -140,15 +117,9 @@ function GPADashboard() {
 
   const selectConversation = async (convId) => {
     try {
-      // Save current conversation first
       await saveCurrentConversation();
-
-      // Load selected conversation
       const response = await gpaService.getConversation(convId);
-      
       setActiveConversation(convId);
-      
-      // Properly parse messages
       let loadedMessages = response.messages;
       if (Array.isArray(loadedMessages)) {
         setMessages(loadedMessages);
@@ -156,14 +127,10 @@ function GPADashboard() {
         try {
           const parsed = JSON.parse(loadedMessages);
           setMessages(Array.isArray(parsed) ? parsed : []);
-        } catch (e) {
-          console.error('Failed to parse messages:', e);
-          setMessages([]);
-        }
+        } catch (e) { setMessages([]); }
       } else {
         setMessages([]);
       }
-
     } catch (error) {
       console.error('Select conversation error:', error);
       alert('Failed to load conversation');
@@ -172,19 +139,14 @@ function GPADashboard() {
 
   const deleteConversation = async (convId) => {
     if (!window.confirm('Delete this conversation?')) return;
-
     try {
       await gpaService.deleteConversation(convId);
-
       const updated = conversations.filter(c => c.id !== convId);
       setConversations(updated);
-
       if (convId === activeConversation) {
         if (updated.length > 0) {
           setActiveConversation(updated[0].id);
           const response = await gpaService.getConversation(updated[0].id);
-          
-          // Properly parse messages
           let loadedMessages = response.messages;
           if (Array.isArray(loadedMessages)) {
             setMessages(loadedMessages);
@@ -192,13 +154,8 @@ function GPADashboard() {
             try {
               const parsed = JSON.parse(loadedMessages);
               setMessages(Array.isArray(parsed) ? parsed : []);
-            } catch (e) {
-              console.error('Failed to parse messages:', e);
-              setMessages([]);
-            }
-          } else {
-            setMessages([]);
-          }
+            } catch (e) { setMessages([]); }
+          } else { setMessages([]); }
         } else {
           setActiveConversation(null);
           setMessages([]);
@@ -213,30 +170,17 @@ function GPADashboard() {
   const handleSend = async () => {
     if (!input.trim() || isGenerating) return;
 
-    // Check if we need a conversation
     let currentConvId = activeConversation;
     if (!currentConvId) {
       const newConvoId = `conv_${Date.now()}`;
       currentConvId = newConvoId;
-      
-      const newConvo = {
-        id: newConvoId,
-        title: 'New Chat',
-        messages: [],
-        createdAt: new Date().toISOString()
-      };
-      
+      const newConvo = { id: newConvoId, title: 'New Chat', messages: [], createdAt: new Date().toISOString() };
       await gpaService.saveConversation(newConvoId, 'New Chat', []);
       setConversations([newConvo, ...conversations]);
       setActiveConversation(newConvoId);
     }
 
-    const userMessage = {
-      role: 'user',
-      content: input.trim(),
-      timestamp: new Date().toISOString()
-    };
-
+    const userMessage = { role: 'user', content: input.trim(), timestamp: new Date().toISOString() };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput('');
@@ -245,46 +189,23 @@ function GPADashboard() {
 
     try {
       const result = await gpaService.answerQuestion(userMessage.content);
-
-      const assistantMessage = {
-        role: 'assistant',
-        content: result.answer,
-        timestamp: new Date().toISOString()
-      };
-
+      const assistantMessage = { role: 'assistant', content: result.answer, timestamp: new Date().toISOString() };
       const updatedMessages = [...newMessages, assistantMessage];
       setMessages(updatedMessages);
 
-      // Generate smart title from first message
       let chatTitle;
       if (newMessages.length === 1) {
-        // First message - create meaningful title (first 6 words)
         const firstWords = userMessage.content.split(' ').slice(0, 6).join(' ');
-        chatTitle = firstWords.length < userMessage.content.length 
-          ? `${firstWords}...` 
-          : firstWords;
+        chatTitle = firstWords.length < userMessage.content.length ? `${firstWords}...` : firstWords;
       } else {
-        // Keep existing title
         const currentConv = conversations.find(c => c.id === currentConvId);
         chatTitle = currentConv?.title || 'New Chat';
       }
 
-      // Save to database with updated title
       await gpaService.saveConversation(currentConvId, chatTitle, updatedMessages);
-
-      // Update local state
-      setConversations(conversations.map(c => 
-        c.id === currentConvId 
-          ? { ...c, title: chatTitle, messages: updatedMessages }
-          : c
+      setConversations(conversations.map(c =>
+        c.id === currentConvId ? { ...c, title: chatTitle, messages: updatedMessages } : c
       ));
-
-      // Check if running low on free queries
-      if (result.accessInfo && result.accessInfo.remaining !== undefined && result.accessInfo.remaining <= 2) {
-        setTimeout(() => {
-          alert(`You have ${result.accessInfo.remaining} free AI generations remaining. Consider subscribing for unlimited access!`);
-        }, 1000);
-      }
 
     } catch (err) {
       console.error('Send message error:', err);
@@ -298,103 +219,55 @@ function GPADashboard() {
   const handlePDFUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
-    if (file.type !== 'application/pdf') {
-      alert('Please upload a PDF file');
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      alert('PDF file must be less than 10MB');
-      return;
-    }
+    if (file.type !== 'application/pdf') { alert('Please upload a PDF file'); return; }
+    if (file.size > 10 * 1024 * 1024) { alert('PDF file must be less than 10MB'); return; }
 
     setPdfFile(file);
     setUploadingPDF(true);
     setError('');
 
     try {
-      // Use PDF.js to extract text
       const pdfjsLib = window['pdfjs-dist/build/pdf'];
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
       const fileReader = new FileReader();
-
       fileReader.onload = async function () {
         try {
           const typedarray = new Uint8Array(this.result);
           const pdf = await pdfjsLib.getDocument(typedarray).promise;
-
           let fullText = '';
-
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(' ');
-            fullText += pageText + '\n\n';
+            fullText += textContent.items.map(item => item.str).join(' ') + '\n\n';
           }
 
-          if (fullText.length < 100) {
-            throw new Error('Could not extract enough text from PDF. The file might be an image or scanned document.');
-          }
+          if (fullText.length < 100) throw new Error('Could not extract enough text from PDF.');
 
-          // Create new conversation if needed
           let currentConvId = activeConversation;
           if (!currentConvId) {
             const newConvoId = `conv_${Date.now()}`;
             currentConvId = newConvoId;
-            
             await gpaService.saveConversation(newConvoId, `PDF: ${file.name.substring(0, 30)}`, []);
-            
-            const newConvo = {
-              id: newConvoId,
-              title: `PDF: ${file.name.substring(0, 30)}`,
-              messages: [],
-              createdAt: new Date().toISOString()
-            };
-            
-            setConversations([newConvo, ...conversations]);
+            setConversations([{ id: newConvoId, title: `PDF: ${file.name.substring(0, 30)}`, messages: [], createdAt: new Date().toISOString() }, ...conversations]);
             setActiveConversation(newConvoId);
           }
 
-          // Add user message showing PDF upload
-          const userMessage = {
-            role: 'user',
-            content: `📄 Uploaded: ${file.name}\n\nPlease analyze and summarize this document.`,
-            timestamp: new Date().toISOString()
-          };
-
+          const userMessage = { role: 'user', content: `📄 Uploaded: ${file.name}\n\nPlease analyze and summarize this document.`, timestamp: new Date().toISOString() };
           const newMessages = [...messages, userMessage];
           setMessages(newMessages);
 
-          // Call API to analyze PDF
           const result = await gpaService.analyzePDF(fullText, 'summary');
-
-          const assistantMessage = {
-            role: 'assistant',
-            content: result.analysis,
-            timestamp: new Date().toISOString()
-          };
-
+          const assistantMessage = { role: 'assistant', content: result.analysis, timestamp: new Date().toISOString() };
           const updatedMessages = [...newMessages, assistantMessage];
           setMessages(updatedMessages);
 
-          // Save conversation with PDF title
           const pdfTitle = `PDF: ${file.name.substring(0, 30)}`;
           await gpaService.saveConversation(currentConvId, pdfTitle, updatedMessages);
-
-          // Update local state
-          setConversations(conversations.map(c => 
-            c.id === currentConvId 
-              ? { ...c, title: pdfTitle, messages: updatedMessages }
-              : c
-          ));
+          setConversations(conversations.map(c => c.id === currentConvId ? { ...c, title: pdfTitle, messages: updatedMessages } : c));
 
           setPdfFile(null);
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
-
+          if (fileInputRef.current) fileInputRef.current.value = '';
         } catch (err) {
           console.error('PDF processing error:', err);
           setError(err.message || 'Failed to process PDF');
@@ -403,9 +276,7 @@ function GPADashboard() {
           setUploadingPDF(false);
         }
       };
-
       fileReader.readAsArrayBuffer(file);
-
     } catch (err) {
       console.error('PDF upload error:', err);
       setError('Failed to upload PDF');
@@ -415,10 +286,7 @@ function GPADashboard() {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
   if (loading) {
@@ -439,9 +307,9 @@ function GPADashboard() {
     <>
       <MainNavbar />
       <div className="min-h-screen bg-gray-50 flex">
-        {/* Sidebar - Conversation History */}
+
+        {/* Sidebar */}
         <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-          {/* Header */}
           <div className="p-4 border-b border-gray-200">
             <h2 className="text-lg font-bold text-gray-900 mb-3">Genius Prep AI</h2>
             <button
@@ -460,33 +328,21 @@ function GPADashboard() {
             {hasSubscription ? (
               <div className="text-xs">
                 <p className="font-semibold text-green-600 mb-1">✓ Premium Active</p>
-                <p className="text-gray-600">
-                  {subscription?.type === 'annual' ? 'Annual' : '6-Month'} Plan
-                </p>
-                <p className="text-gray-500 mt-1">
-                  {subscription?.daysRemaining} days left
-                </p>
+                <p className="text-gray-600">{subscription?.type} Plan</p>
+                <p className="text-gray-500 mt-1">{subscription?.daysRemaining} days left</p>
               </div>
             ) : freeTier ? (
               <div className="text-xs">
                 <p className="font-semibold text-gray-700 mb-1">Free Tier</p>
-                <p className="text-gray-600">
-                  {freeTier.remaining} / {freeTier.limit} uses left
-                </p>
-                <button
-                  onClick={() => navigate('/subscription')}
-                  className="mt-2 w-full px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 transition"
-                >
+                <p className="text-gray-600">{freeTier.remaining} / {freeTier.limit} uses left</p>
+                <button onClick={() => navigate('/subscription')} className="mt-2 w-full px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 transition">
                   Upgrade to Unlimited
                 </button>
               </div>
             ) : (
               <div className="text-xs">
-                <p className="font-semibold text-red-600 mb-1">Limit Reached</p>
-                <button
-                  onClick={() => navigate('/subscription')}
-                  className="mt-2 w-full px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 transition"
-                >
+                <p className="font-semibold text-red-600 mb-1">Subscription Required</p>
+                <button onClick={() => navigate('/subscription')} className="mt-2 w-full px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 transition">
                   Subscribe Now
                 </button>
               </div>
@@ -496,32 +352,21 @@ function GPADashboard() {
           {/* Conversation List */}
           <div className="flex-1 overflow-y-auto">
             {conversations.length === 0 ? (
-              <div className="p-4 text-center text-sm text-gray-500">
-                No conversations yet
-              </div>
+              <div className="p-4 text-center text-sm text-gray-500">No conversations yet</div>
             ) : (
               <div className="p-2">
                 {conversations.map((conv) => (
                   <div
                     key={conv.id}
                     className={`group relative mb-1 p-3 rounded-lg cursor-pointer transition ${
-                      activeConversation === conv.id
-                        ? 'bg-blue-50 border border-blue-200'
-                        : 'hover:bg-gray-50'
+                      activeConversation === conv.id ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'
                     }`}
                     onClick={() => selectConversation(conv.id)}
                   >
-                    <p className="text-sm font-medium text-gray-900 truncate pr-6">
-                      {conv.title}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {new Date(conv.createdAt).toLocaleDateString()}
-                    </p>
+                    <p className="text-sm font-medium text-gray-900 truncate pr-6">{conv.title}</p>
+                    <p className="text-xs text-gray-500 mt-1">{new Date(conv.createdAt).toLocaleDateString()}</p>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteConversation(conv.id);
-                      }}
+                      onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
                       className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -537,24 +382,19 @@ function GPADashboard() {
 
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
-          {/* Chat Header */}
           <div className="bg-white border-b border-gray-200 p-4">
             <h1 className="text-xl font-bold text-gray-900">
-              {activeConversation
-                ? conversations.find(c => c.id === activeConversation)?.title || 'Chat'
-                : 'Genius Prep Accelerator'}
+              {activeConversation ? conversations.find(c => c.id === activeConversation)?.title || 'Chat' : 'Genius Prep Accelerator'}
             </h1>
             <p className="text-sm text-gray-600">Your AI study assistant</p>
           </div>
 
-          {/* Messages Area */}
+          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {messages.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">🎓</div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Welcome to GPA!
-                </h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to GPA!</h2>
                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
                   Ask me anything about your studies. I can help with notes, practice tests, explanations, and more.
                 </p>
@@ -579,21 +419,18 @@ function GPADashboard() {
             ) : (
               <>
                 {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
+                  <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-3xl ${message.role === 'user' ? 'ml-12' : 'mr-12'}`}>
-                      <div
-                        className={`rounded-xl p-4 ${
-                          message.role === 'user'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white border border-gray-200 text-gray-900'
-                        }`}
-                      >
+                      <div className={`rounded-xl p-4 ${
+                        message.role === 'user'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white border border-gray-200 text-gray-900'
+                      }`}>
                         {message.role === 'assistant' ? (
                           <div className="prose prose-sm max-w-none">
                             <ReactMarkdown
+                              remarkPlugins={[remarkMath]}
+                              rehypePlugins={[rehypeKatex]}
                               components={{
                                 strong: ({node, ...props}) => <strong className="font-bold text-gray-900" {...props} />,
                                 h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-gray-900" {...props} />,
@@ -603,8 +440,8 @@ function GPADashboard() {
                                 ul: ({node, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1 text-gray-700" {...props} />,
                                 ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1 text-gray-700" {...props} />,
                                 li: ({node, ...props}) => <li className="ml-2 text-gray-700" {...props} />,
-                                code: ({node, inline, ...props}) => 
-                                  inline 
+                                code: ({node, inline, ...props}) =>
+                                  inline
                                     ? <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-800" {...props} />
                                     : <code className="block bg-gray-100 p-3 rounded my-2 text-sm font-mono overflow-x-auto text-gray-800" {...props} />
                               }}
@@ -617,10 +454,7 @@ function GPADashboard() {
                         )}
                       </div>
                       <p className="text-xs text-gray-500 mt-1 px-2">
-                        {new Date(message.timestamp).toLocaleTimeString('en-ZA', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {new Date(message.timestamp).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
@@ -647,20 +481,10 @@ function GPADashboard() {
           {/* Input Area */}
           <div className="bg-white border-t border-gray-200 p-4">
             {error && (
-              <div className="mb-3 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">
-                {error}
-              </div>
+              <div className="mb-3 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">{error}</div>
             )}
-
             <div className="flex items-end gap-2">
-              {/* PDF Upload Button */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="application/pdf"
-                onChange={handlePDFUpload}
-                className="hidden"
-              />
+              <input ref={fileInputRef} type="file" accept="application/pdf" onChange={handlePDFUpload} className="hidden" />
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isGenerating || uploadingPDF}
@@ -671,8 +495,6 @@ function GPADashboard() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
               </button>
-
-              {/* Text Input */}
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -683,8 +505,6 @@ function GPADashboard() {
                 rows={1}
                 style={{ minHeight: '52px', maxHeight: '120px' }}
               />
-
-              {/* Send Button */}
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isGenerating || uploadingPDF}
@@ -705,7 +525,6 @@ function GPADashboard() {
                 )}
               </button>
             </div>
-
             <p className="text-xs text-gray-500 mt-2 text-center">
               Press Enter to send • Shift+Enter for new line • Upload PDFs up to 10MB
             </p>

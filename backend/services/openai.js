@@ -10,8 +10,8 @@ if (process.env.OPENAI_API_KEY) {
   console.warn('WARNING: OPENAI_API_KEY not set - GPA features will be disabled');
 }
 
-// Use latest GPT-4 model
-const GPT_MODEL = 'gpt-4o';
+// Faster, cost-efficient model
+const GPT_MODEL = 'gpt-4o-mini';
 
 class OpenAIService {
   // Generate study notes from a topic
@@ -22,34 +22,24 @@ class OpenAIService {
 
 FORMATTING REQUIREMENTS:
 - Use **bold** for key terms, definitions, and important concepts
-- Use **bold** for all formulas and equations
+- For ALL math: use $...$ for inline equations and $$...$$ for display equations (LaTeX format)
 - Structure content with clear headings using ## and ###
 - Use bullet points for lists
 - Add blank lines between sections for readability
-- Highlight critical information
+
+MATH FORMATTING RULES (very important):
+- Fractions: use \\frac{numerator}{denominator} inside $ $ 
+- Exponents: use x^{2} inside $ $
+- Square roots: use \\sqrt{x} inside $ $
+- Example: The quadratic formula is $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
 
 CONTENT STRUCTURE:
 1. ## Key Concepts and Definitions
-   - Define main terms with **bold** terminology
-   
 2. ## Important Formulas and Principles
-   - Present each formula clearly with **bold** formatting
-   - Explain what each variable means
-   
 3. ## Detailed Explanation
-   - Break down complex ideas into digestible parts
-   - Use examples relevant to South African context
-   
 4. ## Practical Examples
-   - Provide 2-3 worked examples
-   - Show step-by-step solutions
-   
 5. ## Summary and Key Takeaways
-   - **Bold** the most important points
-   - List essential facts to remember
-   
 6. ## Study Tips
-   - Effective methods to master this topic
 
 Make it visually clear, easy to scan, and perfect for studying.`;
 
@@ -58,14 +48,11 @@ Make it visually clear, easy to scan, and perfect for studying.`;
         messages: [
           {
             role: "system",
-            content: "You are an expert academic tutor for South African students. You create exceptionally well-formatted, comprehensive study materials with proper use of **bold** formatting for emphasis. Your notes are known for being clear, structured, and easy to study from."
+            content: "You are an expert academic tutor for South African students. Always format mathematical expressions using LaTeX: $...$ for inline math and $$...$$ for display math. Never write fractions as (a)/(b) — always use \\frac{a}{b} inside $ $."
           },
-          {
-            role: "user",
-            content: prompt
-          }
+          { role: "user", content: prompt }
         ],
-        max_tokens: 3000,
+        max_tokens: 2000,
         temperature: 0.7
       });
 
@@ -89,59 +76,28 @@ Make it visually clear, easy to scan, and perfect for studying.`;
 REQUIREMENTS:
 - Number of questions: ${numQuestions}
 - Difficulty: ${difficulty}
-- All formulas and equations must be in **bold**
+- Use LaTeX for ALL math: $...$ inline, $$...$$ for display equations
 - Question numbers in **bold**
-- Clear section breaks between questions
 
 FORMAT:
-**Question 1:** [Question text]
-- If mathematical: Show equation in **bold**
-- Multiple choice: Label options clearly (a, b, c, d)
+**Question 1:** [Question text with $math$ where needed]
 
-**Question 2:** [Question text]
-...
-
-Include:
-1. Mix of question types (multiple choice, short answer, problem-solving)
-2. Clear, unambiguous questions
-3. Appropriate difficulty for ${difficulty} level
-4. Relevant to South African curriculum where applicable
-
-After all questions, provide:
+Include a mix of question types. After all questions provide:
 
 ## Answer Key
-**Q1:** [Answer with explanation if needed]
-**Q2:** [Answer with explanation if needed]
-...
-
-Make mathematics questions have properly formatted **bold equations**.`;
+**Q1:** [Answer with LaTeX math where needed]`;
 
       const response = await openai.chat.completions.create({
         model: GPT_MODEL,
         messages: [
           {
             role: "system",
-            content: `You are GPA (Genius Prep Accelerator), an expert academic tutor for South African students. Follow these rules strictly:
-
-              MATH FORMATTING:
-              - Algebra steps: number each step on its own line (Step 1:, Step 2:, etc.)
-              - Fractions: write as (numerator)/(denominator), e.g. (x+2)/(x-3)
-              - Exponents: use ^ symbol, e.g. x^2 or a^(n-1)
-              - Square roots: write as sqrt(x)
-              - Financial math formulas: present in a code block using triple backticks
-              - Tables: always use proper markdown table format with | separators
-
-              LANGUAGE: If a student writes in Zulu, Xhosa, Afrikaans, Sotho or any SA language, respond in that language.
-
-              Always show full step-by-step working for any calculation.`
+            content: "You are GPA (Genius Prep Accelerator), an expert academic tutor for South African students. Always format math using LaTeX: $...$ for inline and $$...$$ for display equations. Use \\frac{}{} for fractions, x^{2} for exponents, \\sqrt{} for roots. If a student writes in Zulu, Xhosa, Afrikaans, or Sotho, respond in that language."
           },
-          {
-            role: "user",
-            content: prompt
-          }
+          { role: "user", content: prompt }
         ],
-        max_tokens: 3000,
-        temperature: 0.8
+        max_tokens: 2000,
+        temperature: 0.7
       });
 
       return {
@@ -160,32 +116,20 @@ Make mathematics questions have properly formatted **bold equations**.`;
     if (!openai) throw new Error('GPA service not available - API key not configured');
     try {
       let prompt = `Question: ${question}`;
-      
-      if (context) {
-        prompt = `Context: ${context}\n\n${prompt}`;
-      }
-      
-      prompt += `\n\nProvide a comprehensive, well-formatted answer:
-- Use **bold** for key terms and important points
-- For mathematics: Use **bold** for all formulas and equations
-- Structure your answer with headings if it's complex
-- Include step-by-step explanations for problem-solving
-- Add examples if helpful
-- Keep paragraphs separated for readability`;
+      if (context) prompt = `Context: ${context}\n\n${prompt}`;
+
+      prompt += `\n\nProvide a clear, well-formatted answer. Use LaTeX for all math expressions: $...$ for inline math and $$...$$ for displayed equations.`;
 
       const response = await openai.chat.completions.create({
         model: GPT_MODEL,
         messages: [
           {
             role: "system",
-            content: "You are an expert tutor helping South African students. Provide clear, well-formatted answers with **bold** emphasis on key concepts, formulas, and important information. For math problems, show all steps clearly."
+            content: "You are an expert tutor helping South African students. Always format math using LaTeX: $...$ for inline and $$...$$ for display equations. Use \\frac{}{} for fractions, x^{2} for exponents, \\sqrt{} for roots. Show all working step by step."
           },
-          {
-            role: "user",
-            content: prompt
-          }
+          { role: "user", content: prompt }
         ],
-        max_tokens: 2500,
+        max_tokens: 1500,
         temperature: 0.7
       });
 
@@ -205,41 +149,26 @@ Make mathematics questions have properly formatted **bold equations**.`;
     if (!openai) throw new Error('GPA service not available - API key not configured');
     try {
       let prompt = '';
-      
+
       if (analysisType === 'summary') {
         prompt = `Analyze and summarize this content comprehensively:
 
 ${content}
 
-FORMATTING REQUIREMENTS:
-- Use **bold** for all key principles and main ideas
-- Structure with clear ## headings
-- Separate paragraphs with blank lines
-- Highlight important formulas in **bold**
-- Use bullet points for lists
+Use ## headings, **bold** for key points, and LaTeX ($...$) for any mathematical expressions.
 
 Provide:
 1. ## Main Topics Covered
-2. ## Key Principles (with **bold** emphasis)
-3. ## Important Concepts Explained
-4. ## Critical Formulas/Equations (if any)
+2. ## Key Principles
+3. ## Important Concepts
+4. ## Critical Formulas/Equations (use LaTeX)
 5. ## Summary Points`;
       } else if (analysisType === 'question_paper') {
-        prompt = `This is a question paper or exam. Provide detailed solutions:
+        prompt = `This is a question paper. Provide detailed solutions using LaTeX for all math:
 
 ${content}
 
-FORMAT:
-For each question:
-**Question [Number]:** [Restate question]
-
-**Solution:**
-- Show all steps clearly
-- Use **bold** for formulas
-- Explain your reasoning
-- Provide final answer in **bold**
-
-**Marking Criteria:** [If applicable]`;
+For each question show full working with LaTeX equations.`;
       }
 
       const response = await openai.chat.completions.create({
@@ -247,14 +176,11 @@ For each question:
         messages: [
           {
             role: "system",
-            content: "You are an expert academic analyst. You create well-structured, comprehensive analyses with proper **bold** formatting for emphasis. Your summaries are known for highlighting key information clearly."
+            content: "You are an expert academic analyst. Format all math using LaTeX: $...$ inline and $$...$$ for display. Use \\frac{}{} for fractions."
           },
-          {
-            role: "user",
-            content: prompt
-          }
+          { role: "user", content: prompt }
         ],
-        max_tokens: 3500,
+        max_tokens: 2000,
         temperature: 0.7
       });
 

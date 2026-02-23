@@ -1,7 +1,7 @@
 const openaiService = require('../services/openai');
 const pool = require('../config/database');
 
-const FREE_USAGE_LIMIT = 0;
+const FREE_USAGE_LIMIT = 5;
 
 // Check if user has active GPA subscription OR free tier access
 async function checkGPAAccess(userId) {
