@@ -16,7 +16,7 @@ function PrivacyPolicy() {
             ← Back to Home
           </button>
           <h1 className="text-4xl font-bold text-white">Privacy Policy</h1>
-          <p className="text-gray-400 mt-2">Genius Prep Tuition (PTY) LTD — Last updated: January 2025</p>
+          <p className="text-gray-400 mt-2">Genius Prep Tuition (PTY) LTD — Last updated: January 2026</p>
         </div>
       </div>
 

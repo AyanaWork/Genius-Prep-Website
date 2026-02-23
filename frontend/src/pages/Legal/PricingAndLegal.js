@@ -249,7 +249,7 @@ function PricingAndLegal() {
                 Open full page →
               </button>
             </div>
-            <p className="text-gray-500 text-sm">Last updated: January 2025</p>
+            <p className="text-gray-500 text-sm">Last updated: January 2026</p>
 
             {[
               { title: '1. Introduction', text: 'Welcome to Genius Prep Tuition (PTY) LTD. By accessing or using our platform at geniuspreptuition.co.za, you agree to be bound by these Terms and Conditions. Please read them carefully before using our services.' },
@@ -285,7 +285,7 @@ function PricingAndLegal() {
                 Open full page →
               </button>
             </div>
-            <p className="text-gray-500 text-sm">Last updated: January 2025 | POPIA Compliant</p>
+            <p className="text-gray-500 text-sm">Last updated: January 2026 | POPIA Compliant</p>
 
             {[
               { title: 'What We Collect', text: 'We collect identity info (name, photo), contact info (email, phone), academic info, payment info (processed by Paystack — we do not store card details), and usage data.' },
@@ -320,7 +320,7 @@ function PricingAndLegal() {
                 Open full page →
               </button>
             </div>
-            <p className="text-gray-500 text-sm">Last updated: January 2025 | CPA Compliant</p>
+            <p className="text-gray-500 text-sm">Last updated: January 2026 | CPA Compliant</p>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-bold text-[#2c3e50] mb-3">Tutoring Sessions</h3>

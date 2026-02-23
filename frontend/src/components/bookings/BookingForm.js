@@ -77,7 +77,7 @@ function BookingForm({ tutorId, tutorName, hourlyRate, onSubmit, onCancel }) {
   return (
     <div className="bg-white rounded-xl p-6 shadow-md border border-primary-100">
       <h3 className="text-xl font-bold text-gray-900 mb-4">
-        Request a Session with {tutorName}
+        Request a Session
       </h3>
 
       <form onSubmit={handleSubmit} className="space-y-6">
