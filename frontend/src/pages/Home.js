@@ -533,24 +533,6 @@ function Home() {
 
           <div className="mt-8 pt-8 border-t border-gray-700 text-center">
             <div className="flex justify-center gap-6 mb-4">
-              <button
-                onClick={() => navigate('/terms')}
-                className="text-gray-400 hover:text-white transition text-sm"
-              >
-                Terms & Conditions
-              </button>
-              <button
-                onClick={() => navigate('/privacy')}
-                className="text-gray-400 hover:text-white transition text-sm"
-              >
-                Privacy Policy
-              </button>
-              <button
-                onClick={() => navigate('/refund-policy')}
-                className="text-gray-400 hover:text-white transition text-sm"
-              >
-                Refund Policy
-              </button>
               <button 
                 onClick={() => navigate('/pricing-legal')} 
                 className="text-gray-400 hover:text-[#4A90E2] transition"

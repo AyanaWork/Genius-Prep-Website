@@ -10,13 +10,13 @@ function TermsAndConditions() {
       <div className="bg-[#1a2332] py-12">
         <div className="container mx-auto px-4">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/pricing-legal')}
             className="text-[#4A90E2] hover:text-white transition mb-4 flex items-center gap-2"
           >
-            ← Back to Home
+            ← Back to Pricing & Legal
           </button>
           <h1 className="text-4xl font-bold text-white">Terms and Conditions</h1>
-          <p className="text-gray-400 mt-2">Genius Prep Tuition (PTY) LTD — Last updated: January 2026</p>
+          <p className="text-gray-400 mt-2">Genius Prep Tuition (PTY) LTD | Last updated: January 2026</p>
         </div>
       </div>
 
@@ -27,9 +27,9 @@ function TermsAndConditions() {
           <section>
             <h2 className="text-2xl font-bold text-[#2c3e50] mb-4">1. Introduction</h2>
             <p className="text-gray-700 leading-relaxed">
-              Welcome to Genius Prep Tuition (PTY) LTD ("the Company", "we", "our"). By accessing or using our platform at
-              geniuspreptuition.co.za (the "Platform"), you agree to be bound by these Terms and Conditions.
-              Please read them carefully before using our services. If you do not agree to these terms, you may not use our Platform.
+              Welcome to Genius Prep Tuition (PTY) LTD. By accessing or using our platform at geniuspreptuition.co.za,
+              you agree to be bound by these Terms and Conditions. Please read them carefully before using our services.
+              If you do not agree to these terms, you may not use our platform.
             </p>
           </section>
 
@@ -43,7 +43,7 @@ function TermsAndConditions() {
               <li>Exam preparation for NBT, SAT, Cambridge, and university entrance exams</li>
               <li>Academic and life coaching</li>
               <li>Upskilling courses in AI, machine learning, Microsoft Office, coding, and automation</li>
-              <li>Access to the Genius Prep Accelerator (GPA) — an AI-powered academic tool</li>
+              <li>Access to the Genius Prep Accelerator (GPA); an AI-powered academic tool</li>
             </ul>
           </section>
 
@@ -70,8 +70,8 @@ function TermsAndConditions() {
               <li>The minimum booking duration is 3 hours per session</li>
               <li>Full payment is required before a session is confirmed</li>
               <li>All prices are listed in South African Rand (ZAR) and include VAT where applicable</li>
-              <li>Payments are processed securely through PayFast, South Africa's leading payment gateway</li>
-              <li>GPA (Genius Prep Accelerator) subscriptions are billed at R700/year (Annual) or R450/semester (6 months)</li>
+              <li>Payments are processed securely through Paystack</li>
+              <li>GPA subscriptions are available at R100 per day, R250 per month, R450 per semester, or R700 per year</li>
             </ul>
           </section>
 
@@ -91,14 +91,14 @@ function TermsAndConditions() {
               <li>Students must attend booked sessions punctually</li>
               <li>Cancellations must be made at least 24 hours before the session</li>
               <li>Students must treat tutors with respect and professionalism</li>
-              <li>Students under 18 must have parental or guardian consent to use the Platform</li>
+              <li>Students under 18 must have parental or guardian consent to use the platform</li>
             </ul>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold text-[#2c3e50] mb-4">7. Intellectual Property</h2>
             <p className="text-gray-700 leading-relaxed">
-              All content on this Platform, including but not limited to text, graphics, logos, images, GPA-generated content,
+              All content on this platform, including but not limited to text, graphics, logos, images, GPA-generated content,
               and software, is the property of Genius Prep Tuition (PTY) LTD and is protected by South African and
               international copyright laws. You may not reproduce, distribute, or use our content without written permission.
             </p>
@@ -108,7 +108,7 @@ function TermsAndConditions() {
             <h2 className="text-2xl font-bold text-[#2c3e50] mb-4">8. Limitation of Liability</h2>
             <p className="text-gray-700 leading-relaxed">
               Genius Prep Tuition shall not be liable for any indirect, incidental, or consequential damages arising
-              from your use of the Platform or services. Our total liability to any user shall not exceed the amount
+              from your use of the platform or services. Our total liability to any user shall not exceed the amount
               paid by that user in the 30 days preceding the claim.
             </p>
           </section>
@@ -124,7 +124,7 @@ function TermsAndConditions() {
           <section>
             <h2 className="text-2xl font-bold text-[#2c3e50] mb-4">10. Contact Us</h2>
             <p className="text-gray-700 leading-relaxed">
-              For any questions about these Terms, please contact us:<br />
+              For any questions about these Terms, please contact us at:<br />
               Email: <a href="mailto:hello@geniuspreptuition.co.za" className="text-[#4A90E2]">hello@geniuspreptuition.co.za</a><br />
               Phone: 071 961 7185<br />
               Location: City of Tshwane, Gauteng, South Africa

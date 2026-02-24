@@ -10,13 +10,13 @@ function RefundPolicy() {
       <div className="bg-[#1a2332] py-12">
         <div className="container mx-auto px-4">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/pricing-legal')}
             className="text-[#4A90E2] hover:text-white transition mb-4 flex items-center gap-2"
           >
-            ← Back to Home
+            ← Back to Pricing & Legal
           </button>
           <h1 className="text-4xl font-bold text-white">Refund Policy</h1>
-          <p className="text-gray-400 mt-2">Genius Prep Tuition (PTY) LTD — Last updated: January 2026</p>
+          <p className="text-gray-400 mt-2">Genius Prep Tuition (PTY) LTD | Last updated: January 2026 | CPA Compliant</p>
         </div>
       </div>
 
@@ -27,7 +27,7 @@ function RefundPolicy() {
           <section>
             <h2 className="text-2xl font-bold text-[#2c3e50] mb-4">1. Overview</h2>
             <p className="text-gray-700 leading-relaxed">
-              Genius Prep Tuition (PTY) LTD is committed to ensuring customer satisfaction.
+              At Genius Prep Tuition (PTY) LTD, we are committed to ensuring customer satisfaction.
               We understand that circumstances change, and this policy outlines when and how refunds are issued
               for our services. All refund requests are handled in accordance with the Consumer Protection Act 68 of 2008 (CPA).
             </p>
@@ -38,7 +38,7 @@ function RefundPolicy() {
 
             <h3 className="text-lg font-semibold text-[#2c3e50] mb-2">Student Cancellations:</h3>
             <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
-              <li><strong>Cancellation 24+ hours before the session:</strong> Full refund issued within 5–7 business days</li>
+              <li><strong>Cancellation 24 or more hours before the session:</strong> Full refund issued within 5 to 7 business days</li>
               <li><strong>Cancellation less than 24 hours before the session:</strong> 50% refund</li>
               <li><strong>No-show (student does not attend without notice):</strong> No refund</li>
             </ul>
@@ -54,19 +54,19 @@ function RefundPolicy() {
             <h2 className="text-2xl font-bold text-[#2c3e50] mb-4">3. GPA Subscription Refunds</h2>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
               <li><strong>Within 7 days of purchase:</strong> Full refund if the GPA tool has not been used</li>
-              <li><strong>After 7 days:</strong> No refund for used subscriptions (annual or semester)</li>
+              <li><strong>After 7 days:</strong> No refund for used subscriptions</li>
               <li><strong>Technical issues:</strong> If GPA is inaccessible for more than 72 consecutive hours due to our fault, a pro-rata refund or subscription extension will be offered</li>
             </ul>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold text-[#2c3e50] mb-4">4. How to Request a Refund</h2>
-            <p className="text-gray-700 leading-relaxed mb-3">To request a refund:</p>
+            <p className="text-gray-700 leading-relaxed mb-3">To request a refund, please follow these steps:</p>
             <ol className="list-decimal pl-6 text-gray-700 space-y-2">
               <li>Email us at <a href="mailto:hello@geniuspreptuition.co.za" className="text-[#4A90E2]">hello@geniuspreptuition.co.za</a></li>
-              <li>Include your full name, booking/payment reference number, and reason for the refund</li>
+              <li>Include your full name, booking or payment reference number, and reason for the refund</li>
               <li>We will acknowledge your request within 1 business day</li>
-              <li>Refunds are processed back to the original payment method within 5–7 business days</li>
+              <li>Refunds are processed back to the original payment method within 5 to 7 business days</li>
             </ol>
           </section>
 
@@ -83,15 +83,15 @@ function RefundPolicy() {
             <h2 className="text-2xl font-bold text-[#2c3e50] mb-4">6. Payment Method</h2>
             <p className="text-gray-700 leading-relaxed">
               All refunds will be returned to the original payment method used at the time of purchase,
-              processed through PayFast. Genius Prep Tuition does not hold or manage card details —
-              these are handled securely by PayFast.
+              processed through Paystack. Genius Prep Tuition does not hold or manage card details;
+              these are handled securely by Paystack.
             </p>
           </section>
 
           <section>
             <h2 className="text-2xl font-bold text-[#2c3e50] mb-4">7. Contact Us</h2>
             <p className="text-gray-700 leading-relaxed">
-              For refund queries:<br />
+              For refund queries, please contact us at:<br />
               Email: <a href="mailto:hello@geniuspreptuition.co.za" className="text-[#4A90E2]">hello@geniuspreptuition.co.za</a><br />
               Phone: 071 961 7185<br />
               Response time: Within 1 business day
