@@ -12,6 +12,7 @@ router.post('/booking', auth, paymentController.createBookingPayment);
 // PayFast notification webhook (public - called by PayFast)
 router.post('/notify', paymentController.handleNotification);
 router.post('/notify-booking', paymentController.handleBookingNotification);
+router.post('/verify', auth, paymentController.verifyPayment);
 
 // Check payment status (protected)
 router.get('/status/:paymentId', auth, paymentController.checkStatus);

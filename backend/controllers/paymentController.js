@@ -326,4 +326,100 @@ exports.createBookingPayment = async (req, res) => {
   }
 };
 
+// ============================================
+// VERIFY PAYMENT 
+// ============================================
+exports.verifyPayment = async (req, res) => {
+  try {
+    const { reference, type } = req.body;
+    const userId = req.userId;
+
+    console.log('Verifying payment:', { reference, type, userId });
+
+    if (!reference) {
+      return res.status(400).json({ success: false, error: 'No reference provided' });
+    }
+
+    // Verify with Paystack
+    const verification = await verifyTransaction(reference);
+
+    console.log('Paystack verification status:', verification.status);
+
+    if (verification.status !== 'success') {
+      return res.status(400).json({ success: false, error: 'Payment not successful on Paystack' });
+    }
+
+    const metadata = verification.metadata;
+    const paymentType = metadata?.payment_type || type;
+
+    if (paymentType === 'gpa_subscription') {
+      // Check if subscription already activated (by webhook)
+      const existing = await pool.query(
+        'SELECT * FROM gpa_subscriptions WHERE user_id = $1 AND is_active = true AND end_date > NOW()',
+        [userId]
+      );
+
+      if (existing.rows.length > 0) {
+        console.log('Subscription already active for user:', userId);
+        return res.json({ success: true, type: 'gpa', alreadyActive: true });
+      }
+
+      // Activate subscription manually (webhook may have missed)
+      const paymentId = metadata?.payment_id;
+      const pendingResult = await pool.query(
+        'SELECT * FROM payment_pending WHERE payment_id = $1',
+        [paymentId]
+      );
+
+      let subscriptionType = metadata?.subscription_type || 'daily';
+      let amount = verification.amount / 100; // convert from kobo
+
+      const startDate = new Date();
+      const endDate = new Date();
+
+      if (subscriptionType === 'annual') endDate.setFullYear(endDate.getFullYear() + 1);
+      else if (subscriptionType === 'semester') endDate.setMonth(endDate.getMonth() + 6);
+      else if (subscriptionType === 'monthly') endDate.setMonth(endDate.getMonth() + 1);
+      else if (subscriptionType === 'daily') endDate.setDate(endDate.getDate() + 1);
+
+      await pool.query(
+        `INSERT INTO gpa_subscriptions 
+         (user_id, subscription_type, amount, start_date, end_date, payment_reference, is_active)
+         VALUES ($1, $2, $3, $4, $5, $6, true)
+         ON CONFLICT (user_id) DO UPDATE SET
+           subscription_type = $2,
+           amount = $3,
+           start_date = $4,
+           end_date = $5,
+           payment_reference = $6,
+           is_active = true`,
+        [userId, subscriptionType, amount, startDate, endDate, reference]
+      );
+
+      if (paymentId) {
+        await pool.query('DELETE FROM payment_pending WHERE payment_id = $1', [paymentId]);
+      }
+
+      console.log('Subscription activated via verify for user:', userId);
+      return res.json({ success: true, type: 'gpa' });
+
+    } else if (paymentType === 'tutor_booking') {
+      const bookingId = metadata?.booking_id;
+      if (bookingId) {
+        await pool.query(
+          `UPDATE bookings SET payment_status = 'completed', payment_id = $1 WHERE id = $2`,
+          [reference, bookingId]
+        );
+      }
+      return res.json({ success: true, type: 'booking' });
+    }
+
+    res.json({ success: true, type: paymentType });
+
+  } catch (error) {
+    console.error('Verify payment error:', error.response?.data || error.message);
+    res.status(500).json({ success: false, error: 'Verification failed' });
+  }
+};
+
 module.exports = exports;
