@@ -230,7 +230,7 @@ function PricingAndLegal() {
             {/* Payment Security Note */}
             <div className="bg-green-50 border border-green-200 rounded-xl p-6 max-w-3xl mx-auto text-center">
               <p className="text-green-800 font-semibold">
-                🔒 All payments are processed securely through Paystack — a trusted payment gateway.
+                🔒 All payments are processed securely through Paystack, A trusted payment gateway.
                 We never store your card details.
               </p>
             </div>
@@ -288,9 +288,9 @@ function PricingAndLegal() {
             <p className="text-gray-500 text-sm">Last updated: January 2026 | POPIA Compliant</p>
 
             {[
-              { title: 'What We Collect', text: 'We collect identity info (name, photo), contact info (email, phone), academic info, payment info (processed by Paystack — we do not store card details), and usage data.' },
+              { title: 'What We Collect', text: 'We collect identity info (name, photo), contact info (email, phone), academic info, payment info (processed by Paystack. We do not store card details), and usage data.' },
               { title: 'How We Use It', text: 'To manage your account, match students with tutors, process bookings and payments, provide the GPA tool, and improve our platform.' },
-              { title: 'Who We Share With', text: 'We share with tutors (booking details only), Paystack (payment processing), Cloudinary (image storage), and OpenAI (GPA queries — no personal data shared). We never sell your data.' },
+              { title: 'Who We Share With', text: 'We share with tutors (booking details only), Paystack (payment processing), Cloudinary (image storage), and OpenAI (GPA queries. No personal data shared). We never sell your data.' },
               { title: 'Your Rights (POPIA)', text: 'You have the right to access, correct, or delete your personal information, and to object to its processing. Contact us at hello@geniuspreptuition.co.za.' },
             ].map((section, i) => (
               <section key={i}>
