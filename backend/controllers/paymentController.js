@@ -4,7 +4,7 @@ const pool = require('../config/database');
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 
-// initialize a Paystack transaction
+// Initialize a Paystack transaction
 async function initializeTransaction(email, amountInRands, metadata, callbackUrl) {
   const amountInKobo = Math.round(amountInRands * 100);
 
@@ -66,7 +66,8 @@ exports.generatePayment = async (req, res) => {
 
     console.log('Initializing Paystack GPA payment:', { userId, subscriptionType, amount, paymentId });
 
-    const callbackUrl = `${process.env.FRONTEND_URL}/payment/success?reference=${paymentId}&type=gpa`;
+    // NOTE: Do NOT put reference in callbackUrl — Paystack appends its own reference automatically
+    const callbackUrl = `${process.env.FRONTEND_URL}/payment/success?type=gpa`;
 
     const transaction = await initializeTransaction(
       userEmail,
@@ -84,11 +85,12 @@ exports.generatePayment = async (req, res) => {
       callbackUrl
     );
 
+    // Store pending payment using Paystack's reference (not our internal ID)
     await pool.query('DELETE FROM payment_pending WHERE user_id = $1', [userId]);
     await pool.query(
       `INSERT INTO payment_pending (user_id, payment_id, subscription_type, amount)
        VALUES ($1, $2, $3, $4)`,
-      [userId, paymentId, subscriptionType, amount]
+      [userId, transaction.reference, subscriptionType, amount]
     );
 
     console.log('Paystack transaction initialized:', transaction.reference);
@@ -120,25 +122,16 @@ exports.handleNotification = async (req, res) => {
     if (event.event === 'charge.success') {
       const data = event.data;
       const metadata = data.metadata;
+      const reference = data.reference;
       const paymentType = metadata?.payment_type;
 
+      console.log('Webhook metadata:', metadata);
+      console.log('Webhook reference:', reference);
+
       if (paymentType === 'gpa_subscription') {
-        const paymentId = metadata.payment_id;
-        const userId = metadata.user_id;
-
-        const pendingResult = await pool.query(
-          'SELECT * FROM payment_pending WHERE payment_id = $1',
-          [paymentId]
-        );
-
-        if (pendingResult.rows.length === 0) {
-          console.error('Pending GPA payment not found:', paymentId);
-          return res.status(200).send('OK');
-        }
-
-        const pending = pendingResult.rows[0];
-        const subscriptionType = pending.subscription_type;
-        const amount = pending.amount;
+        const userId = parseInt(metadata.user_id);
+        const subscriptionType = metadata.subscription_type;
+        const amount = data.amount / 100; // convert from kobo
 
         const startDate = new Date();
         const endDate = new Date();
@@ -159,11 +152,21 @@ exports.handleNotification = async (req, res) => {
              end_date = $5,
              payment_reference = $6,
              is_active = true`,
-          [userId, subscriptionType, amount, startDate, endDate, paymentId]
+          [userId, subscriptionType, amount, startDate, endDate, reference]
         );
 
-        await pool.query('DELETE FROM payment_pending WHERE payment_id = $1', [paymentId]);
-        console.log('GPA subscription activated for user:', userId);
+        await pool.query('DELETE FROM payment_pending WHERE user_id = $1', [userId]);
+        console.log('GPA subscription activated via webhook for user:', userId);
+      }
+
+      if (metadata?.payment_type === 'tutor_booking') {
+        const bookingId = metadata.booking_id;
+        await pool.query(
+          `UPDATE bookings SET payment_status = 'completed', payment_id = $1 WHERE id = $2`,
+          [reference, bookingId]
+        );
+        await pool.query('DELETE FROM payment_pending WHERE payment_id = $1', [reference]);
+        console.log('Booking payment completed via webhook:', bookingId);
       }
     }
 
@@ -186,19 +189,17 @@ exports.handleBookingNotification = async (req, res) => {
     if (event.event === 'charge.success') {
       const data = event.data;
       const metadata = data.metadata;
+      const reference = data.reference;
 
       if (metadata?.payment_type === 'tutor_booking') {
         const bookingId = metadata.booking_id;
-        const paymentId = metadata.payment_id;
 
         await pool.query(
-          `UPDATE bookings 
-           SET payment_status = 'completed', payment_id = $1
-           WHERE id = $2`,
-          [paymentId, bookingId]
+          `UPDATE bookings SET payment_status = 'completed', payment_id = $1 WHERE id = $2`,
+          [reference, bookingId]
         );
 
-        await pool.query('DELETE FROM payment_pending WHERE payment_id = $1', [paymentId]);
+        await pool.query('DELETE FROM payment_pending WHERE payment_id = $1', [reference]);
         console.log('Booking payment completed:', bookingId);
       }
     }
@@ -286,17 +287,14 @@ exports.createBookingPayment = async (req, res) => {
     }
 
     const amount = parseFloat(booking.total_amount || (booking.number_of_hours * booking.hourly_rate));
-    const paymentId = `BOOKING_${bookingId}_${Date.now()}`;
 
-    console.log('Booking payment details:', { amount, paymentId, tutor: booking.tutor_name });
-
-    const callbackUrl = `${process.env.FRONTEND_URL}/payment/success?reference=${paymentId}&type=booking`;
+    // Do NOT put reference in callbackUrl — Paystack appends its own reference automatically
+    const callbackUrl = `${process.env.FRONTEND_URL}/payment/success?type=booking`;
 
     const transaction = await initializeTransaction(
       booking.student_email,
       amount,
       {
-        payment_id: paymentId,
         booking_id: bookingId,
         user_id: userId,
         payment_type: 'tutor_booking',
@@ -313,8 +311,7 @@ exports.createBookingPayment = async (req, res) => {
     res.json({
       success: true,
       paymentUrl: transaction.authorization_url,
-      reference: transaction.reference,
-      paymentId
+      reference: transaction.reference
     });
 
   } catch (error) {
@@ -327,7 +324,7 @@ exports.createBookingPayment = async (req, res) => {
 };
 
 // ============================================
-// VERIFY PAYMENT 
+// VERIFY PAYMENT (called from PaymentSuccess page)
 // ============================================
 exports.verifyPayment = async (req, res) => {
   try {
@@ -340,9 +337,8 @@ exports.verifyPayment = async (req, res) => {
       return res.status(400).json({ success: false, error: 'No reference provided' });
     }
 
-    // Verify with Paystack
+    // Verify with Paystack using their actual reference
     const verification = await verifyTransaction(reference);
-
     console.log('Paystack verification status:', verification.status);
 
     if (verification.status !== 'success') {
@@ -353,7 +349,7 @@ exports.verifyPayment = async (req, res) => {
     const paymentType = metadata?.payment_type || type;
 
     if (paymentType === 'gpa_subscription') {
-      // Check if subscription already activated (by webhook)
+      // Check if already activated by webhook
       const existing = await pool.query(
         'SELECT * FROM gpa_subscriptions WHERE user_id = $1 AND is_active = true AND end_date > NOW()',
         [userId]
@@ -364,15 +360,9 @@ exports.verifyPayment = async (req, res) => {
         return res.json({ success: true, type: 'gpa', alreadyActive: true });
       }
 
-      // Activate subscription manually (webhook may have missed)
-      const paymentId = metadata?.payment_id;
-      const pendingResult = await pool.query(
-        'SELECT * FROM payment_pending WHERE payment_id = $1',
-        [paymentId]
-      );
-
-      let subscriptionType = metadata?.subscription_type || 'daily';
-      let amount = verification.amount / 100; // convert from kobo
+      // Webhook missed it — activate now using metadata directly
+      const subscriptionType = metadata?.subscription_type || 'daily';
+      const amount = verification.amount / 100;
 
       const startDate = new Date();
       const endDate = new Date();
@@ -396,10 +386,7 @@ exports.verifyPayment = async (req, res) => {
         [userId, subscriptionType, amount, startDate, endDate, reference]
       );
 
-      if (paymentId) {
-        await pool.query('DELETE FROM payment_pending WHERE payment_id = $1', [paymentId]);
-      }
-
+      await pool.query('DELETE FROM payment_pending WHERE user_id = $1', [userId]);
       console.log('Subscription activated via verify for user:', userId);
       return res.json({ success: true, type: 'gpa' });
 
