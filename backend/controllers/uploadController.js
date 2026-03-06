@@ -9,12 +9,13 @@ exports.uploadImage = async (req, res) => {
     let uploadResult;
 
     if (req.file) {
-      // Use upload_stream for buffer uploads (multipart/form-data)
       uploadResult = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
             folder: 'genius-prep/profiles',
             resource_type: 'auto',
+            type: 'upload',           //Makes it public
+            access_mode: 'public',    //Explicitly public
             transformation: req.file.mimetype.startsWith('image/') ? [
               { width: 500, height: 500, crop: 'fill', gravity: 'face' },
               { quality: 'auto' }
@@ -32,6 +33,8 @@ exports.uploadImage = async (req, res) => {
       uploadResult = await cloudinary.uploader.upload(req.body.image, {
         folder: 'genius-prep/profiles',
         resource_type: 'image',
+        type: 'upload',              //Makes it public
+        access_mode: 'public',       //Explicitly public
         transformation: [
           { width: 500, height: 500, crop: 'fill', gravity: 'face' },
           { quality: 'auto' }
