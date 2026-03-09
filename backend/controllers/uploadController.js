@@ -1,69 +1,101 @@
-const cloudinary = require('../config/cloudinary');
+const supabase = require('../config/supabase');
+const { v4: uuidv4 } = require('uuid');
 
 exports.uploadImage = async (req, res) => {
   try {
     if (!req.file && !req.body.image) {
-      return res.status(400).json({ error: 'No image provided' });
+      return res.status(400).json({ error: 'No file provided' });
     }
 
-    let uploadResult;
+    let fileBuffer;
+    let fileName;
+    let contentType;
 
     if (req.file) {
-      uploadResult = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          {
-            folder: 'genius-prep/profiles',
-            resource_type: 'auto',
-            type: 'upload',           //Makes it public
-            access_mode: 'public',    //Explicitly public
-            transformation: req.file.mimetype.startsWith('image/') ? [
-              { width: 500, height: 500, crop: 'fill', gravity: 'face' },
-              { quality: 'auto' }
-            ] : []
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        stream.end(req.file.buffer);
-      });
+      // Multipart form data upload
+      fileBuffer = req.file.buffer;
+      const fileExt = req.file.originalname.split('.').pop();
+      fileName = `${uuidv4()}.${fileExt}`;
+      contentType = req.file.mimetype;
     } else {
-      // Base64 string sent via JSON body
-      uploadResult = await cloudinary.uploader.upload(req.body.image, {
-        folder: 'genius-prep/profiles',
-        resource_type: 'image',
-        type: 'upload',              //Makes it public
-        access_mode: 'public',       //Explicitly public
-        transformation: [
-          { width: 500, height: 500, crop: 'fill', gravity: 'face' },
-          { quality: 'auto' }
-        ]
+      // Base64 upload
+      const base64Data = req.body.image.replace(/^data:image\/\w+;base64,/, '');
+      fileBuffer = Buffer.from(base64Data, 'base64');
+      fileName = `${uuidv4()}.jpg`;
+      contentType = 'image/jpeg';
+    }
+
+    console.log('📤 Uploading to Supabase Storage:', fileName);
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('tutor-documents')
+      .upload(`profiles/${fileName}`, fileBuffer, {
+        contentType: contentType,
+        upsert: false
+      });
+
+    if (error) {
+      console.error('❌ Supabase upload error:', error);
+      return res.status(500).json({ 
+        error: 'Failed to upload file',
+        details: error.message 
       });
     }
 
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('tutor-documents')
+      .getPublicUrl(`profiles/${fileName}`);
+
+    console.log('✅ Upload successful:', publicUrl);
+
     res.json({
-      message: 'Image uploaded successfully',
-      url: uploadResult.secure_url,
-      publicId: uploadResult.public_id
+      message: 'File uploaded successfully',
+      url: publicUrl,
+      publicId: data.path
     });
 
   } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ error: 'Failed to upload image', details: error.message });
+    console.error('❌ Upload error:', error);
+    res.status(500).json({ 
+      error: 'Failed to upload file',
+      details: error.message 
+    });
   }
 };
 
 exports.deleteImage = async (req, res) => {
   try {
     const { publicId } = req.body;
+    
     if (!publicId) {
-      return res.status(400).json({ error: 'No public ID provided' });
+      return res.status(400).json({ error: 'No file path provided' });
     }
-    await cloudinary.uploader.destroy(publicId);
-    res.json({ message: 'Image deleted successfully' });
+
+    console.log('🗑️  Deleting from Supabase:', publicId);
+
+    const { error } = await supabase.storage
+      .from('tutor-documents')
+      .remove([publicId]);
+
+    if (error) {
+      console.error('❌ Delete error:', error);
+      return res.status(500).json({ 
+        error: 'Failed to delete file',
+        details: error.message 
+      });
+    }
+
+    console.log('✅ File deleted successfully');
+
+    res.json({ message: 'File deleted successfully' });
+
   } catch (error) {
-    console.error('Delete error:', error);
-    res.status(500).json({ error: 'Failed to delete image' });
+    console.error('❌ Delete error:', error);
+    res.status(500).json({ 
+      error: 'Failed to delete file',
+      details: error.message 
+    });
   }
 };
