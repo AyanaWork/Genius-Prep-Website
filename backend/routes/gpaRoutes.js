@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
 const gpaController = require('../controllers/gpaController');
+const checkSubscription = require('../middleware/checkSubscription');
 const auth = require('../middleware/auth');
 
 // All GPA routes require authentication
@@ -18,6 +19,13 @@ router.post('/generate-notes', gpaController.generateNotes);
 router.post('/generate-test', gpaController.generateTest);
 router.post('/answer-question', gpaController.answerQuestion);
 router.post('/analyze-content', gpaController.analyzeContent);
+
+// GPA routes that need subscription
+router.post('/generate-notes', auth, checkSubscription, gpaController.generateNotes);
+router.post('/generate-test', auth, checkSubscription, gpaController.generateTest);
+router.post('/answer-question', auth, checkSubscription, gpaController.answerQuestion);
+router.post('/analyze-content', auth, checkSubscription, gpaController.analyzeContent);
+router.post('/analyze-pdf', auth, checkSubscription, gpaController.analyzePDF);
 
 // Get all conversations for current user
 router.get('/conversations', auth, async (req, res) => {
