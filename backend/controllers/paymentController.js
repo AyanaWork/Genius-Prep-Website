@@ -143,7 +143,7 @@ exports.handleNotification = async (req, res) => {
         } else if (subscriptionType === 'monthly') {
           endDate.setMonth(endDate.getMonth() + 1);
         } else if (subscriptionType === 'daily') {
-          endDate.setDate(endDate.getDate() + 1);  // ← This adds 1 day
+          endDate.setDate(endDate.getDate() + 1);  
         }
 
         await pool.query(
