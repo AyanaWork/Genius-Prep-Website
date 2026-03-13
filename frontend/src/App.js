@@ -20,6 +20,7 @@ import TermsAndConditions from './pages/Legal/TermsAndConditions';
 import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
 import RefundPolicy from './pages/Legal/RefundPolicy';
 import PricingAndLegal from './pages/Legal/PricingAndLegal';
+import AdminBookings from './pages/Admin/AdminBookings';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRole }) {
@@ -105,6 +106,8 @@ function App() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/pricing-legal" element={<PricingAndLegal />} />
+
+        <Route path="/admin/bookings" element={<AdminBookings />} />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

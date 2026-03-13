@@ -54,6 +54,7 @@ const gpaRoutes = require('./routes/gpaRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const adminBookingRoutes = require('./routes/adminBookingRoutes');
 
 // ============================================
 // TEST ROUTES
@@ -88,6 +89,7 @@ app.use('/api/gpa', gpaRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/admin', adminBookingRoutes);
 
 app.get('/api/test-payment-route', (req, res) => {
   res.json({ message: 'Payment routes loaded', version: '1.0.1' });

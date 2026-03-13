@@ -141,9 +141,15 @@ function AdminDashboard() {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/admin/dashboard')}
-                className="text-gray-700 hover:text-primary-600 transition font-medium"
+                className="px-4 py-2 bg-primary-50 text-primary-700 rounded-lg font-medium border border-primary-200"
               >
                 Dashboard
+              </button>
+              <button
+                onClick={() => navigate('/admin/bookings')}
+                className="px-4 py-2 text-gray-700 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition font-medium"
+              >
+                Booking Management
               </button>
               <button
                 onClick={() => {
