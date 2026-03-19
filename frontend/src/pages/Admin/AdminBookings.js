@@ -172,7 +172,7 @@ function AdminBookings() {
                 onClick={() => navigate('/admin/bookings')}
                 className="px-4 py-2 bg-primary-50 text-primary-700 rounded-lg font-medium border border-primary-200"
               >
-                📋 Booking Management
+                Booking Management
               </button>
               <button
                 onClick={() => {
