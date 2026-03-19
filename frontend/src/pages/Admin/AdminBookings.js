@@ -117,11 +117,30 @@ function AdminBookings() {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-ZA', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    if (!dateString) return 'Not set';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid date';
+      return date.toLocaleDateString('en-ZA', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return 'Not set';
+    try {
+      if (typeof timeString === 'string' && timeString.includes(':')) {
+        return timeString.substring(0, 5); 
+      }
+      return timeString;
+    } catch (error) {
+      return 'Not set';
+    }
   };
 
   const getPendingDuration = (hoursPending) => {
@@ -153,7 +172,7 @@ function AdminBookings() {
                 onClick={() => navigate('/admin/bookings')}
                 className="px-4 py-2 bg-primary-50 text-primary-700 rounded-lg font-medium border border-primary-200"
               >
-                Booking Management
+                📋 Booking Management
               </button>
               <button
                 onClick={() => {
@@ -179,8 +198,8 @@ function AdminBookings() {
 
       <div className="admin-bookings-container">
 
-      {/* Statistics Cards */}
-      <div className="stats-grid">
+        {/* Statistics Cards */}
+        <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon pending">📋</div>
           <div className="stat-content">
@@ -334,8 +353,8 @@ function AdminBookings() {
                     <td>{booking.subject}</td>
                     <td>
                       <div className="date-cell">
-                        <div>{formatDate(booking.date)}</div>
-                        <small>{booking.time}</small>
+                        <div>{formatDate(booking.preferred_date || booking.date)}</div>
+                        <small>{formatTime(booking.preferred_time || booking.time)}</small>
                       </div>
                     </td>
                     <td>{booking.number_of_hours || 3}h</td>
@@ -407,7 +426,7 @@ function AdminBookings() {
                 <p><strong>Student:</strong> {selectedBooking?.student_name}</p>
                 <p><strong>Tutor:</strong> {selectedBooking?.tutor_name}</p>
                 <p><strong>Subject:</strong> {selectedBooking?.subject}</p>
-                <p><strong>Date:</strong> {formatDate(selectedBooking?.date)} at {selectedBooking?.time}</p>
+                <p><strong>Date:</strong> {formatDate(selectedBooking?.preferred_date || selectedBooking?.date)} at {formatTime(selectedBooking?.preferred_time || selectedBooking?.time)}</p>
               </div>
 
               <div className="form-group">
