@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import companyLogo from '../../assets/logos/GA_1.jpeg';
 
 function TutorApprovalPanel() {
   const [pendingTutors, setPendingTutors] = useState([]);
@@ -7,245 +8,69 @@ function TutorApprovalPanel() {
   const [selectedTutor, setSelectedTutor] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
-  useEffect(() => {
-    fetchPendingTutors();
-  }, []);
+  useEffect(() => { fetchPendingTutors(); }, []);
 
   const fetchPendingTutors = async () => {
-    try {
-      const response = await api.get('/admin/tutors/pending');
-      setPendingTutors(response.data.tutors);
-    } catch (err) {
-      console.error('Failed to fetch pending tutors:', err);
-    } finally {
-      setLoading(false);
-    }
+    try { const res = await api.get('/admin/tutors/pending'); setPendingTutors(res.data.tutors); }
+    catch (err) { console.error(err); }
+    finally { setLoading(false); }
   };
-
   const handleApprove = async (tutorId) => {
     if (!window.confirm('Approve this tutor?')) return;
-
-    try {
-      await api.put(`/admin/tutors/${tutorId}/approve`);
-      alert('Tutor approved successfully!');
-      fetchPendingTutors();
-      setSelectedTutor(null);
-    } catch (err) {
-      alert('Failed to approve tutor');
-    }
+    try { await api.put(`/admin/tutors/${tutorId}/approve`); alert('Approved'); fetchPendingTutors(); setSelectedTutor(null); }
+    catch (err) { alert('Failed'); }
   };
-
   const handleReject = async (tutorId) => {
-    if (!rejectionReason.trim()) {
-      alert('Please provide a reason for rejection');
-      return;
-    }
-
-    try {
-      await api.put(`/admin/tutors/${tutorId}/reject`, {
-        reason: rejectionReason
-      });
-      alert('Tutor rejected');
-      fetchPendingTutors();
-      setSelectedTutor(null);
-      setRejectionReason('');
-    } catch (err) {
-      alert('Failed to reject tutor');
-    }
+    if (!rejectionReason.trim()) return alert('Please provide a reason');
+    try { await api.put(`/admin/tutors/${tutorId}/reject`, { reason: rejectionReason }); alert('Rejected'); fetchPendingTutors(); setSelectedTutor(null); setRejectionReason(''); }
+    catch (err) { alert('Failed'); }
   };
 
-  if (loading) {
-    return (
-      <div className="p-8 text-center">
-        Loading pending tutors...
-      </div>
-    );
-  }
+  if (loading) return <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">Loading...</div>;
 
   return (
-    <div className="max-w-7xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-8">
-        Tutor Approval Panel
-      </h1>
-
-      {pendingTutors.length === 0 ? (
-        <div className="bg-gray-50 p-8 rounded-lg text-center">
-          <p className="text-gray-600">
-            No pending tutor applications
-          </p>
+    <div className="min-h-screen bg-[#0f172a] text-white py-12 px-4">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-center gap-3 mb-8">
+          <img src={companyLogo} alt="Logo" className="h-10 w-auto" />
+          <h1 className="text-3xl font-black">Tutor Approval Panel</h1>
         </div>
-      ) : (
-        <div className="grid gap-6">
-          {pendingTutors.map((tutor) => (
-            <div
-              key={tutor.id}
-              className="bg-white border rounded-xl p-6 shadow-sm"
-            >
-              {/* Header Section */}
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-bold">
-                    {tutor.first_name} {tutor.last_name}
-                  </h3>
-                  <p className="text-gray-600">{tutor.email}</p>
-                  <p className="text-sm text-gray-500">
-                    Applied:{' '}
-                    {new Date(tutor.created_at).toLocaleDateString()}
-                  </p>
+        {pendingTutors.length === 0 ? <div className="glass-card rounded-3xl p-8 text-center">No pending applications</div> : (
+          <div className="space-y-6">
+            {pendingTutors.map(tutor => (
+              <div key={tutor.id} className="glass-card rounded-3xl p-6">
+                <div className="flex justify-between items-start">
+                  <div><h2 className="text-xl font-bold">{tutor.display_name || tutor.email}</h2><p className="text-gray-400">{tutor.email}</p></div>
+                  {tutor.profile_picture_url && <img src={tutor.profile_picture_url} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-[#00CC99]" />}
                 </div>
-
-                <img
-                  src={tutor.profile_picture || '/images/tutor.png'}
-                  alt={tutor.first_name}
-                  className="w-20 h-20 rounded-full object-cover"
-                />
-              </div>
-
-              {/* Tutor Details */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">
-                    Subjects
-                  </p>
-                  <p className="text-sm">
-                    {tutor.subjects || 'Not specified'}
-                  </p>
+                <div className="grid md:grid-cols-2 gap-4 mt-4">
+                  <div><strong>Subjects:</strong> {tutor.subjects?.join(', ') || 'None'}</div><div><strong>Experience:</strong> {tutor.years_experience || 0} years</div>
+                  <div><strong>Qualifications:</strong> {tutor.qualifications || 'None'}</div><div><strong>Hourly Rate:</strong> R{tutor.hourly_rate || 0}</div>
                 </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">
-                    Experience
-                  </p>
-                  <p className="text-sm">
-                    {tutor.experience || 'Not specified'}
-                  </p>
+                <div className="mt-4"><strong>Bio:</strong> <p className="text-gray-300">{tutor.bio || 'No bio'}</p></div>
+                <div className="mt-4 flex gap-4">
+                  <a href={tutor.id_document_url} target="_blank" className="text-[#00CC99] underline">View ID</a>
+                  <a href={tutor.transcript_url} target="_blank" className="text-[#00CC99] underline">View Transcript</a>
                 </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">
-                    Qualifications
-                  </p>
-                  <p className="text-sm">
-                    {tutor.qualifications || 'Not specified'}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">
-                    Hourly Rate
-                  </p>
-                  <p className="text-sm">
-                    R{tutor.hourly_rate || 'Not set'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Bio */}
-              <div className="mb-4">
-                <p className="text-sm font-semibold text-gray-700 mb-2">
-                  Bio
-                </p>
-                <p className="text-sm text-gray-600">
-                  {tutor.bio || 'No bio provided'}
-                </p>
-              </div>
-
-              {/* Documents */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
-                    ID Document
-                  </p>
-                  {tutor.id_document_url ? (
-                    <a
-                      href={tutor.id_document_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      View ID Document →
-                    </a>
-                  ) : (
-                    <p className="text-sm text-red-600">
-                      Not uploaded
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">
-                    Academic Transcript
-                  </p>
-                  {tutor.transcript_url ? (
-                    <a
-                      href={tutor.transcript_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      View Transcript →
-                    </a>
-                  ) : (
-                    <p className="text-sm text-red-600">
-                      Not uploaded
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Action Section */}
-              {selectedTutor === tutor.id ? (
-                <div className="space-y-3">
-                  <textarea
-                    value={rejectionReason}
-                    onChange={(e) =>
-                      setRejectionReason(e.target.value)
-                    }
-                    placeholder="Reason for rejection..."
-                    className="w-full px-4 py-2 border rounded-lg"
-                    rows={3}
-                  />
-
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleReject(tutor.id)}
-                      className="flex-1 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
-                    >
-                      Confirm Rejection
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setSelectedTutor(null);
-                        setRejectionReason('');
-                      }}
-                      className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                    >
-                      Cancel
-                    </button>
+                {selectedTutor === tutor.id ? (
+                  <div className="mt-4 space-y-3">
+                    <textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} className="w-full bg-[#0f172a]/5 border border-white/10 rounded-xl p-3" rows="3" placeholder="Reason for rejection..." />
+                    <div className="flex gap-3">
+                      <button onClick={() => handleReject(tutor.id)} className="px-4 py-2 bg-red-500/20 text-red-400 rounded-xl">Confirm Reject</button>
+                      <button onClick={() => setSelectedTutor(null)} className="px-4 py-2 glass-card rounded-xl">Cancel</button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleApprove(tutor.id)}
-                    className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold"
-                  >
-                    ✓ Approve Tutor
-                  </button>
-
-                  <button
-                    onClick={() => setSelectedTutor(tutor.id)}
-                    className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 font-semibold"
-                  >
-                    ✗ Reject Tutor
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+                ) : (
+                  <div className="flex gap-3 mt-6">
+                    <button onClick={() => handleApprove(tutor.id)} className="flex-1 py-2 bg-green-500/20 text-green-400 rounded-xl">Approve</button>
+                    <button onClick={() => setSelectedTutor(tutor.id)} className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-xl">Reject</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

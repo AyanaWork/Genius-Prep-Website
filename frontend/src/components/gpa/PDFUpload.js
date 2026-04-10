@@ -103,7 +103,7 @@ function PDFUpload() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-md p-8">
+      <div className="bg-[#0f172a] rounded-xl shadow-md p-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-6">📄 Analyze PDF Documents</h3>
         
         {error && (
@@ -243,7 +243,7 @@ function PDFUpload() {
                     navigator.clipboard.writeText(analysis);
                     alert('Analysis copied to clipboard!');
                   }}
-                  className="text-sm px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition border border-gray-300"
+                  className="text-sm px-4 py-2 bg-[#0f172a] text-gray-700 rounded-lg hover:bg-gray-100 transition border border-gray-300"
                 >
                   📋 Copy
                 </button>

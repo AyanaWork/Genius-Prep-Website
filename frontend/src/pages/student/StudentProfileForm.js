@@ -2,118 +2,56 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import profileService from '../../services/profile';
 import ImageUpload from '../../components/common/ImageUpload';
+import companyLogo from '../../assets/logos/GA_1.jpeg';  // <-- ADD THIS
 
-const EDUCATION_LEVELS = [
-  'Primary School',
-  'Grade 8-9',
-  'Grade 10-12',
-  'University - 1st Year',
-  'University - 2nd Year',
-  'University - 3rd Year',
-  'University - 4th Year',
-  'Postgraduate'
-];
-
-const SUBJECT_OPTIONS = [
-  'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English',
-  'Afrikaans', 'History', 'Geography', 'Accounting', 'Economics',
-  'Life Sciences', 'Computer Science', 'Business Studies',
-  'Engineering Mathematics', 'Statistics', 'Law', 'Psychology',
-  'Sociology', 'Political Science', 'Philosophy'
-];
+const EDUCATION_LEVELS = ['Primary School', 'Grade 8-9', 'Grade 10-12', 'University - 1st Year', 'University - 2nd Year', 'University - 3rd Year', 'University - 4th Year', 'Postgraduate'];
+const SUBJECT_OPTIONS = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Afrikaans', 'History', 'Geography', 'Accounting', 'Economics', 'Life Sciences', 'Computer Science', 'Business Studies', 'Engineering Mathematics', 'Statistics', 'Law', 'Psychology', 'Sociology', 'Political Science', 'Philosophy'];
 
 function StudentProfileForm() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
-  const [formData, setFormData] = useState({
-    displayName: '',
-    educationLevel: '',
-    subjectsInterested: [],
-    location: '',
-    profilePictureUrl: null
-  });
-
+  const [formData, setFormData] = useState({ displayName: '', educationLevel: '', subjectsInterested: [], location: '', profilePictureUrl: null });
   const [customSubject, setCustomSubject] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  useEffect(() => { loadProfile(); }, []);
 
   const loadProfile = async () => {
     try {
-      const response = await profileService.getStudentProfile();
-      if (response.profile) {
-        setFormData({
-          displayName: response.profile.display_name || '',
-          educationLevel: response.profile.education_level || '',
-          subjectsInterested: response.profile.subjects_interested || [],
-          location: response.profile.location || '',
-          profilePictureUrl: response.profile.profile_picture_url || null
-        });
-      }
-    } catch (err) {
-      console.error('Load profile error:', err);
-    }
+      const res = await profileService.getStudentProfile();
+      if (res.profile) setFormData({
+        displayName: res.profile.display_name || '',
+        educationLevel: res.profile.education_level || '',
+        subjectsInterested: res.profile.subjects_interested || [],
+        location: res.profile.location || '',
+        profilePictureUrl: res.profile.profile_picture_url || null
+      });
+    } catch (err) { console.error(err); }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubjectToggle = (subject) => {
-    setFormData(prev => ({
-      ...prev,
-      subjectsInterested: prev.subjectsInterested.includes(subject)
-        ? prev.subjectsInterested.filter(s => s !== subject)
-        : [...prev.subjectsInterested, subject]
-    }));
-  };
-
+  const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleSubjectToggle = (subject) => setFormData(prev => ({
+    ...prev,
+    subjectsInterested: prev.subjectsInterested.includes(subject) ? prev.subjectsInterested.filter(s => s !== subject) : [...prev.subjectsInterested, subject]
+  }));
+  const handleRemoveSubject = (subject) => setFormData(prev => ({ ...prev, subjectsInterested: prev.subjectsInterested.filter(s => s !== subject) }));
   const handleAddCustomSubject = () => {
     if (customSubject.trim() && !formData.subjectsInterested.includes(customSubject.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        subjectsInterested: [...prev.subjectsInterested, customSubject.trim()]
-      }));
+      setFormData(prev => ({ ...prev, subjectsInterested: [...prev.subjectsInterested, customSubject.trim()] }));
       setCustomSubject('');
       setShowCustomInput(false);
     }
   };
-
-  const handleRemoveSubject = (subject) => {
-    setFormData(prev => ({
-      ...prev,
-      subjectsInterested: prev.subjectsInterested.filter(s => s !== subject)
-    }));
-  };
-
-  const handleImageUpload = (imageUrl) => {
-    setFormData(prev => ({
-      ...prev,
-      profilePictureUrl: imageUrl
-    }));
-  };
+  const handleImageUpload = (url) => setFormData(prev => ({ ...prev, profilePictureUrl: url }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
-
-    if (!formData.displayName.trim()) {
-      setError('Please enter your name');
-      return;
-    }
-
+    if (!formData.displayName.trim()) return setError('Please enter your name');
+    setLoading(true);
     try {
-      setLoading(true);
       await profileService.updateStudentProfile({
         display_name: formData.displayName,
         education_level: formData.educationLevel,
@@ -121,242 +59,88 @@ function StudentProfileForm() {
         location: formData.location,
         profile_picture_url: formData.profilePictureUrl
       });
-      
-      setSuccess('Profile updated successfully!');
-      setTimeout(() => {
-        navigate('/student/dashboard');
-      }, 1500);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to update profile');
-    } finally {
-      setLoading(false);
-    }
+      setSuccess('Profile saved! Redirecting...');
+      setTimeout(() => navigate('/student/dashboard'), 1500);
+    } catch (err) { setError(err.response?.data?.error || 'Update failed'); }
+    finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-12 px-4">
+    <div className="min-h-screen bg-[#0f172a] py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <button
-            onClick={() => navigate('/student/dashboard')}
-            className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4 font-medium"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Dashboard
-          </button>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">Your Student Profile</h1>
-          <p className="text-lg text-gray-600">Tell us about yourself to get matched with the perfect tutors</p>
-        </div>
+        <button onClick={() => navigate('/student/dashboard')} className="text-[#00CC99] hover:underline mb-6 inline-flex items-center gap-2">← Back to Dashboard</button>
+        <div className="glass-card rounded-3xl p-8 md:p-12">
+          {/* Logo and Title */}
+          <div className="flex justify-center mb-6">
+            <img src={companyLogo} alt="Logo" className="h-16 w-auto object-contain" />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black mb-2 text-center">Your Student Profile</h1>
+          <p className="text-gray-400 text-center mb-8">Tell us about yourself to get matched with the perfect tutors</p>
 
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Messages */}
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg flex items-start">
-                <svg className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <span>{error}</span>
-              </div>
-            )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-lg">{error}</div>}
+            {success && <div className="bg-green-500/20 border border-green-500 text-green-300 p-3 rounded-lg">{success}</div>}
 
-            {success && (
-              <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-lg flex items-start">
-                <svg className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>{success}</span>
-              </div>
-            )}
-
-            {/* Profile Picture */}
-            <div className="flex flex-col items-center space-y-4 pb-8 border-b border-gray-200">
-              <div className="relative">
-                {formData.profilePictureUrl ? (
-                  <img
-                    src={formData.profilePictureUrl}
-                    alt="Profile"
-                    className="w-32 h-32 rounded-full object-cover border-4 border-primary-100 shadow-lg"
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center border-4 border-primary-100 shadow-lg">
-                    <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <ImageUpload onImageUpload={handleImageUpload} />
+            <div className="flex flex-col items-center gap-4 pb-6 border-b border-white/10">
+              {formData.profilePictureUrl ? (
+                <img src={formData.profilePictureUrl} alt="Profile" className="w-28 h-28 rounded-full object-cover border-4 border-[#00CC99]" />
+              ) : (
+                <div className="w-28 h-28 rounded-full bg-[#00CC99]/20 flex items-center justify-center border-2 border-[#00CC99]">
+                  <svg className="w-12 h-12 text-[#00CC99]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                </div>
+              )}
+              <ImageUpload onImageUpload={handleImageUpload} buttonText="Upload Photo" />
             </div>
 
-            {/* Display Name */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Your Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="displayName"
-                value={formData.displayName}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
-                placeholder="e.g., John Doe"
-                required
-              />
+              <label className="block text-sm font-semibold mb-2">Your Name <span className="text-red-400">*</span></label>
+              <input type="text" name="displayName" value={formData.displayName} onChange={handleChange} className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none" required />
             </div>
 
-            {/* Education Level & Location */}
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Education Level
-                </label>
-                <select
-                  name="educationLevel"
-                  value={formData.educationLevel}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
-                >
-                  <option value="">Select your level</option>
-                  {EDUCATION_LEVELS.map(level => (
-                    <option key={level} value={level}>{level}</option>
-                  ))}
+                <label className="block text-sm font-semibold mb-2">Education Level</label>
+                <select name="educationLevel" value={formData.educationLevel} onChange={handleChange} className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl focus:border-[#00CC99]">
+                  <option value="">Select</option>
+                  {EDUCATION_LEVELS.map(level => <option key={level} value={level}>{level}</option>)}
                 </select>
               </div>
-
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
-                  placeholder="e.g., Pretoria, Gauteng"
-                />
+                <label className="block text-sm font-semibold mb-2">Location</label>
+                <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl" placeholder="e.g., Pretoria" />
               </div>
             </div>
 
-            {/* Subjects Interested */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Subjects You're Interested In
-              </label>
-              
-              {/* Selected Subjects */}
+              <label className="block text-sm font-semibold mb-3">Subjects You're Interested In</label>
               {formData.subjectsInterested.length > 0 && (
-                <div className="mb-4 flex flex-wrap gap-2">
-                  {formData.subjectsInterested.map(subject => (
-                    <span
-                      key={subject}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 rounded-full font-medium"
-                    >
-                      {subject}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSubject(subject)}
-                        className="hover:bg-primary-200 rounded-full p-0.5 transition"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </span>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {formData.subjectsInterested.map(s => (
+                    <span key={s} className="px-3 py-1 bg-[#00CC99]/20 rounded-full text-sm flex items-center gap-2">{s}<button type="button" onClick={() => handleRemoveSubject(s)} className="text-[#00CC99]">×</button></span>
                   ))}
                 </div>
               )}
-
-              {/* Subject Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
-                {SUBJECT_OPTIONS.map(subject => (
-                  <button
-                    key={subject}
-                    type="button"
-                    onClick={() => handleSubjectToggle(subject)}
-                    className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                      formData.subjectsInterested.includes(subject)
-                        ? 'bg-primary-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {subject}
-                  </button>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {SUBJECT_OPTIONS.map(sub => (
+                  <button type="button" key={sub} onClick={() => handleSubjectToggle(sub)} className={`px-3 py-2 rounded-lg text-sm transition ${formData.subjectsInterested.includes(sub) ? 'bg-[#00CC99] text-[#0f172a]' : 'bg-[#0f172a]/5 hover:bg-[#0f172a]/10'}`}>{sub}</button>
                 ))}
               </div>
-
-              {/* Custom Subject Input */}
               {showCustomInput ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={customSubject}
-                    onChange={(e) => setCustomSubject(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddCustomSubject())}
-                    className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="Enter custom subject..."
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddCustomSubject}
-                    className="px-6 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition font-medium"
-                  >
-                    Add
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCustomInput(false);
-                      setCustomSubject('');
-                    }}
-                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition font-medium"
-                  >
-                    Cancel
-                  </button>
+                <div className="flex gap-2 mt-3">
+                  <input type="text" value={customSubject} onChange={e => setCustomSubject(e.target.value)} className="flex-1 px-4 py-2 bg-[#0f172a]/5 border border-white/10 rounded-lg" placeholder="Subject name" />
+                  <button type="button" onClick={handleAddCustomSubject} className="px-4 py-2 bg-[#00CC99] text-[#0f172a] rounded-lg font-semibold">Add</button>
+                  <button type="button" onClick={() => setShowCustomInput(false)} className="px-4 py-2 bg-[#0f172a]/10 rounded-lg">Cancel</button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowCustomInput(true)}
-                  className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-primary-400 hover:text-primary-600 transition font-medium"
-                >
-                  + Add Other Subject
-                </button>
+                <button type="button" onClick={() => setShowCustomInput(true)} className="text-[#00CC99] text-sm mt-3">+ Add custom subject</button>
               )}
             </div>
 
-            {/* Submit Buttons */}
-            <div className="flex gap-4 pt-6 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={() => navigate('/student/dashboard')}
-                className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition"
-                disabled={loading}
-              >
-                Cancel
+            <div className="flex gap-4 pt-6">
+              <button type="submit" disabled={loading} className="flex-1 py-3 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition disabled:opacity-50">
+                {loading ? 'Saving...' : 'Save Profile'}
               </button>
-              <button
-                type="submit"
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition shadow-lg disabled:opacity-50"
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Saving...
-                  </span>
-                ) : (
-                  'Save Profile'
-                )}
-              </button>
+              <button type="button" onClick={() => navigate('/student/dashboard')} className="px-6 py-3 glass-card rounded-xl">Cancel</button>
             </div>
           </form>
         </div>

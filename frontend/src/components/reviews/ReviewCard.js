@@ -19,7 +19,7 @@ function ReviewCard({ review, onEdit, onDelete, isOwnReview }) {
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
+    <div className="bg-[#0f172a] rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
@@ -65,7 +65,7 @@ function ReviewCard({ review, onEdit, onDelete, isOwnReview }) {
             </button>
 
             {showActions && (
-              <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+              <div className="absolute right-0 mt-2 w-40 bg-[#0f172a] rounded-lg shadow-lg border border-gray-200 py-1 z-10">
                 <button
                   onClick={() => {
                     onEdit(review);

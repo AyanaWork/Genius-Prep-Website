@@ -21,7 +21,7 @@ function MainNavbar() {
   };
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-200">
+    <nav className="bg-[#0f172a] shadow-sm sticky top-0 z-50 border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -120,7 +120,7 @@ function MainNavbar() {
                   </button>
                   
                   {/* Dropdown menu */}
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                  <div className="absolute right-0 mt-2 w-56 bg-[#0f172a] rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                     <div className="p-3 border-b border-gray-100">
                       <p className="text-sm font-semibold text-gray-900 truncate">
                         {currentUser.email}
@@ -189,7 +189,7 @@ function MainNavbar() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
+        <div className="md:hidden bg-[#0f172a] border-t border-gray-200">
           <div className="px-4 py-3 space-y-1">
             <button
               onClick={() => { navigate('/'); setMobileMenuOpen(false); }}

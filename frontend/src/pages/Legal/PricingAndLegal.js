@@ -29,7 +29,7 @@ function PricingAndLegal() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="bg-[#0f172a] border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-4">
           <div className="flex overflow-x-auto">
             {tabs.map((tab) => (
@@ -69,7 +69,7 @@ function PricingAndLegal() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
 
                 {/* Daily Plan */}
-                <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#4A90E2] transition shadow-sm flex flex-col">
+                <div className="bg-[#0f172a] rounded-2xl border-2 border-gray-200 p-6 hover:border-[#4A90E2] transition shadow-sm flex flex-col">
                   <h4 className="text-xl font-bold text-[#2c3e50] mb-1">Daily</h4>
                   <p className="text-gray-500 text-xs mb-4">Perfect for exam day or a single study session</p>
                   <div className="flex items-end gap-1 mb-4">
@@ -98,7 +98,7 @@ function PricingAndLegal() {
                 </div>
 
                 {/* Monthly Plan */}
-                <div className="bg-white rounded-2xl border-2 border-blue-400 p-6 hover:border-[#4A90E2] transition shadow-sm flex flex-col relative">
+                <div className="bg-[#0f172a] rounded-2xl border-2 border-blue-400 p-6 hover:border-[#4A90E2] transition shadow-sm flex flex-col relative">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-bold">
                     Popular
                   </div>
@@ -131,7 +131,7 @@ function PricingAndLegal() {
                 </div>
 
                 {/* Semester Plan */}
-                <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 hover:border-[#4A90E2] transition shadow-sm flex flex-col">
+                <div className="bg-[#0f172a] rounded-2xl border-2 border-gray-200 p-6 hover:border-[#4A90E2] transition shadow-sm flex flex-col">
                   <h4 className="text-xl font-bold text-[#2c3e50] mb-1">Semester</h4>
                   <p className="text-gray-500 text-xs mb-4">Ideal for a full academic semester</p>
                   <div className="flex items-end gap-1 mb-4">
@@ -204,7 +204,7 @@ function PricingAndLegal() {
               <h3 className="text-2xl font-bold text-[#2c3e50] mb-6 text-center">
                 Tutoring Sessions
               </h3>
-              <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm max-w-3xl mx-auto">
+              <div className="bg-[#0f172a] rounded-2xl border border-gray-200 p-8 shadow-sm max-w-3xl mx-auto">
                 <p className="text-gray-700 leading-relaxed mb-4">
                   Tutoring rates are set by individual tutors and vary based on subject, level, and experience.
                   Rates are displayed on each tutor's profile page.
@@ -239,7 +239,7 @@ function PricingAndLegal() {
 
         {/* ==================== TERMS TAB ==================== */}
         {activeTab === 'terms' && (
-          <div className="bg-white rounded-xl shadow-sm p-8 space-y-8">
+          <div className="bg-[#0f172a] rounded-xl shadow-sm p-8 space-y-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-[#2c3e50]">Terms and Conditions</h2>
               <button
@@ -275,7 +275,7 @@ function PricingAndLegal() {
 
         {/* ==================== PRIVACY TAB ==================== */}
         {activeTab === 'privacy' && (
-          <div className="bg-white rounded-xl shadow-sm p-8 space-y-8">
+          <div className="bg-[#0f172a] rounded-xl shadow-sm p-8 space-y-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-[#2c3e50]">Privacy Policy</h2>
               <button
@@ -310,7 +310,7 @@ function PricingAndLegal() {
 
         {/* ==================== REFUND TAB ==================== */}
         {activeTab === 'refund' && (
-          <div className="bg-white rounded-xl shadow-sm p-8 space-y-8">
+          <div className="bg-[#0f172a] rounded-xl shadow-sm p-8 space-y-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-[#2c3e50]">Refund Policy</h2>
               <button

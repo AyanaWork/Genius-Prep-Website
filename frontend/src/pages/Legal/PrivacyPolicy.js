@@ -22,7 +22,7 @@ function PrivacyPolicy() {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-12 max-w-4xl">
-        <div className="bg-white rounded-xl shadow-sm p-8 space-y-8">
+        <div className="bg-[#0f172a] rounded-xl shadow-sm p-8 space-y-8">
 
           <section>
             <h2 className="text-2xl font-bold text-[#2c3e50] mb-4">1. Introduction</h2>

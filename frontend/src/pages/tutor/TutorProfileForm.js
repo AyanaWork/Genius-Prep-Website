@@ -4,15 +4,7 @@ import profileService from '../../services/profile';
 import api from '../../services/api';
 import ImageUpload from '../../components/common/ImageUpload';
 
-const SUBJECT_OPTIONS = [
-  'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English',
-  'Afrikaans', 'History', 'Geography', 'Accounting', 'Economics',
-  'Life Sciences', 'Computer Science', 'Business Studies',
-  'Engineering Mathematics', 'Statistics', 'Law', 'Psychology',
-  'Sociology', 'Political Science', 'Philosophy', 'Programming',
-  'Data Science', 'Finance', 'Marketing', 'Management'
-];
-
+const SUBJECT_OPTIONS = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Afrikaans', 'History', 'Geography', 'Accounting', 'Economics', 'Life Sciences', 'Computer Science', 'Business Studies', 'Engineering Mathematics', 'Statistics', 'Law', 'Psychology', 'Sociology', 'Political Science', 'Philosophy', 'Programming', 'Data Science', 'Finance', 'Marketing', 'Management'];
 const TEACHING_MODES = ['online', 'in-person', 'both'];
 
 function TutorProfileForm() {
@@ -22,147 +14,76 @@ function TutorProfileForm() {
   const [success, setSuccess] = useState('');
   const [idDocument, setIdDocument] = useState(null);
   const [transcript, setTranscript] = useState(null);
-  
   const [formData, setFormData] = useState({
-    displayName: '',
-    bio: '',
-    qualifications: '',
-    subjects: [],
-    moduleCodes: '',
-    hourlyRate: '',
-    yearsExperience: '',
-    teachingMode: 'both',
-    location: '',
-    profilePictureUrl: null,
-    // NEW FIELDS for documents and approval
-    id_document_url: null,
-    transcript_url: null,
-    approval_status: 'pending'
+    displayName: '', bio: '', qualifications: '', subjects: [], moduleCodes: '', hourlyRate: '', yearsExperience: '', teachingMode: 'both', location: '', profilePictureUrl: null,
+    id_document_url: null, transcript_url: null, approval_status: 'pending'
   });
-
   const [customSubject, setCustomSubject] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  useEffect(() => { loadProfile(); }, []);
 
   const loadProfile = async () => {
     try {
-      const response = await profileService.getTutorProfile();
-      if (response.profile) {
-        setFormData({
-          displayName: response.profile.display_name || '',
-          bio: response.profile.bio || '',
-          qualifications: response.profile.qualifications || '',
-          subjects: response.profile.subjects || [],
-          moduleCodes: Array.isArray(response.profile.module_codes) 
-            ? response.profile.module_codes.join(', ') 
-            : '',
-          hourlyRate: response.profile.hourly_rate || '',
-          yearsExperience: response.profile.years_experience || '',
-          teachingMode: response.profile.teaching_mode || 'both',
-          location: response.profile.location || '',
-          profilePictureUrl: response.profile.profile_picture_url || null,
-          id_document_url: response.profile.id_document_url || null,
-          transcript_url: response.profile.transcript_url || null,
-          approval_status: response.profile.approval_status || 'pending'
-        });
-      }
-    } catch (err) {
-      console.error('Load profile error:', err);
-    }
+      const res = await profileService.getTutorProfile();
+      if (res.profile) setFormData({
+        displayName: res.profile.display_name || '',
+        bio: res.profile.bio || '',
+        qualifications: res.profile.qualifications || '',
+        subjects: res.profile.subjects || [],
+        moduleCodes: Array.isArray(res.profile.module_codes) ? res.profile.module_codes.join(', ') : '',
+        hourlyRate: res.profile.hourly_rate || '',
+        yearsExperience: res.profile.years_experience || '',
+        teachingMode: res.profile.teaching_mode || 'both',
+        location: res.profile.location || '',
+        profilePictureUrl: res.profile.profile_picture_url || null,
+        id_document_url: res.profile.id_document_url || null,
+        transcript_url: res.profile.transcript_url || null,
+        approval_status: res.profile.approval_status || 'pending'
+      });
+    } catch (err) { console.error(err); }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubjectToggle = (subject) => {
-    setFormData(prev => ({
-      ...prev,
-      subjects: prev.subjects.includes(subject)
-        ? prev.subjects.filter(s => s !== subject)
-        : [...prev.subjects, subject]
-    }));
-  };
-
+  const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleSubjectToggle = (subject) => setFormData(prev => ({
+    ...prev,
+    subjects: prev.subjects.includes(subject) ? prev.subjects.filter(s => s !== subject) : [...prev.subjects, subject]
+  }));
+  const handleRemoveSubject = (subject) => setFormData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s !== subject) }));
   const handleAddCustomSubject = () => {
     if (customSubject.trim() && !formData.subjects.includes(customSubject.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        subjects: [...prev.subjects, customSubject.trim()]
-      }));
+      setFormData(prev => ({ ...prev, subjects: [...prev.subjects, customSubject.trim()] }));
       setCustomSubject('');
       setShowCustomInput(false);
     }
   };
-
-  const handleRemoveSubject = (subject) => {
-    setFormData(prev => ({
-      ...prev,
-      subjects: prev.subjects.filter(s => s !== subject)
-    }));
-  };
-
-  const handleImageUpload = (imageUrl) => {
-    setFormData(prev => ({
-      ...prev,
-      profilePictureUrl: imageUrl
-    }));
-  };
+  const handleImageUpload = (url) => setFormData(prev => ({ ...prev, profilePictureUrl: url }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
+    if (!formData.displayName.trim()) return setError('Please enter your name');
+    if (formData.subjects.length === 0) return setError('Select at least one subject');
     setLoading(true);
-
-    if (!formData.displayName.trim()) {
-      setError('Please enter your name');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.subjects.length === 0) {
-      setError('Please select at least one subject');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const moduleCodesArray = formData.moduleCodes
-        ? formData.moduleCodes.split(',').map(code => code.trim()).filter(Boolean)
-        : [];
-
-      // Upload ID document if new file selected
       let idDocUrl = formData.id_document_url;
       if (idDocument) {
-        const idFormData = new FormData();
-        idFormData.append('image', idDocument);
-        const idResponse = await api.post('/upload/image', idFormData);
-        idDocUrl = idResponse.data.url;
+        const fd = new FormData(); fd.append('image', idDocument);
+        const res = await api.post('/upload/image', fd);
+        idDocUrl = res.data.url;
       }
-
-      // Upload transcript if new file selected
       let transcriptUrl = formData.transcript_url;
       if (transcript) {
-        const transcriptFormData = new FormData();
-        transcriptFormData.append('image', transcript);
-        const transcriptResponse = await api.post('/upload/image', transcriptFormData);
-        transcriptUrl = transcriptResponse.data.url;
+        const fd = new FormData(); fd.append('image', transcript);
+        const res = await api.post('/upload/image', fd);
+        transcriptUrl = res.data.url;
       }
-
       await profileService.updateTutorProfile({
         display_name: formData.displayName,
         bio: formData.bio,
         qualifications: formData.qualifications,
         subjects: formData.subjects,
-        module_codes: moduleCodesArray,
+        module_codes: formData.moduleCodes.split(',').map(c => c.trim()).filter(Boolean),
         hourly_rate: parseFloat(formData.hourlyRate) || 0,
         years_experience: parseInt(formData.yearsExperience) || 0,
         teaching_mode: formData.teachingMode,
@@ -171,412 +92,117 @@ function TutorProfileForm() {
         id_document_url: idDocUrl,
         transcript_url: transcriptUrl
       });
-
-      setSuccess('Profile updated successfully! Your profile is now pending admin approval.');
-      setTimeout(() => {
-        navigate('/tutor/dashboard');
-      }, 1500);
-      
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to update profile');
-    } finally {
-      setLoading(false);
-    }
+      setSuccess('Profile updated! Pending admin approval.');
+      setTimeout(() => navigate('/tutor/dashboard'), 1500);
+    } catch (err) { setError(err.response?.data?.error || 'Update failed'); }
+    finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-12 px-4">
+    <div className="min-h-screen bg-[#0f172a] py-12 px-4">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <button
-            onClick={() => navigate('/tutor/dashboard')}
-            className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4 font-medium"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Dashboard
-          </button>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">Your Tutor Profile</h1>
-          <p className="text-lg text-gray-600">Create an impressive profile to attract more students</p>
-        </div>
+        <button onClick={() => navigate('/tutor/dashboard')} className="text-[#00CC99] hover:underline mb-6 inline-flex items-center gap-2">← Back to Dashboard</button>
+        <div className="glass-card rounded-3xl p-8 md:p-12">
+          <h1 className="text-3xl md:text-4xl font-black mb-2 text-center">Your Tutor Profile</h1>
+          <p className="text-gray-400 text-center mb-8">Create an impressive profile to attract students</p>
 
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Messages */}
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg flex items-start">
-                <svg className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <span>{error}</span>
-              </div>
-            )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-lg">{error}</div>}
+            {success && <div className="bg-green-500/20 border border-green-500 text-green-300 p-3 rounded-lg">{success}</div>}
 
-            {success && (
-              <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded-lg flex items-start">
-                <svg className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>{success}</span>
-              </div>
-            )}
-
-            {/* Approval Status Display */}
             {formData.approval_status && (
-              <div className={`p-4 rounded-lg border-l-4 ${
-                formData.approval_status === 'approved' 
-                  ? 'bg-green-50 border-green-500 text-green-800' :
-                formData.approval_status === 'rejected' 
-                  ? 'bg-red-50 border-red-500 text-red-800' :
-                'bg-yellow-50 border-yellow-500 text-yellow-800'
-              }`}>
-                <p className="font-semibold text-lg mb-1">
-                  Profile Status: {formData.approval_status.charAt(0).toUpperCase() + formData.approval_status.slice(1)}
-                </p>
-                {formData.approval_status === 'pending' && (
-                  <p className="text-sm">Your profile is awaiting admin approval. You'll be able to accept bookings once ap-proved.</p>
-                )}
-                {formData.approval_status === 'approved' && (
-                  <p className="text-sm">✓ Your profile has been approved! You can now accept student bookings.</p>
-                )}
-                {formData.approval_status === 'rejected' && formData.rejection_reason && (
-                  <p className="text-sm mt-2">
-                    <strong>Reason:</strong> {formData.rejection_reason}
-                  </p>
-                )}
+              <div className={`p-4 rounded-lg border-l-4 ${formData.approval_status === 'approved' ? 'bg-green-500/10 border-green-500' : formData.approval_status === 'rejected' ? 'bg-red-500/10 border-red-500' : 'bg-yellow-500/10 border-yellow-500'}`}>
+                <p className="font-semibold">Status: {formData.approval_status.toUpperCase()}</p>
+                {formData.approval_status === 'pending' && <p className="text-sm">Awaiting admin review.</p>}
               </div>
             )}
 
-            {/* Profile Picture */}
-            <div className="flex flex-col items-center space-y-4 pb-8 border-b border-gray-200">
-              <div className="relative">
-                {formData.profilePictureUrl ? (
-                  <img
-                    src={formData.profilePictureUrl}
-                    alt="Profile"
-                    className="w-32 h-32 rounded-full object-cover border-4 border-primary-100 shadow-lg"
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center border-4 border-primary-100 shadow-lg">
-                    <svg className="w-16 h-16 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <ImageUpload 
-                onImageUpload={handleImageUpload}
-                buttonText="Upload Profile Picture"
-              />
+            <div className="flex flex-col items-center gap-4 pb-6 border-b border-white/10">
+              {formData.profilePictureUrl ? (
+                <img src={formData.profilePictureUrl} alt="Profile" className="w-28 h-28 rounded-full object-cover border-4 border-[#00CC99]" />
+              ) : (
+                <div className="w-28 h-28 rounded-full bg-[#00CC99]/20 flex items-center justify-center border-2 border-[#00CC99]">
+                  <svg className="w-12 h-12 text-[#00CC99]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                </div>
+              )}
+              <ImageUpload onImageUpload={handleImageUpload} buttonText="Upload Photo" />
             </div>
 
-            {/* Display Name */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Display Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="displayName"
-                value={formData.displayName}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-                placeholder="How you'd like students to address you"
-                required
-              />
+              <label className="block text-sm font-semibold mb-2">Display Name <span className="text-red-400">*</span></label>
+              <input type="text" name="displayName" value={formData.displayName} onChange={handleChange} className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl focus:border-[#00CC99]" required />
             </div>
 
-            {/* Bio */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Bio <span className="text-gray-500 font-normal">(Tell students about yourself)</span>
-              </label>
-              <textarea
-                name="bio"
-                value={formData.bio}
-                onChange={handleChange}
-                rows={5}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition resize-none"
-                placeholder="Share your teaching philosophy, experience, and what makes you a great tutor..."
-              />
+              <label className="block text-sm font-semibold mb-2">Bio</label>
+              <textarea name="bio" value={formData.bio} onChange={handleChange} rows="5" className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl" placeholder="Tell students about your teaching style..."></textarea>
             </div>
 
-            {/* Qualifications */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Qualifications <span className="text-gray-500 font-normal">(Degrees, certifications)</span>
-              </label>
-              <input
-                type="text"
-                name="qualifications"
-                value={formData.qualifications}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-                placeholder="e.g., BSc Computer Science, TEFL Certified"
-              />
+              <label className="block text-sm font-semibold mb-2">Qualifications</label>
+              <input type="text" name="qualifications" value={formData.qualifications} onChange={handleChange} className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl" placeholder="BSc Computer Science, TEFL..." />
             </div>
 
-            {/* Subjects */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Subjects You Teach <span className="text-red-500">*</span>
-              </label>
-              
-              {/* Selected subjects */}
+              <label className="block text-sm font-semibold mb-3">Subjects You Teach <span className="text-red-400">*</span></label>
               {formData.subjects.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4 p-4 bg-primary-50 rounded-xl">
-                  {formData.subjects.map((subject) => (
-                    <span
-                      key={subject}
-                      className="inline-flex items-center px-4 py-2 bg-white border-2 border-primary-200 text-primary-700 round-ed-full font-medium shadow-sm"
-                    >
-                      {subject}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSubject(subject)}
-                        className="ml-2 text-primary-500 hover:text-primary-700"
-                      >
-                        ×
-                      </button>
-                    </span>
+                <div className="flex flex-wrap gap-2 mb-4 p-3 bg-[#0f172a]/5 rounded-xl">
+                  {formData.subjects.map(s => (
+                    <span key={s} className="px-3 py-1 bg-[#00CC99]/20 rounded-full text-sm flex items-center gap-2">{s}<button type="button" onClick={() => handleRemoveSubject(s)} className="text-[#00CC99]">×</button></span>
                   ))}
                 </div>
               )}
-
-              {/* Subject options */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
-                {SUBJECT_OPTIONS.map((subject) => (
-                  <button
-                    key={subject}
-                    type="button"
-                    onClick={() => handleSubjectToggle(subject)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                      formData.subjects.includes(subject)
-                        ? 'bg-primary-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {subject}
-                  </button>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {SUBJECT_OPTIONS.map(sub => (
+                  <button type="button" key={sub} onClick={() => handleSubjectToggle(sub)} className={`px-3 py-2 rounded-lg text-sm transition ${formData.subjects.includes(sub) ? 'bg-[#00CC99] text-[#0f172a]' : 'bg-[#0f172a]/5 hover:bg-[#0f172a]/10'}`}>{sub}</button>
                 ))}
               </div>
-
-              {/* Add custom subject */}
               {showCustomInput ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={customSubject}
-                    onChange={(e) => setCustomSubject(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                    placeholder="Enter custom subject"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddCustomSubject}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                  >
-                    Add
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomInput(false)}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
-                  >
-                    Cancel
-                  </button>
+                <div className="flex gap-2 mt-3">
+                  <input type="text" value={customSubject} onChange={e => setCustomSubject(e.target.value)} className="flex-1 px-4 py-2 bg-[#0f172a]/5 border border-white/10 rounded-lg" />
+                  <button type="button" onClick={handleAddCustomSubject} className="px-4 py-2 bg-[#00CC99] text-[#0f172a] rounded-lg">Add</button>
+                  <button type="button" onClick={() => setShowCustomInput(false)} className="px-4 py-2 bg-[#0f172a]/10 rounded-lg">Cancel</button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowCustomInput(true)}
-                  className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                >
-                  + Add Custom Subject
-                </button>
+                <button type="button" onClick={() => setShowCustomInput(true)} className="text-[#00CC99] text-sm mt-3">+ Add custom subject</button>
               )}
             </div>
 
-            {/* Module Codes */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Module Codes <span className="text-gray-500 font-normal">(Comma-separated)</span>
-              </label>
-              <input
-                type="text"
-                name="moduleCodes"
-                value={formData.moduleCodes}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-                placeholder="e.g., MAT101, PHY201, CSC301"
-              />
+              <label className="block text-sm font-semibold mb-2">Module Codes (comma-separated)</label>
+              <input type="text" name="moduleCodes" value={formData.moduleCodes} onChange={handleChange} className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl" placeholder="MAT101, PHY201" />
             </div>
 
-            {/* Hourly Rate & Years Experience */}
             <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Hourly Rate (ZAR) <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-3.5 text-gray-500 font-medium">R</span>
-                  <input
-                    type="number"
-                    name="hourlyRate"
-                    value={formData.hourlyRate}
-                    onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 fo-cus:border-transparent transition"
-                    placeholder="150"
-                    min="0"
-                    step="10"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Years of Experience
-                </label>
-                <input
-                  type="number"
-                  name="yearsExperience"
-                  value={formData.yearsExperience}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 fo-cus:border-transparent transition"
-                  placeholder="3"
-                  min="0"
-                />
-              </div>
+              <div><label className="block text-sm font-semibold mb-2">Hourly Rate (ZAR)</label><div className="relative"><span className="absolute left-4 top-3 text-gray-400">R</span><input type="number" name="hourlyRate" value={formData.hourlyRate} onChange={handleChange} className="w-full pl-8 pr-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl" placeholder="150" /></div></div>
+              <div><label className="block text-sm font-semibold mb-2">Years Experience</label><input type="number" name="yearsExperience" value={formData.yearsExperience} onChange={handleChange} className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl" placeholder="3" /></div>
             </div>
 
-            {/* Teaching Mode */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Teaching Mode
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                {TEACHING_MODES.map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, teachingMode: mode }))}
-                    className={`px-4 py-3 rounded-xl text-sm font-medium transition capitalize ${
-                      formData.teachingMode === mode
-                        ? 'bg-primary-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {mode}
-                  </button>
+              <label className="block text-sm font-semibold mb-3">Teaching Mode</label>
+              <div className="flex gap-3">
+                {TEACHING_MODES.map(mode => (
+                  <button type="button" key={mode} onClick={() => setFormData(prev => ({ ...prev, teachingMode: mode }))} className={`px-6 py-2 rounded-xl capitalize transition ${formData.teachingMode === mode ? 'bg-[#00CC99] text-[#0f172a]' : 'bg-[#0f172a]/5 hover:bg-[#0f172a]/10'}`}>{mode}</button>
                 ))}
               </div>
             </div>
 
-            {/* Location */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Location <span className="text-gray-500 font-normal">(City, Province)</span>
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-                placeholder="e.g., Cape Town, Western Cape"
-              />
+              <label className="block text-sm font-semibold mb-2">Location</label>
+              <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl" placeholder="Cape Town, Western Cape" />
             </div>
 
-            {/* DOCUMENT UPLOADS SECTION */}
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-xl">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                <svg className="w-5 h-5 mr-2 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-                Required Documents for Verification
-              </h3>
-              <p className="text-sm text-gray-700 mb-4">
-                Please upload your ID document and academic transcripts. Your profile will be reviewed by our team before going live.
-              </p>
-              
-              {/* ID Document */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  ID Document (PDF, JPG, PNG) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => setIdDocument(e.target.files[0])}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-100 file:text-primary-700 hover:file:bg-primary-200"
-                />
-                {formData.id_document_url && (
-                  <div className="mt-2 flex items-center text-sm text-green-600">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    ID document uploaded - 
-                    <a href={formData.id_document_url} target="_blank" rel="noopener noreferrer" className="ml-1 underline">
-                      View
-                    </a>
-                  </div>
-                )}
-              </div>
-
-              {/* Academic Transcript */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Academic Transcript (PDF, JPG, PNG) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => setTranscript(e.target.files[0])}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-100 file:text-primary-700 hover:file:bg-primary-200"
-                />
-                {formData.transcript_url && (
-                  <div className="mt-2 flex items-center text-sm text-green-600">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    Transcript uploaded - 
-                    <a href={formData.transcript_url} target="_blank" rel="noopener noreferrer" className="ml-1 underline">
-                      View
-                    </a>
-                  </div>
-                )}
-              </div>
+            {/* Document uploads */}
+            <div className="bg-yellow-500/10 border border-yellow-500/30 p-6 rounded-xl">
+              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">📄 Verification Documents</h3>
+              <p className="text-sm text-gray-300 mb-4">ID and academic transcript required for approval.</p>
+              <div className="mb-4"><label className="block text-sm font-medium mb-1">ID Document *</label><input type="file" accept=".pdf,.jpg,.png" onChange={e => setIdDocument(e.target.files[0])} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:bg-[#00CC99]/20 file:text-[#00CC99] file:border-0" /></div>
+              <div><label className="block text-sm font-medium mb-1">Academic Transcript *</label><input type="file" accept=".pdf,.jpg,.png" onChange={e => setTranscript(e.target.files[0])} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:bg-[#00CC99]/20 file:text-[#00CC99] file:border-0" /></div>
             </div>
 
-            {/* Submit Button */}
             <div className="flex gap-4 pt-6">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 py-4 px-6 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Saving...
-                  </span>
-                ) : (
-                  'Save Profile'
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/tutor/dashboard')}
-                className="px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transi-tion"
-              >
-                Cancel
-              </button>
+              <button type="submit" disabled={loading} className="flex-1 py-3 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition disabled:opacity-50">{loading ? 'Saving...' : 'Save Profile'}</button>
+              <button type="button" onClick={() => navigate('/tutor/dashboard')} className="px-6 py-3 glass-card rounded-xl">Cancel</button>
             </div>
           </form>
         </div>

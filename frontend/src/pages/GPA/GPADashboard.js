@@ -6,7 +6,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import MainNavbar from '../../components/MainNavbar';
+import companyLogo from '../../assets/logos/GA_1.jpeg';
+import Navbar from '../../components/common/NavBar';
 
 function GPADashboard() {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ function GPADashboard() {
 
   const [uploadingPDF, setUploadingPDF] = useState(false);
   const [pdfFile, setPdfFile] = useState(null);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
     checkSubscriptionStatus();
@@ -289,32 +291,35 @@ function GPADashboard() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/');
+  };
+
   if (loading) {
     return (
-      <>
-        <MainNavbar />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="inline-block w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-600">Loading GPA...</p>
-          </div>
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-[#00CC99] border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-400">Loading GPA...</p>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <MainNavbar />
-      <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-[#0f172a] text-white">
+      {/* Navbar - same as StudentDashboard */}
+        <Navbar />
 
+      {/* Main Content */}
+      <div className="pt-20 flex h-screen">
         {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">Genius Prep AI</h2>
+        <div className="w-64 glass-card rounded-3xl m-4 p-4 flex flex-col h-[calc(100vh-5rem)] overflow-y-auto">
+          <div className="mb-4">
             <button
               onClick={createNewConversation}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
+              className="w-full py-2 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -324,25 +329,25 @@ function GPADashboard() {
           </div>
 
           {/* Subscription Status */}
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
+          <div className="mb-4 p-3 bg-white/5 rounded-xl border border-white/10">
             {hasSubscription ? (
               <div className="text-xs">
-                <p className="font-semibold text-green-600 mb-1">✓ Premium Active</p>
-                <p className="text-gray-600">{subscription?.type} Plan</p>
+                <p className="font-semibold text-[#00CC99] mb-1">✓ Premium Active</p>
+                <p className="text-gray-400">{subscription?.type} Plan</p>
                 <p className="text-gray-500 mt-1">{subscription?.daysRemaining} days left</p>
               </div>
             ) : freeTier ? (
               <div className="text-xs">
-                <p className="font-semibold text-gray-700 mb-1">Free Tier</p>
-                <p className="text-gray-600">{freeTier.remaining} / {freeTier.limit} uses left</p>
-                <button onClick={() => navigate('/subscription')} className="mt-2 w-full px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 transition">
+                <p className="font-semibold text-white/80 mb-1">Free Tier</p>
+                <p className="text-gray-400">{freeTier.remaining} / {freeTier.limit} uses left</p>
+                <button onClick={() => navigate('/subscription')} className="mt-2 w-full py-1.5 bg-[#00CC99] text-[#0f172a] rounded-lg text-xs font-bold hover:scale-105 transition">
                   Upgrade to Unlimited
                 </button>
               </div>
             ) : (
               <div className="text-xs">
-                <p className="font-semibold text-red-600 mb-1">Subscription Required</p>
-                <button onClick={() => navigate('/subscription')} className="mt-2 w-full px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 transition">
+                <p className="font-semibold text-red-400 mb-1">Subscription Required</p>
+                <button onClick={() => navigate('/subscription')} className="mt-2 w-full py-1.5 bg-[#00CC99] text-[#0f172a] rounded-lg text-xs font-bold hover:scale-105 transition">
                   Subscribe Now
                 </button>
               </div>
@@ -350,24 +355,24 @@ function GPADashboard() {
           </div>
 
           {/* Conversation List */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1">
             {conversations.length === 0 ? (
-              <div className="p-4 text-center text-sm text-gray-500">No conversations yet</div>
+              <div className="text-center text-sm text-gray-500">No conversations yet</div>
             ) : (
-              <div className="p-2">
+              <div className="space-y-1">
                 {conversations.map((conv) => (
                   <div
                     key={conv.id}
-                    className={`group relative mb-1 p-3 rounded-lg cursor-pointer transition ${
-                      activeConversation === conv.id ? 'bg-blue-50 border border-blue-200' : 'hover:bg-gray-50'
+                    className={`group relative p-2 rounded-lg cursor-pointer transition ${
+                      activeConversation === conv.id ? 'bg-[#00CC99]/20 border border-[#00CC99]/50' : 'hover:bg-white/5'
                     }`}
                     onClick={() => selectConversation(conv.id)}
                   >
-                    <p className="text-sm font-medium text-gray-900 truncate pr-6">{conv.title}</p>
-                    <p className="text-xs text-gray-500 mt-1">{new Date(conv.createdAt).toLocaleDateString()}</p>
+                    <p className="text-sm font-medium truncate pr-6">{conv.title}</p>
+                    <p className="text-xs text-gray-500">{new Date(conv.createdAt).toLocaleDateString()}</p>
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
-                      className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition"
+                      className="absolute top-1 right-1 p-1 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -380,39 +385,39 @@ function GPADashboard() {
           </div>
         </div>
 
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
-          <div className="bg-white border-b border-gray-200 p-4">
-            <h1 className="text-xl font-bold text-gray-900">
-              {activeConversation ? conversations.find(c => c.id === activeConversation)?.title || 'Chat' : 'Genius Prep Accelerator'}
+        {/* Chat Area */}
+        <div className="flex-1 flex flex-col m-4 ml-0">
+          <div className="glass-card rounded-3xl p-4 mb-4">
+            <h1 className="text-xl font-bold">
+              {activeConversation ? conversations.find(c => c.id === activeConversation)?.title || 'Chat' : 'GPA AI Assistant'}
             </h1>
-            <p className="text-sm text-gray-600">Your AI study assistant</p>
+            <p className="text-sm text-gray-400">Your AI study companion</p>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/5 rounded-3xl mb-4">
             {messages.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">🎓</div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to GPA!</h2>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                <h2 className="text-2xl font-bold mb-2">Welcome to GPA!</h2>
+                <p className="text-gray-400 mb-6 max-w-md mx-auto">
                   Ask me anything about your studies. I can help with notes, practice tests, explanations, and more.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-                  <div className="bg-white p-4 rounded-lg border border-gray-200">
+                  <div className="glass-card p-4 rounded-xl">
                     <div className="text-2xl mb-2">📝</div>
-                    <p className="text-sm font-semibold text-gray-900 mb-1">Generate Notes</p>
-                    <p className="text-xs text-gray-600">Get comprehensive study notes on any topic</p>
+                    <p className="text-sm font-semibold mb-1">Generate Notes</p>
+                    <p className="text-xs text-gray-400">Get comprehensive study notes</p>
                   </div>
-                  <div className="bg-white p-4 rounded-lg border border-gray-200">
+                  <div className="glass-card p-4 rounded-xl">
                     <div className="text-2xl mb-2">📄</div>
-                    <p className="text-sm font-semibold text-gray-900 mb-1">Analyze PDFs</p>
-                    <p className="text-xs text-gray-600">Upload slides or chapters for summaries</p>
+                    <p className="text-sm font-semibold mb-1">Analyze PDFs</p>
+                    <p className="text-xs text-gray-400">Upload slides or chapters</p>
                   </div>
-                  <div className="bg-white p-4 rounded-lg border border-gray-200">
+                  <div className="glass-card p-4 rounded-xl">
                     <div className="text-2xl mb-2">💡</div>
-                    <p className="text-sm font-semibold text-gray-900 mb-1">Ask Questions</p>
-                    <p className="text-xs text-gray-600">Get detailed explanations instantly</p>
+                    <p className="text-sm font-semibold mb-1">Ask Questions</p>
+                    <p className="text-xs text-gray-400">Get detailed explanations</p>
                   </div>
                 </div>
               </div>
@@ -423,27 +428,26 @@ function GPADashboard() {
                     <div className={`max-w-3xl ${message.role === 'user' ? 'ml-12' : 'mr-12'}`}>
                       <div className={`rounded-xl p-4 ${
                         message.role === 'user'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white border border-gray-200 text-gray-900'
+                          ? 'bg-[#00CC99] text-[#0f172a]'
+                          : 'glass-card text-white'
                       }`}>
                         {message.role === 'assistant' ? (
-                          <div className="prose prose-sm max-w-none">
+                          <div className="prose prose-invert prose-sm max-w-none">
                             <ReactMarkdown
                               remarkPlugins={[remarkMath]}
                               rehypePlugins={[rehypeKatex]}
                               components={{
-                                strong: ({node, ...props}) => <strong className="font-bold text-gray-900" {...props} />,
-                                h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2 text-gray-900" {...props} />,
-                                h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-3 mb-2 text-gray-900" {...props} />,
-                                h3: ({node, ...props}) => <h3 className="text-base font-bold mt-2 mb-1 text-gray-800" {...props} />,
-                                p: ({node, ...props}) => <p className="mb-3 text-gray-700 leading-relaxed" {...props} />,
-                                ul: ({node, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1 text-gray-700" {...props} />,
-                                ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1 text-gray-700" {...props} />,
-                                li: ({node, ...props}) => <li className="ml-2 text-gray-700" {...props} />,
+                                strong: ({node, ...props}) => <strong className="font-bold text-white" {...props} />,
+                                h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-4 mb-2" {...props} />,
+                                h2: ({node, ...props}) => <h2 className="text-lg font-bold mt-3 mb-2" {...props} />,
+                                p: ({node, ...props}) => <p className="mb-3 text-gray-200 leading-relaxed" {...props} />,
+                                ul: ({node, ...props}) => <ul className="list-disc list-inside mb-3 space-y-1 text-gray-200" {...props} />,
+                                ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-3 space-y-1 text-gray-200" {...props} />,
+                                li: ({node, ...props}) => <li className="ml-2 text-gray-200" {...props} />,
                                 code: ({node, inline, ...props}) =>
                                   inline
-                                    ? <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-800" {...props} />
-                                    : <code className="block bg-gray-100 p-3 rounded my-2 text-sm font-mono overflow-x-auto text-gray-800" {...props} />
+                                    ? <code className="bg-white/10 px-1 py-0.5 rounded text-sm font-mono" {...props} />
+                                    : <code className="block bg-white/10 p-3 rounded my-2 text-sm font-mono overflow-x-auto" {...props} />
                               }}
                             >
                               {message.content}
@@ -461,14 +465,12 @@ function GPADashboard() {
                 ))}
                 {isGenerating && (
                   <div className="flex justify-start">
-                    <div className="max-w-3xl mr-12">
-                      <div className="bg-white border border-gray-200 rounded-xl p-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                          <span className="text-sm text-gray-600 ml-2">Thinking...</span>
-                        </div>
+                    <div className="glass-card rounded-xl p-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-[#00CC99] rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-[#00CC99] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 bg-[#00CC99] rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                        <span className="text-sm text-gray-400 ml-2">Thinking...</span>
                       </div>
                     </div>
                   </div>
@@ -479,16 +481,16 @@ function GPADashboard() {
           </div>
 
           {/* Input Area */}
-          <div className="bg-white border-t border-gray-200 p-4">
+          <div className="glass-card rounded-3xl p-4">
             {error && (
-              <div className="mb-3 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">{error}</div>
+              <div className="mb-3 bg-red-500/20 border border-red-500 text-red-300 px-4 py-2 rounded-lg text-sm">{error}</div>
             )}
             <div className="flex items-end gap-2">
               <input ref={fileInputRef} type="file" accept="application/pdf" onChange={handlePDFUpload} className="hidden" />
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isGenerating || uploadingPDF}
-                className="p-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition disabled:opacity-50"
                 title="Upload PDF"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -501,18 +503,18 @@ function GPADashboard() {
                 onKeyPress={handleKeyPress}
                 placeholder={uploadingPDF ? "Processing PDF..." : "Ask me anything..."}
                 disabled={isGenerating || uploadingPDF}
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white resize-none disabled:opacity-50"
                 rows={1}
                 style={{ minHeight: '52px', maxHeight: '120px' }}
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isGenerating || uploadingPDF}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-3 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition disabled:opacity-50 flex items-center gap-2"
               >
                 {isGenerating ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-5 h-5 border-2 border-[#0f172a] border-t-transparent rounded-full animate-spin"></div>
                     <span>Sending...</span>
                   </>
                 ) : (
@@ -531,7 +533,7 @@ function GPADashboard() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

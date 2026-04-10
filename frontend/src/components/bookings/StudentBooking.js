@@ -160,7 +160,7 @@ function StudentBookings() {
           {bookings.map((booking) => (
             <div
               key={booking.id}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition"
+              className="bg-[#0f172a] rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-4">

@@ -4,14 +4,15 @@ import profileService from '../../services/profile';
 import bookingService from '../../services/booking';
 import authService from '../../services/auth';
 import StudentBookings from '../../components/bookings/StudentBooking';
-import './StudentDashboard.css';
+import companyLogo from '../../assets/logos/GA_1.jpeg';   
+import Navbar from '../../components/common/NavBar';
 
 function StudentDashboard() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState('overview'); 
+  const [activeView, setActiveView] = useState('overview');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
@@ -23,7 +24,6 @@ function StudentDashboard() {
       setLoading(true);
       const profileResponse = await profileService.getStudentProfile();
       const bookingsResponse = await bookingService.getMyBookings();
-      
       setProfile(profileResponse.profile);
       setBookings(bookingsResponse.bookings || []);
     } catch (err) {
@@ -42,246 +42,96 @@ function StudentDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
+          <div className="inline-block w-12 h-12 border-4 border-[#00CC99] border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-400">Loading your dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="dashboard">
-      {/* Navigation Bar */}
-      <nav className="dashboard-nav">
-        <div className="nav-container">
-          <button 
-            onClick={() => navigate('/')}
-            className="nav-title cursor-pointer hover:text-primary-700 transition"
-          >
-            Genius Prep Tuition
-          </button>
-          
-          <div className="flex items-center gap-4">
-            {/* Navigation Items - only shows if profile exists */}
-            {profile && (
-              <>
-                <button
-                  onClick={() => navigate('/')}
-                  className="text-gray-700 hover:text-primary-600 transition font-medium"
-                >
-                  Home
-                </button>
-                <button
-                  onClick={() => navigate('/tutors')}
-                  className="text-gray-700 hover:text-primary-600 transition font-medium"
-                >
-                  Browse Tutors
-                </button>
-                <button
-                  onClick={() => navigate('/gpa')}
-                  className="text-gray-700 hover:text-primary-600 transition font-medium"
-                >
-                  GPA AI
-                </button>
-              </>
-            )}
-            
-            {/* Profile Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-lg transition"
-              >
-                {profile?.profile_picture_url ? (
-                  <img
-                    src={profile.profile_picture_url}
-                    alt="Profile"
-                    className="w-10 h-10 rounded-full object-cover border-2 border-primary-200"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200">
-                    <span className="text-primary-600 font-semibold text-lg">
-                      {currentUser?.email?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {/* Dropdown Menu */}
-              {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-medium text-gray-900">
-                      {profile?.display_name || currentUser?.email}
-                    </p>
-                    <p className="text-xs text-gray-500">{currentUser?.email}</p>
-                  </div>
-                    {profile ? (
-                      <>
-                        <button onClick={() => { setActiveView('overview'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-                          📈 Dashboard
-                        </button>
-                        <button onClick={() => { navigate('/student/profile/edit'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-                          ✏️ Edit Profile
-                        </button>
-                        <button onClick={() => { setActiveView('bookings'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-                          📅 My Bookings
-                        </button>
-                        <button onClick={() => { navigate('/gpa'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-                          🤖 GPA AI
-                        </button>
-                      </>
-                    ) : (
-                      <button onClick={() => { navigate('/student/profile/edit'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
-                        ✏️ Create Profile
-                      </button>
-                    )}
-                    <div className="border-t border-gray-100 mt-2 pt-2">
-                      <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">
-                        🚪 Logout
-                      </button>
-                    </div>
+    <div className="min-h-screen bg-[#0f172a] text-white">
+      {/* Navigation Bar - glassmorphism with logo */}
+        <Navbar />
+      {/* Main Content */}
+      <div className="pt-24 pb-16 px-6 container mx-auto">
+        {activeView === 'bookings' ? (
+          <StudentBookings />
+        ) : !profile ? (
+          <div className="glass-card rounded-3xl p-12 text-center max-w-2xl mx-auto">
+            <h1 className="text-4xl font-black mb-4">Welcome to Genius Accelerator!</h1>
+            <p className="text-gray-300 mb-8">Complete your student profile to start finding the perfect tutors.</p>
+            <button onClick={() => navigate('/student/profile/edit')} className="px-8 py-4 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition">Create Your Profile</button>
+          </div>
+        ) : (
+          <div className="glass-card rounded-3xl p-8 md:p-12">
+            {/* Profile Header */}
+            <div className="flex flex-col md:flex-row gap-8 items-center md:items-start border-b border-white/10 pb-8 mb-8">
+              {profile.profile_picture_url ? (
+                <img src={profile.profile_picture_url} alt={profile.display_name} className="w-28 h-28 rounded-full object-cover border-4 border-[#00CC99]" />
+              ) : (
+                <div className="w-28 h-28 rounded-full bg-[#00CC99]/20 flex items-center justify-center border-2 border-[#00CC99]">
+                  <span className="text-4xl font-bold text-[#00CC99]">{profile.display_name?.charAt(0).toUpperCase()}</span>
                 </div>
               )}
+              <div className="text-center md:text-left">
+                <h2 className="text-3xl font-bold mb-1">{profile.display_name}</h2>
+                <p className="text-gray-400 mb-3">{currentUser?.email}</p>
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                  {profile.education_level && <span className="px-3 py-1 bg-[#00CC99]/10 rounded-full text-sm text-[#00CC99]">📚 {profile.education_level}</span>}
+                  {profile.location && <span className="px-3 py-1 bg-[#00CC99]/10 rounded-full text-sm text-[#00CC99]">📍 {profile.location}</span>}
+                </div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+              <div className="bg-[#0f172a]/5 rounded-xl p-4 text-center">
+                <div className="text-3xl font-bold text-[#00CC99]">{bookings.length}</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider">Bookings</div>
+              </div>
+              <div className="bg-[#0f172a]/5 rounded-xl p-4 text-center">
+                <div className="text-3xl font-bold text-[#00CC99]">{bookings.filter(b => b.status === 'pending').length}</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider">Pending</div>
+              </div>
+              <div className="bg-[#0f172a]/5 rounded-xl p-4 text-center">
+                <div className="text-3xl font-bold text-[#00CC99]">{bookings.filter(b => b.status === 'accepted').length}</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider">Accepted</div>
+              </div>
+              <div className="bg-[#0f172a]/5 rounded-xl p-4 text-center">
+                <div className="text-3xl font-bold text-[#00CC99]">{bookings.filter(b => b.status === 'completed').length}</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider">Completed</div>
+              </div>
+            </div>
+
+            {/* Subjects */}
+            {profile.subjects_interested?.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-3">Subjects of Interest</h3>
+                <div className="flex flex-wrap gap-2">
+                  {profile.subjects_interested.map((s, i) => (
+                    <span key={i} className="px-4 py-2 bg-[#0f172a]/5 rounded-full text-sm border border-white/10">{s}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              <button onClick={() => navigate('/tutors')} className="px-4 py-3 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition">🔍 Find a Tutor</button>
+              <button onClick={() => setActiveView('bookings')} className="px-4 py-3 glass-card rounded-xl font-semibold hover:border-[#00CC99]/50 transition">📅 My Bookings</button>
+              <button onClick={() => navigate('/gpa')} className="px-4 py-3 glass-card rounded-xl font-semibold hover:border-[#00CC99]/50 transition">🤖 GPA AI</button>
+              <button onClick={() => navigate('/student/profile/edit')} className="px-4 py-3 glass-card rounded-xl font-semibold hover:border-[#00CC99]/50 transition">✏️ Edit Profile</button>
+            </div>
+
+            {/* Tip */}
+            <div className="bg-[#00CC99]/10 border border-[#00CC99]/20 rounded-xl p-4 text-sm text-gray-300">
+              💡 <strong className="text-[#00CC99]">Quick Tip:</strong> Keep your profile updated to help tutors understand your learning needs better.
             </div>
           </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <div className="dashboard-content">
-        <div className="content-container">
-          {activeView === 'bookings' ? (
-            <StudentBookings />
-          ) : !profile ? (
-            // No Profile Yet - Show Welcome Card
-            <div className="welcome-card">
-              <h1 className="welcome-title">Welcome to Genius Prep Tuition!</h1>
-              <p className="welcome-text">
-                Complete your student profile to start finding the perfect tutors and begin your academic journey.
-              </p>
-              <button
-                onClick={() => navigate('/student/profile/edit')}
-                className="btn-primary btn-large"
-              >
-                Create Your Profile
-              </button>
-            </div>
-          ) : (
-            // Has Profile - Show Overview
-            <div className="profile-overview">
-              {/* Profile Header */}
-              <div className="profile-header">
-                {profile.profile_picture_url ? (
-                  <img
-                    src={profile.profile_picture_url}
-                    alt={profile.display_name}
-                    className="profile-avatar"
-                  />
-                ) : (
-                  <div className="profile-avatar bg-primary-100 flex items-center justify-center">
-                    <span className="text-primary-600 font-bold text-4xl">
-                      {profile.display_name?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <div className="profile-info">
-                  <h2 className="profile-name">{profile.display_name}</h2>
-                  <p className="profile-email">{currentUser?.email}</p>
-                  <div className="profile-meta">
-                    {profile.education_level && (
-                      <span className="meta-badge">📚 {profile.education_level}</span>
-                    )}
-                    {profile.location && (
-                      <span className="meta-badge">📍 {profile.location}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats Cards */}
-              <div className="profile-stats">
-                <div className="stat-card">
-                  <div className="stat-value">{bookings.length}</div>
-                  <div className="stat-label">Total Bookings</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-value">
-                    {bookings.filter(b => b.status === 'pending').length}
-                  </div>
-                  <div className="stat-label">Pending Requests</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-value">
-                    {bookings.filter(b => b.status === 'accepted').length}
-                  </div>
-                  <div className="stat-label">Accepted Sessions</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-value">
-                    {bookings.filter(b => b.status === 'completed').length}
-                  </div>
-                  <div className="stat-label">Completed</div>
-                </div>
-              </div>
-
-              {/* Subjects Section */}
-              {profile.subjects_interested && profile.subjects_interested.length > 0 && (
-                <div className="subjects-section">
-                  <h3 className="section-title">Subjects of Interest</h3>
-                  <div className="subjects-list">
-                    {profile.subjects_interested.map((subject, index) => (
-                      <span key={index} className="subject-tag">
-                        {subject}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Quick Actions */}
-              <div className="profile-actions">
-                <button
-                  onClick={() => navigate('/tutors')}
-                  className="btn-primary"
-                >
-                  🔍︎ Find a Tutor
-                </button>
-                <button
-                  onClick={() => setActiveView('bookings')}
-                  className="btn-secondary"
-                >
-                  🗒 View My Bookings
-                </button>
-                <button
-                  onClick={() => navigate('/gpa')}
-                  className="btn-secondary"
-                >
-                  ֎ GPA AI Assistant
-                </button>
-                <button
-                  onClick={() => navigate('/student/profile/edit')}
-                  className="btn-secondary"
-                >
-                  ✎ Edit Profile
-                </button>
-              </div>
-
-              {/* Info Card */}
-              <div className="info-card">
-                <p className="info-text">
-                  💡 <strong>Quick Tip:</strong> Keep your profile updated to help tutors understand your learning needs better. 
-                  Browse our verified tutors and request sessions that fit your schedule!
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

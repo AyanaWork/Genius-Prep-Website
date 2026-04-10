@@ -79,7 +79,7 @@ function SubscriptionPage({ onBack }) {
           className={`relative cursor-pointer rounded-2xl p-8 border-2 transition ${
             selectedPlan === 'annual'
               ? 'border-primary-600 bg-primary-50 shadow-xl'
-              : 'border-gray-200 bg-white hover:border-primary-300'
+              : 'border-gray-200 bg-[#0f172a] hover:border-primary-300'
           }`}
         >
           {selectedPlan === 'annual' && (
@@ -117,7 +117,7 @@ function SubscriptionPage({ onBack }) {
           className={`cursor-pointer rounded-2xl p-8 border-2 transition ${
             selectedPlan === 'semester'
               ? 'border-primary-600 bg-primary-50 shadow-xl'
-              : 'border-gray-200 bg-white hover:border-primary-300'
+              : 'border-gray-200 bg-[#0f172a] hover:border-primary-300'
           }`}
         >
           <div className="flex items-center justify-between mb-6">

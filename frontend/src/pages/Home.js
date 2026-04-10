@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';  
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import authService from '../services/auth';
 
-// Import images for tutoring options
 import tutoringImg from '../assets/images/tutoring.png';
 import booksImg from '../assets/images/books.png';
 import relocationImg from '../assets/images/relocation.png';
 import examImg from '../assets/images/exam.png';
 import assistantImg from '../assets/images/assistant.png';
 import upskillingImg from '../assets/images/upskilling.png';
-
-// Import university logos
 import upLogo from '../assets/images/up.jpeg';
 import witsLogo from '../assets/images/wits.jpg';
 import uctLogo from '../assets/images/uct.png';
@@ -21,415 +18,336 @@ import nwuLogo from '../assets/images/nwu.png';
 import unisaLogo from '../assets/images/unisa.png';
 import vcLogo from '../assets/images/vc.png';
 import bostonLogo from '../assets/images/boston.webp';
+import companyLogo from '../assets/logos/GA_1.jpeg';
+
+const useScrollReveal = (threshold = 0.1) => {
+  const [ref, setRef] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
+  useEffect(() => {
+    if (!ref) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); }
+    }, { threshold });
+    observer.observe(ref);
+    return () => observer.disconnect();
+  }, [ref, threshold]);
+  return [setRef, isVisible];
+};
+
+const AnimatedCounter = ({ end, duration = 2000, suffix = '' }) => {
+  const [count, setCount] = useState(0);
+  const [ref, isVisible] = useScrollReveal(0.5);
+  useEffect(() => {
+    if (!isVisible) return;
+    let startTime;
+    let animationFrame;
+    const updateCount = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      setCount(Math.floor(progress * end));
+      if (progress < 1) animationFrame = requestAnimationFrame(updateCount);
+    };
+    animationFrame = requestAnimationFrame(updateCount);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [end, duration, isVisible]);
+  return <span ref={ref}>{count}{suffix}</span>;
+};
 
 function Home() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
     const user = authService.getCurrentUser();
     setCurrentUser(user);
-
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 20);
+      setShowBackToTop(window.scrollY > 500);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleFindTutor = () => {
-    if (!currentUser) {
-      navigate('/register');
-    } else {
-      navigate('/tutors');
-    }
-  };
-
-  const handleBecomeTutor = () => {
-    if (!currentUser) {
-      navigate('/register');
-    } else if (currentUser.role === 'student') {
-      if (window.confirm('Would you like to switch to a tutor account? You can always switch back later.')) {
-        navigate('/tutor/profile/edit');
-      }
-    } else {
-      alert('You are already registered as a tutor!');
-      navigate('/tutor/dashboard');
-    }
-  };
-
-  const handleBecomeStudent = () => {
-    if (!currentUser) {
-      navigate('/register');
-    } else if (currentUser.role === 'tutor') {
-      if (window.confirm('Would you like to switch to a student account? You can always switch back later.')) {
-        navigate('/student/profile/edit');
-      }
-    } else {
-      alert('You are already registered as a student!');
-      navigate('/student/dashboard');
-    }
-  };
+  const [procRef, procVis] = useScrollReveal(0.2);
+  const [optRef, optVis] = useScrollReveal(0.1);
+  const [courseRef, courseVis] = useScrollReveal(0.1);
+  const [uniRef, uniVis] = useScrollReveal(0.1);
 
   return (
-    <div className="min-h-screen bg-[#2c3e50]">
-      {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-[#2c3e50]/98 backdrop-blur-lg' : 'bg-[#2c3e50]/95'
-      } border-b border-white/10`}>
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div 
-              className="flex items-center gap-3 cursor-pointer" 
-              onClick={() => navigate('/')}
-            >
-              <div className="w-10 h-10 bg-[#4A90E2] rounded-lg flex items-center justify-center text-white font-bold">
-                GP
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-[#4A90E2] font-bold text-lg">GENIUS</span>
-                <span className="text-white font-semibold text-sm">PREP</span>
-              </div>
+    <div className="min-h-screen bg-[#0f172a] text-white selection:bg-[#00CC99]/30">
+      {/* NAVBAR */}
+      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
+        scrolled ? 'glass-nav py-3' : 'bg-transparent py-5'
+      }`}>
+        <div className="container mx-auto px-6 flex items-center justify-between">
+          {/* Logo - left */}
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate('/')}>
+            <div className="relative">
+              <img src={companyLogo} alt="Logo" className="h-12 w-auto object-contain z-10 relative transition-transform group-hover:scale-110" />
+              <div className="absolute inset-0 bg-[#00CC99] blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
             </div>
-
-            {/* Nav Links */}
-            <div className="hidden md:flex items-center gap-6">
-              {!currentUser ? (
-                <>
-                  <a href="#process" className="text-white hover:text-[#4A90E2] font-medium transition">Our Process</a>
-                  <a href="#options" className="text-white hover:text-[#4A90E2] font-medium transition">Tutoring Options</a>
-                  <a href="#courses" className="text-white hover:text-[#4A90E2] font-medium transition">Courses & Schools</a>
-                  <button onClick={() => navigate('/login')} className="text-white hover:text-[#4A90E2] font-medium transition">      Login</button>
-                </>
-              ) : (
-                <>
-                  <button 
-                    onClick={() => navigate('/')} 
-                    className="text-white hover:text-[#4A90E2] font-medium transition"
-                  >
-                    Home
-                  </button>
-                  <button 
-                    onClick={() => navigate(`/${currentUser.role}/dashboard`)} 
-                    className="text-white hover:text-[#4A90E2] font-medium transition"
-                  >
-                    Dashboard
-                  </button>
-                  <button 
-                    onClick={() => navigate('/gpa')} 
-                    className="text-white hover:text-[#4A90E2] font-medium transition"
-                  >
-                    GPA AI
-                  </button>
-                  <button
-                    onClick={() => navigate('/pricing-legal')}
-                    className="text-white hover:text-[#4A90E2] font-medium transition"
-                  >
-                    Pricing & Legal
-                  </button>
-                </>
-              )}
+            <div className="flex flex-col">
+              <span className="text-[#00CC99] font-black text-xl tracking-tighter leading-none">GENIUS</span>
+              <span className="text-white/90 font-light text-xs tracking-[0.2em] leading-none">ACCELERATOR</span>
             </div>
+          </div>
 
-            {/* CTA Button */}
+          {/* Centered nav links - visible on md+ */}
+          <div className="hidden md:flex items-center gap-10 absolute left-1/2 transform -translate-x-1/2">
+            {['Process', 'Options', 'Courses'].map((item) => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-sm font-medium text-white/70 hover:text-[#00CC99] transition-colors relative group">
+                {item}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#00CC99] transition-all group-hover:w-full"></span>
+              </a>
+            ))}
             {!currentUser ? (
-              <button 
-                onClick={() => navigate('/register')} 
-                className="px-6 py-2 bg-[#4A90E2] text-white rounded-lg font-semibold hover:bg-[#357ABD] transition-all duration-300 hover:-translate-y-0.5 shadow-lg"
-              >
-                Get Started
-              </button>
+              <button onClick={() => navigate('/login')} className="text-sm font-semibold hover:text-[#00CC99] transition-colors">Login</button>
             ) : (
-              <button 
-                onClick={() => {
-                  authService.logout();
-                  setCurrentUser(null);
-                  navigate('/');
-                }} 
-                className="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all duration-300 hover:-translate-y-0.5 shadow-lg"
-              >
-                Logout
-              </button>
+              <button onClick={() => navigate(`/${currentUser.role}/dashboard`)} className="text-sm font-semibold hover:text-[#00CC99] transition-colors">Dashboard</button>
             )}
           </div>
+
+          {/* Right button */}
+          <button 
+            onClick={() => navigate(currentUser ? '/tutors' : '/register')}
+            className="hidden md:block px-6 py-2.5 bg-[#00CC99] hover:bg-[#00b386] text-[#0f172a] rounded-full font-bold text-sm shadow-[0_0_20px_rgba(0,204,153,0.3)] transition-all hover:scale-105 active:scale-95"
+          >
+            {!currentUser ?'Get Started' : 'Logout'}
+          </button>
+
+          {/* Mobile menu button */}
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden text-[#00CC99]">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+            </svg>
+          </button>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-stretch pt-16">
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-0 items-stretch min-h-[calc(100vh-4rem)]">
-            {/* Left Content */}
-            <div className="flex flex-col justify-center py-12 lg:py-20 px-4 lg:px-8">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
-                Unlock Your <span className="text-[#4A90E2]">Academic Potential</span> with Expert Tutors
-              </h1>
-              
-              <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed">
-                Connect with qualified tutors across South Africa. From high school to university level, 
-                we provide personalised one-on-one support to help students achieve academic excellence.
-              </p>
+      {/* HERO SECTION */}
+      <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#00CC99]/10 rounded-full blur-[120px] animate-pulse"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-900/20 rounded-full blur-[120px]"></div>
+        </div>
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                <button 
-                  onClick={handleFindTutor}
-                  className="px-8 py-4 bg-[#4A90E2] text-white rounded-lg text-lg font-semibold hover:bg-[#357ABD] transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                >
-                  {currentUser ? 'Browse Tutors' : 'Find a Tutor'}
-                </button>
-                <button 
-                  onClick={currentUser?.role === 'tutor' ? handleBecomeStudent : handleBecomeTutor}
-                  className="px-8 py-4 bg-[#9b59b6] text-white rounded-lg text-lg font-semibold hover:bg-[#8e44ad] transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                >
-                  {currentUser?.role === 'tutor' ? 'Become a Student' : 'Become a Tutor'}
-                </button>
-              </div>
-
-              {/* Stats */}
-              <div className="flex gap-8 mb-8">
-                <div className="text-left">
-                  <div className="text-4xl font-bold text-[#4A90E2] leading-none">1000+</div>
-                  <div className="text-sm text-gray-400 mt-1">Verified Tutors</div>
-                </div>
-                <div className="text-left">
-                  <div className="text-4xl font-bold text-[#4A90E2] leading-none">5000+</div>
-                  <div className="text-sm text-gray-400 mt-1">Students Helped</div>
-                </div>
-                <div className="text-left">
-                  <div className="text-4xl font-bold text-[#4A90E2] leading-none">4.9 ★</div>
-                  <div className="text-sm text-gray-400 mt-1">Average Rating</div>
-                </div>
-              </div>
-
-              {/* AI Assistant Button */}
-              <button 
-                onClick={() => currentUser ? navigate('/gpa') : navigate('/register')}
-                className="px-8 py-4 bg-white text-[#2c3e50] rounded-lg text-lg font-semibold hover:shadow-2xl transition-all duration-300 inline-block w-fit hover:-translate-y-1"
+        <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
+          <div className="animate-fade-up">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00CC99]/10 border border-[#00CC99]/20 text-[#00CC99] text-xs font-bold mb-6 tracking-widest uppercase">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00CC99] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00CC99]"></span>
+              </span>
+              Next-Gen Learning Platform
+            </div>
+            <h1 className="text-5xl md:text-7xl font-black mb-6 leading-[1.1]">
+              Accelerate Your <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00CC99] to-emerald-400">Future Success.</span>
+            </h1>
+            <p className="text-gray-400 text-lg md:text-xl mb-10 max-w-xl leading-relaxed">
+              Experience South Africa's premier tutoring ecosystem. We pair top-tier academic mentors with driven students to achieve unprecedented results.
+            </p>
+          <div className="flex flex-wrap gap-5">
+            {/* Conditionally show "Find a tutor" */}
+            {(!currentUser || currentUser.role === 'student') && (
+              <button
+                onClick={() => navigate(currentUser ? '/tutors' : '/register')}
+                className="px-10 py-4 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold text-lg shadow-xl shadow-[#00CC99]/20 hover:scale-105 transition-transform"
               >
-                ⚛ GPA AI Assistant
+                Find a tutor
               </button>
-            </div>
+            )}
 
-            {/* Right Image */}
-            <div className="hidden lg:block relative h-full">
-              <img
-                src="https://images.pexels.com/photos/8199175/pexels-photo-8199175.jpeg?auto=compress&cs=tinysrgb&w=1260"
-                alt="Students studying together"
-                className="absolute inset-0 w-full h-full object-cover shadow-2xl"
-              />
+            {/* Conditionally show "Become a tutor" */}
+            {(!currentUser || currentUser.role === 'tutor') && (
+              <button
+                onClick={() => navigate(currentUser ? '/tutor/dashboard' : '/register')}
+                className="px-10 py-4 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold text-lg shadow-xl shadow-[#00CC99]/20 hover:scale-105 transition-transform"
+              >
+                Become a tutor
+              </button>
+            )}
+
+            {/* GPA AI button – always visible to logged in users */}
+            {(!currentUser || currentUser.role === 'student') && (
+              <button
+                onClick={() => navigate('/gpa')}
+                className="px-10 py-4 glass-card rounded-xl font-bold text-lg hover:border-[#00CC99]/50 transition-all"
+              >
+                GPA AI Assistant ⚡
+              </button>
+            )}
+          </div>
+            
+            <div className="mt-12 flex gap-12 border-t border-white/5 pt-8">
+              <div>
+                <div className="text-3xl font-black text-[#00CC99] text-glow-green"><AnimatedCounter end={1000} suffix="+" /></div>
+                <div className="text-xs text-gray-500 uppercase tracking-widest mt-1">Verified Tutors</div>
+              </div>
+              <div>
+                <div className="text-3xl font-black text-[#00CC99] text-glow-green"><AnimatedCounter end={5000} suffix="+" /></div>
+                <div className="text-xs text-gray-500 uppercase tracking-widest mt-1">Students Helped</div>
+              </div>
+                <div>
+                <div className="text-3xl font-black text-[#00CC99] text-glow-green"><AnimatedCounter end={4.9} suffix="*" /></div>
+                <div className="text-xs text-gray-500 uppercase tracking-widest mt-1">Average Rating</div>
+              </div>
             </div>
+          </div>
+
+          <div className="relative hidden lg:block group">
+            <div className="absolute -inset-4 bg-gradient-to-tr from-[#00CC99]/30 to-transparent blur-3xl rounded-full opacity-50 group-hover:opacity-80 transition-opacity"></div>
+            <img 
+              src="https://images.pexels.com/photos/8199175/pexels-photo-8199175.jpeg?auto=compress&cs=tinysrgb&w=1260" 
+              className="relative rounded-3xl shadow-2xl border border-white/10 animate-float"
+              alt="Student"
+            />
           </div>
         </div>
       </section>
 
-      {/* Our Process Section */}
-      <section id="process" className="relative min-h-screen flex items-center justify-center py-20">
+      {/* PROCESS SECTION with Background Image */}
+      <section id="process" ref={procRef} className="relative py-24 overflow-hidden">
+        {/* Background Image with Overlay */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: 'url(https://images.pexels.com/photos/1438072/pexels-photo-1438072.jpeg?auto=compress&cs=tinysrgb&w=1260)',
           }}
         >
-          <div className="absolute inset-0 bg-[#142337]/85"></div>
+          <div className="absolute inset-0 bg-[#0a101f]/85 backdrop-blur-sm"></div>
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 text-center">
-          <h2 className="text-5xl font-bold text-white mb-4">Our Process</h2>
-          <p className="text-xl text-gray-300 mb-16 max-w-2xl mx-auto">
-            Getting started is simple. We match you with the perfect tutor in three easy steps.
-          </p>
+        <div className="relative z-10 container mx-auto px-6">
+          <div className={`text-center mb-20 transition-all duration-1000 ${procVis ? 'opacity-100' : 'opacity-0 translate-y-10'}`}>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">The Acceleration <span className="text-[#00CC99]">Method</span></h2>
+            <p className="text-gray-300 max-w-2xl mx-auto">Our streamlined approach ensures you're matched with the right mentor in record time.</p>
+          </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8">
             {[
-              {
-                number: '1',
-                title: 'Tell Us What You Need',
-                description: 'Share your subject, education level, and learning preferences. It takes less than 2 minutes.'
-              },
-              {
-                number: '2',
-                title: 'We Match You',
-                description: 'Our system finds the best tutors based on your needs, availability, and learning style.'
-              },
-              {
-                number: '3',
-                title: 'Start Learning',
-                description: 'Begin your lessons with ongoing support and track your academic progress.'
-              }
-            ].map((step) => (
-              <div key={step.number} className="bg-white/90 rounded-xl p-10 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-2">
-                <div className="w-16 h-16 bg-[#1f2a44] text-white text-3xl font-bold rounded-full flex items-center justify-center mx-auto mb-6">
-                  {step.number}
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">{step.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{step.description}</p>
+              { step: "01", title: "Analyze Needs", desc: "We identify your specific learning gaps using our proprietary assessment.", icon: "🎯" },
+              { step: "02", title: "Smart Matching", desc: "Our algorithm pairs you with a top 1% tutor in your specific subject area.", icon: "🧠" },
+              { step: "03", title: "Scale Growth", desc: "Track progress in real-time with digital dashboards and milestone reports.", icon: "📈" }
+            ].map((item, i) => (
+              <div key={i} className="glass-card p-10 rounded-3xl relative overflow-hidden group bg-[#0f172a]/80 backdrop-blur-md">
+                <div className="text-6xl font-black text-white/5 absolute top-4 right-4 group-hover:text-[#00CC99]/10 transition-colors">{item.step}</div>
+                <div className="text-4xl mb-6">{item.icon}</div>
+                <h3 className="text-2xl font-bold mb-4 text-white">{item.title}</h3>
+                <p className="text-gray-300 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Tutoring Options*/}
-      <section id="options" className="bg-[#24364d] py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-5xl font-bold text-white text-center mb-16">Tutoring Options</h2>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
+      {/* OPTIONS SECTION with Solid Background (matching original) */}
+      <section id="options" ref={optRef} className="py-24 bg-[#1a2a3a]">
+        <div className="container mx-auto px-6">
+          <div className={`flex flex-col md:flex-row justify-between items-end mb-16 transition-all duration-1000 ${optVis ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+            <div>
+              <h2 className="text-4xl md:text-5xl font-black mb-4">Core <span className="text-[#00CC99]">Solutions</span></h2>
+              <p className="text-gray-300">Tailored support for every stage of your academic journey.</p>
+            </div>
+            {/* <button className="hidden md:block text-[#00CC99] font-bold border-b-2 border-[#00CC99] pb-1 hover:text-white hover:border-white transition-all">View All Modules</button> */}
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              {
-                image: tutoringImg,
-                title: 'One-on-One Tutoring',
-                description: 'Personalized attention for all subjects from primary to university level, online or in-person.',
-                features: ['Mathematics & Science', 'Languages & Arts', 'Commerce & Engineering']
-              },
-              {
-                image: booksImg,
-                title: 'Homeschool Support',
-                description: 'Comprehensive support for NSC, IEB, and Cambridge curriculum students.',
-                features: ['AS & A Levels', 'Curriculum Planning', 'Progress Tracking']
-              },
-              {
-                image: relocationImg,
-                title: 'Relocation Tutoring',
-                description: 'Smooth transitions between different curricula for families moving abroad.',
-                features: ['CAPS to IGCSE', 'IB & A-Levels', 'AP Systems']
-              },
-              {
-                image: examImg,
-                title: 'Exam Preparation',
-                description: 'Specialised preparation for NBT, SAT, and major assessments.',
-                features: ['NBT (Academic & Quantitative)', 'SAT Preparation', 'Matric Finals']
-              },
-              {
-                image: assistantImg,
-                title: 'AI Study Assistant',
-                description: 'Genius Prep Accelerator (GPA) helps generate notes, tests, and study materials.',
-                features: ['Instant Note Generation', 'Practice Tests', 'Multi-Language Support']
-              },
-              {
-                image: upskillingImg,
-                title: 'Upskilling Courses',
-                description: 'Professional development in AI, Machine Learning, Coding, and Automation.',
-                features: ['AI & Machine Learning', 'Programming', 'Microsoft Tools']
-              }
-            ].map((option, index) => (
-              <div key={index} className="bg-white/5 backdrop-blur-sm rounded-xl p-8 hover:bg-white/10 transition-all duration-300 border border-white/10">
-                <div className="mb-6 flex justify-center">
-                  <img 
-                    src={option.image} 
-                    alt={option.title}
-                    className="w-40 h-40 object-contain"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'block';
-                    }}
-                  />
-                  <div className="text-5xl hidden">{['🎓', '📚', '✈️', '📝', '🤖', '💻'][index]}</div>
+              { img: tutoringImg, title: "1-on-1 Mentoring", desc: "Focused private sessions for University and High School excellence." },
+              // { img: examImg, title: "Exam Crushing", desc: "Intensive prep for NBTs, SATs, and Matric finals." },
+              { img: assistantImg, title: "AI Learning Tools", desc: "Harness the power of GPA AI to generate notes and mock tests." },
+              // { img: booksImg, title: "Curriculum Support", desc: "Full coverage for NSC, IEB, Cambridge, and IB." },
+              { img: upskillingImg, title: "Skill Up", desc: "Python, Data Science, and Machine Learning courses." },
+              // { img: relocationImg, title: "Global Transition", desc: "Curriculum alignment for students moving abroad." }
+            ].map((opt, i) => (
+              <div key={i} className="glass-card p-8 rounded-3xl group bg-[#0f172a]/70 backdrop-blur-sm">
+                <div className="h-40 flex items-center justify-center mb-6">
+                  <img src={opt.img} alt={opt.title} className="max-h-full transition-transform group-hover:scale-110" />
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-3">{option.title}</h3>
-                <p className="text-gray-300 leading-relaxed mb-4">{option.description}</p>
-                <ul className="space-y-2">
-                  {option.features.map((feature, idx) => (
-                    <li key={idx} className="text-gray-400 text-sm flex items-start">
-                      <span className="text-[#4A90E2] mr-2">•</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+                <h3 className="text-xl font-bold mb-2 group-hover:text-[#00CC99] transition-colors text-white">{opt.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{opt.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Courses & School Subjects Section */}
-      <section id="courses" className="relative min-h-screen flex items-center justify-center py-20">
+      {/* COURSES & SCHOOL SUBJECTS SECTION with Background Image */}
+      <section id="courses" ref={courseRef} className="relative py-24 overflow-hidden">
+        {/* Background Image with Overlay */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: 'url(https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=1260)',
           }}
         >
-          <div className="absolute inset-0 bg-[#142337]/90"></div>
+          <div className="absolute inset-0 bg-[#0a101f]/90 backdrop-blur-sm"></div>
         </div>
 
-        <div className="relative z-10 container mx-auto px-4">
-          <h2 className="text-5xl font-bold text-white text-center mb-4">Courses & School Subjects We Cover</h2>
-          <p className="text-xl text-gray-300 text-center mb-16 max-w-3xl mx-auto">
-            From high school to university level, we provide expert tutoring across all major subjects and faculties
-          </p>
+        <div className="relative z-10 container mx-auto px-6">
+          <div className={`text-center mb-16 transition-all duration-1000 ${courseVis ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">Courses & <span className="text-[#00CC99]">School Subjects</span></h2>
+            <p className="text-gray-300 max-w-2xl mx-auto">From high school to university level, we provide expert tutoring across all major subjects and faculties.</p>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {/* High Schools */}
-            <div className="bg-white/95 rounded-2xl p-8 shadow-2xl">
-              <h3 className="text-3xl font-bold text-[#2c3e50] mb-6 flex items-center">
-                High Schools
+            {/* High School Subjects Card */}
+            <div className="glass-card p-8 rounded-2xl transition-all duration-300 hover:border-[#00CC99]/30 bg-[#0f172a]/80 backdrop-blur-md">
+              <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 text-white">
+                <span className="text-3xl">🏫</span> High Schools
               </h3>
-              <ul className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  'Mathematics',
-                  'Physical Sciences',
-                  'Life Sciences',
-                  'Accounting',
-                  'All Official Languages (English, Afrikaans, Zulu, etc.)',
-                  'Economics',
-                  'Design',
-                  'Geography',
-                  'Business Studies',
-                  'AP Mathematics',
-                  'History',
-                  'Computer Applications Technology',
-                  'and many more...'
+                  'Mathematics', 'Physical Sciences', 'Life Sciences', 'Accounting',
+                  'English', 'Afrikaans', 'Economics', 'Business Studies',
+                  'Geography', 'History', 'AP Mathematics', 'Computer Applications Technology',
+                  'Design', 'Life Orientation', 'Additional Languages'
                 ].map((subject, idx) => (
-                  <li key={idx} className="text-gray-700 flex items-start">
-                    <span className="text-[#4A90E2] font-bold mr-3">✓</span>
-                    <span className="font-medium">{subject}</span>
-                  </li>
+                  <div key={idx} className="flex items-center gap-2 text-gray-300 text-sm">
+                    <span className="text-[#00CC99]">✓</span>
+                    <span>{subject}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
 
-            {/* University Faculties */}
-            <div className="bg-white/95 rounded-2xl p-8 shadow-2xl">
-              <h3 className="text-3xl font-bold text-[#2c3e50] mb-6 flex items-center">
-                University Faculties
+            {/* University Faculties Card */}
+            <div className="glass-card p-8 rounded-2xl transition-all duration-300 hover:border-[#00CC99]/30 bg-[#0f172a]/80 backdrop-blur-md">
+              <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 text-white">
+                <span className="text-3xl">🎓</span> University Faculties
               </h3>
-              <ul className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  'Engineering & Built Environment (BEng / BArch)',
-                  'Natural Sciences & Agriculture (BSc)',
-                  'Commerce & Economic and Management Sciences (BCom)',
-                  'Law (LLB)',
-                  'Humanities & Social Sciences (BA / BSocSci)',
-                  'Education (BEd)',
-                  'Information Technology & Computer Science (BScIT)',
-                  'Health Sciences (MBChB / Nursing)',
-                  'Mathematics & Statistics',
-                  'All undergraduate and postgraduate modules'
+                  'Engineering & Built Environment', 'Natural Sciences & Agriculture',
+                  'Commerce & Economic Sciences', 'Law (LLB)',
+                  'Humanities & Social Sciences', 'Education (BEd)',
+                  'Information Technology & CS', 'Health Sciences (MBChB/Nursing)',
+                  'Mathematics & Statistics', 'All undergraduate & postgraduate modules'
                 ].map((faculty, idx) => (
-                  <li key={idx} className="text-gray-700 flex items-start">
-                    <span className="text-[#4A90E2] font-bold mr-3">✓</span>
-                    <span className="font-medium">{faculty}</span>
-                  </li>
+                  <div key={idx} className="flex items-center gap-2 text-gray-300 text-sm">
+                    <span className="text-[#00CC99]">✓</span>
+                    <span>{faculty}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Universities We Cover Section */}
-      <section className="bg-gray-50 py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-5xl font-bold text-[#2c3e50] text-center mb-4">Universities We Cover</h2>
-          <p className="text-xl text-gray-600 text-center mb-16 max-w-3xl mx-auto">
-            Our tutors are experts in modules from South Africa's top universities and institutions
-          </p>
+      {/* UNIVERSITIES WE COVER SECTION */}
+      <section ref={uniRef} className="py-24 bg-[#0f172a]">
+        <div className="container mx-auto px-6">
+          <div className={`text-center mb-16 transition-all duration-1000 ${uniVis ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">Universities <span className="text-[#00CC99]">We Cover</span></h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">Our tutors are experts in modules from South Africa's top universities and institutions.</p>
+          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
             {[
               { logo: upLogo, name: 'University of Pretoria' },
               { logo: witsLogo, name: 'University of Witwatersrand' },
@@ -444,7 +362,7 @@ function Home() {
             ].map((uni, idx) => (
               <div 
                 key={idx}
-                className="bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 flex flex-col items-center justify-center"
+                className="glass-card p-6 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-300 hover:-translate-y-2 hover:border-[#00CC99]/40 bg-[#0f172a]/80"
               >
                 <div className="w-24 h-24 mb-4 flex items-center justify-center">
                   <img
@@ -456,95 +374,105 @@ function Home() {
                       e.target.nextSibling.style.display = 'flex';
                     }}
                   />
-                  <div className="hidden w-24 h-24 bg-[#4A90E2] rounded-full items-center justify-center text-white font-bold text-xl">
+                  <div className="hidden w-24 h-24 bg-[#00CC99]/20 rounded-full items-center justify-center text-[#00CC99] font-bold text-xl">
                     {uni.name.split(' ').map(w => w[0]).join('')}
                   </div>
                 </div>
-                <p className="text-center text-sm font-semibold text-gray-700">{uni.name}</p>
+                <p className="text-center text-sm font-medium text-gray-300">{uni.name}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-[#1a2332] py-12 border-t border-white/10">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            {/* Company Info */}
-            <div className="col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-[#4A90E2] rounded-lg flex items-center justify-center text-white font-bold">
-                  GP
-                </div>
-                <div className="flex flex-col leading-none">
-                  <span className="text-[#4A90E2] font-bold text-lg">GENIUS</span>
-                  <span className="text-white font-semibold text-sm">PREP TUITION</span>
-                </div>
+      {/* FOOTER */}
+      <footer className="bg-[#0a101f] border-t border-white/5 pt-20 pb-10">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+            {/* First column - Logo and Social */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                <img src={companyLogo} className="h-10 opacity-80" alt="Logo" />
+                <span className="font-black text-xl tracking-tighter text-[#00CC99]">GENIUS ACCELERATOR</span>
               </div>
-              <p className="text-gray-400 mb-4">
-                Empowering students across South Africa with quality education and expert tutoring services.
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Revolutionizing education through technology and elite mentorship. Proudly accelerating South African talent.
               </p>
-              <p className="text-gray-400">
-                ✉ hello@geniuspreptuition.co.za<br/>
-                ☎ 071 961 7185
-              </p>
+              <div className="flex gap-4">
+                {/* Facebook */}
+                <a href="#" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#00CC99] hover:text-[#0f172a] hover:border-[#00CC99] transition-all cursor-pointer">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879v-6.99h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.99C18.343 21.128 22 16.991 22 12z"/>
+                  </svg>
+                </a>
+                {/* Instagram */}
+                <a href="#" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#00CC99] hover:text-[#0f172a] hover:border-[#00CC99] transition-all cursor-pointer">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.336 3.608 1.311.975.975 1.249 2.242 1.311 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.336 2.633-1.311 3.608-.975.975-2.242 1.249-3.608 1.311-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.336-3.608-1.311-.975-.975-1.249-2.242-1.311-3.608-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.336-2.633 1.311-3.608.975-.975 2.242-1.249 3.608-1.311 1.266-.058 1.646-.07 4.85-.07zM12 0C8.741 0 8.332.014 7.052.072 5.197.158 3.355.485 2.104 1.736.853 2.987.526 4.829.44 6.684.382 7.964.368 8.373.368 12s.014 4.036.072 5.316c.086 1.855.413 3.697 1.664 4.948 1.251 1.251 3.093 1.578 4.948 1.664 1.28.058 1.689.072 5.316.072s4.036-.014 5.316-.072c1.855-.086 3.697-.413 4.948-1.664 1.251-1.251 1.578-3.093 1.664-4.948.058-1.28.072-1.689.072-5.316s-.014-4.036-.072-5.316c-.086-1.855-.413-3.697-1.664-4.948C19.645.485 17.803.158 15.948.072 14.668.014 14.259 0 11 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 110 2.88 1.44 1.44 0 010-2.88z"/>
+                  </svg>
+                </a>
+                {/* LinkedIn */}
+                <a href="#" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#00CC99] hover:text-[#0f172a] hover:border-[#00CC99] transition-all cursor-pointer">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C0.792 0 0 0.774 0 1.729v20.542C0 23.227 0.792 24 1.771 24h20.451c0.979 0 1.771-0.773 1.771-1.729V1.729C24 0.774 23.202 0 22.225 0z"/>
+                  </svg>
+                </a>
+                {/* Twitter */}
+                <a href="#" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-[#00CC99] hover:text-[#0f172a] hover:border-[#00CC99] transition-all cursor-pointer">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.104c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 0021.678-11.51c0-.214-.005-.428-.015-.642A9.936 9.936 0 0024 4.59z"/>
+                  </svg>
+                </a>
+              </div>
             </div>
 
-            {/* Quick Links */}
+            {/* Platform column */}
             <div>
-              <h3 className="text-white font-bold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
+              <h4 className="text-white font-bold mb-6">Platform</h4>
+              <ul className="space-y-4">
+                {["Find Tutors", "Become a Mentor", "GPA AI Tool", "Pricing"].map(l => (
+                  <li key={l}><a href="#" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">{l}</a></li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Support column – with email added */}
+            <div>
+              <h4 className="text-white font-bold mb-6">Support</h4>
+              <ul className="space-y-4">
+                {["Help Center", "Safety Guidelines", "Terms of Use", "Privacy"].map(l => (
+                  <li key={l}><a href="#" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">{l}</a></li>
+                ))}
                 <li>
-                  <button onClick={() => navigate('/tutors')} className="text-gray-400 hover:text-[#4A90E2] transition">
-                    Find Tutors
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => navigate('/register')} className="text-gray-400 hover:text-[#4A90E2] transition">
-                    Become a Tutor
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => navigate('/gpa')} className="text-gray-400 hover:text-[#4A90E2] transition">
-                    GPA AI Tool
-                  </button>
+                  <a href="mailto:admin@geniusaccelerator.co.za" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">
+                    admin@geniusaccelerator.co.za
+                  </a>
                 </li>
               </ul>
             </div>
 
-            {/* Account */}
+            {/* Subscribe column */}
             <div>
-              <h3 className="text-white font-bold mb-4">Account</h3>
-              <ul className="space-y-2">
-                <li>
-                  <button onClick={() => navigate('/login')} className="text-gray-400 hover:text-[#4A90E2] transition">
-                    Login
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => navigate('/register')} className="text-gray-400 hover:text-[#4A90E2] transition">
-                    Register
-                  </button>
-                </li>
-              </ul>
+              <h4 className="text-white font-bold mb-6">Subscribe</h4>
+              <p className="text-gray-500 text-sm mb-4">Get academic tips and platform updates.</p>
+              <div className="relative">
+                <input type="text" placeholder="Email address" className="w-full bg-[#0f172a]/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#00CC99] transition-all" />
+                <button className="absolute right-2 top-2 bg-[#00CC99] text-[#0f172a] px-4 py-1.5 rounded-lg text-xs font-bold">Join</button>
+              </div>
             </div>
           </div>
 
-          <div className="mt-8 pt-8 border-t border-gray-700 text-center">
-            <div className="flex justify-center gap-6 mb-4">
-              <button 
-                onClick={() => navigate('/pricing-legal')} 
-                className="text-gray-400 hover:text-[#4A90E2] transition"
-              >
-                Pricing & Legal
-              </button>
-            </div>
-            <p className="text-gray-500 text-sm">
-              © {new Date().getFullYear()} Genius Prep Tuition. All rights reserved.
+          <div className="pt-10 border-t border-white/5 flex flex-col items-center justify-center gap-4 text-center">
+            <p className="text-gray-600 text-xs">
+              © {new Date().getFullYear()} Genius Accelerator. All Rights Reserved.
             </p>
+            <button 
+              onClick={() => window.scrollTo({top:0, behavior:'smooth'})} 
+              className="text-[#00CC99] text-xs font-medium hover:underline transition-all"
+            >
+              Back to top ↑
+            </button>
           </div>
-
         </div>
       </footer>
     </div>

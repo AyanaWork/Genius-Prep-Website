@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import './AdminBookings.css';
+import companyLogo from '../../assets/logos/GA_1.jpeg';
 
 function AdminBookings() {
   const navigate = useNavigate();
@@ -9,462 +9,128 @@ function AdminBookings() {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
-  // Filters
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState('DESC');
-  
-  // Modal state
   const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [declineReason, setDeclineReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
-    loadBookings();
-    loadStats();
-  }, [statusFilter, searchTerm, sortBy, sortOrder]);
+  useEffect(() => { loadBookings(); loadStats(); }, [statusFilter, searchTerm, sortBy, sortOrder]);
 
   const loadBookings = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        status: statusFilter,
-        search: searchTerm,
-        sortBy,
-        order: sortOrder
-      });
-      
+      const params = new URLSearchParams({ status: statusFilter, search: searchTerm, sortBy, order: sortOrder });
       const response = await api.get(`/admin/bookings?${params}`);
       setBookings(response.data.bookings);
-      setError('');
-    } catch (err) {
-      console.error('Load bookings error:', err);
-      setError('Failed to load bookings');
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError('Failed to load bookings'); }
+    finally { setLoading(false); }
   };
-
   const loadStats = async () => {
-    try {
-      const response = await api.get('/admin/bookings/stats');
-      setStats(response.data.stats);
-    } catch (err) {
-      console.error('Load stats error:', err);
-    }
+    try { const res = await api.get('/admin/bookings/stats'); setStats(res.data.stats); }
+    catch (err) { console.error(err); }
   };
-
   const handleAcceptBooking = async (bookingId) => {
-    if (!window.confirm('Accept this booking on behalf of the tutor? Both student and tutor will be notified.')) {
-      return;
-    }
-
-    try {
-      setActionLoading(true);
-      await api.post(`/admin/bookings/${bookingId}/accept`);
-      alert('Booking accepted successfully! Emails sent to student and tutor.');
-      loadBookings();
-      loadStats();
-    } catch (err) {
-      console.error('Accept booking error:', err);
-      alert(err.response?.data?.error || 'Failed to accept booking');
-    } finally {
-      setActionLoading(false);
-    }
+    if (!window.confirm('Accept this booking?')) return;
+    setActionLoading(true);
+    try { await api.post(`/admin/bookings/${bookingId}/accept`); alert('Accepted'); loadBookings(); loadStats(); }
+    catch (err) { alert('Failed'); }
+    finally { setActionLoading(false); }
   };
-
-  const openDeclineModal = (booking) => {
-    setSelectedBooking(booking);
-    setDeclineReason('');
-    setShowDeclineModal(true);
-  };
-
+  const openDeclineModal = (booking) => { setSelectedBooking(booking); setDeclineReason(''); setShowDeclineModal(true); };
   const handleDeclineBooking = async () => {
-    if (!declineReason.trim()) {
-      alert('Please provide a reason for declining');
-      return;
-    }
-
-    try {
-      setActionLoading(true);
-      await api.post(`/admin/bookings/${selectedBooking.id}/decline`, {
-        reason: declineReason
-      });
-      alert('Booking declined. Email sent to student.');
-      setShowDeclineModal(false);
-      loadBookings();
-      loadStats();
-    } catch (err) {
-      console.error('Decline booking error:', err);
-      alert(err.response?.data?.error || 'Failed to decline booking');
-    } finally {
-      setActionLoading(false);
-    }
+    if (!declineReason.trim()) return alert('Please provide a reason');
+    setActionLoading(true);
+    try { await api.post(`/admin/bookings/${selectedBooking.id}/decline`, { reason: declineReason }); alert('Declined'); setShowDeclineModal(false); loadBookings(); loadStats(); }
+    catch (err) { alert('Failed'); }
+    finally { setActionLoading(false); }
   };
 
+  const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-ZA') : 'N/A';
   const getStatusBadge = (status) => {
-    const badges = {
-      pending: 'badge-warning',
-      accepted: 'badge-success',
-      declined: 'badge-danger',
-      completed: 'badge-info',
-      cancelled: 'badge-secondary'
-    };
-    return badges[status] || 'badge-secondary';
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Not set';
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'Invalid date';
-      return date.toLocaleDateString('en-ZA', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch (error) {
-      return 'Invalid date';
-    }
-  };
-
-  const formatTime = (timeString) => {
-    if (!timeString) return 'Not set';
-    try {
-      if (typeof timeString === 'string' && timeString.includes(':')) {
-        return timeString.substring(0, 5); 
-      }
-      return timeString;
-    } catch (error) {
-      return 'Not set';
-    }
-  };
-
-  const getPendingDuration = (hoursPending) => {
-    if (hoursPending < 1) return `${Math.round(hoursPending * 60)}m ago`;
-    if (hoursPending < 24) return `${Math.round(hoursPending)}h ago`;
-    return `${Math.round(hoursPending / 24)}d ago`;
+    const classes = { pending: 'bg-yellow-500/20 text-yellow-400', accepted: 'bg-green-500/20 text-green-400', declined: 'bg-red-500/20 text-red-400', completed: 'bg-blue-500/20 text-blue-400' };
+    return <span className={`px-2 py-1 rounded-full text-xs font-semibold ${classes[status] || 'bg-gray-500/20'}`}>{status}</span>;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white shadow sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center h-16">
-            <button
-              onClick={() => navigate('/')}
-              className="text-2xl font-bold text-primary-800 hover:text-primary-900 transition"
-            >
-              Genius Prep Tuition
-            </button>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/admin/dashboard')}
-                className="px-4 py-2 text-gray-700 hover:text-primary-600 hover:bg-gray-100 rounded-lg transition font-medium"
-              >
-                Dashboard
-              </button>
-              <button
-                onClick={() => navigate('/admin/bookings')}
-                className="px-4 py-2 bg-primary-50 text-primary-700 rounded-lg font-medium border border-primary-200"
-              >
-                Booking Management
-              </button>
-              <button
-                onClick={() => {
-                  localStorage.removeItem('token');
-                  navigate('/');
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
-              >
-                Logout
-              </button>
-            </div>
+    <div className="min-h-screen bg-[#0f172a] text-white">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/80 backdrop-blur-md border-b border-white/10">
+        <div className="container mx-auto px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+            <img src={companyLogo} alt="Logo" className="h-10 w-auto object-contain" />
+            <span className="text-[#00CC99] font-black text-xl tracking-tighter">GENIUS ACCELERATOR</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <button onClick={() => navigate('/admin/dashboard')} className="text-sm text-white/70 hover:text-[#00CC99]">Dashboard</button>
+            <button onClick={() => navigate('/admin/bookings')} className="text-sm text-[#00CC99] border-b border-[#00CC99]">Bookings</button>
+            <button onClick={() => { localStorage.removeItem('token'); navigate('/'); }} className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg">Logout</button>
           </div>
         </div>
       </nav>
 
-      {/* Page Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Booking Management</h1>
-          <p className="text-gray-600 mt-1">Monitor and manage all student bookings</p>
-        </div>
-      </div>
-
-      <div className="admin-bookings-container">
-
-        {/* Statistics Cards */}
-        <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon pending">📋</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.pending_count || 0}</div>
-            <div className="stat-label">Pending</div>
-          </div>
+      <div className="pt-24 pb-16 px-6 container mx-auto">
+        <div className="glass-card rounded-3xl p-8 mb-8">
+          <h1 className="text-3xl font-black mb-2">Booking Management</h1>
         </div>
 
-        <div className="stat-card alert">
-          <div className="stat-icon warning">⚠️</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.old_pending_count || 0}</div>
-            <div className="stat-label">Pending &gt;24h</div>
-          </div>
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+          <div className="glass-card rounded-xl p-4 text-center"><div className="text-2xl font-bold text-[#00CC99]">{stats.pending_count || 0}</div><div className="text-xs text-gray-400">Pending</div></div>
+          <div className="glass-card rounded-xl p-4 text-center"><div className="text-2xl font-bold text-yellow-400">{stats.old_pending_count || 0}</div><div className="text-xs text-gray-400">Pending &gt;24h</div></div>
+          <div className="glass-card rounded-xl p-4 text-center"><div className="text-2xl font-bold text-green-400">{stats.accepted_count || 0}</div><div className="text-xs text-gray-400">Accepted</div></div>
+          <div className="glass-card rounded-xl p-4 text-center"><div className="text-2xl font-bold text-blue-400">{stats.completed_count || 0}</div><div className="text-xs text-gray-400">Completed</div></div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon success">✓</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.accepted_count || 0}</div>
-            <div className="stat-label">Accepted</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon completed">🎓</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.completed_count || 0}</div>
-            <div className="stat-label">Completed</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="filters-section">
-        <div className="filter-group">
-          <label>Status:</label>
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Bookings</option>
-            <option value="pending">Pending</option>
-            <option value="accepted">Accepted</option>
-            <option value="declined">Declined</option>
-            <option value="completed">Completed</option>
+        {/* Filters */}
+        <div className="glass-card rounded-3xl p-6 mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-[#0f172a]/5 border border-white/10 rounded-xl px-4 py-2">
+            <option value="all">All Status</option><option value="pending">Pending</option><option value="accepted">Accepted</option><option value="declined">Declined</option><option value="completed">Completed</option>
+          </select>
+          <input type="text" placeholder="Search student/tutor..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-[#0f172a]/5 border border-white/10 rounded-xl px-4 py-2" />
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="bg-[#0f172a]/5 border border-white/10 rounded-xl px-4 py-2">
+            <option value="created_at">Date Created</option><option value="date">Booking Date</option><option value="status">Status</option>
+          </select>
+          <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className="bg-[#0f172a]/5 border border-white/10 rounded-xl px-4 py-2">
+            <option value="DESC">Newest First</option><option value="ASC">Oldest First</option>
           </select>
         </div>
 
-        <div className="filter-group">
-          <label>Search:</label>
-          <input
-            type="text"
-            placeholder="Student, tutor, or subject..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="filter-input"
-          />
-        </div>
-
-        <div className="filter-group">
-          <label>Sort by:</label>
-          <select 
-            value={sortBy} 
-            onChange={(e) => setSortBy(e.target.value)}
-            className="filter-select"
-          >
-            <option value="created_at">Date Created</option>
-            <option value="date">Booking Date</option>
-            <option value="status">Status</option>
-            <option value="subject">Subject</option>
-          </select>
-        </div>
-
-        <div className="filter-group">
-          <label>Order:</label>
-          <select 
-            value={sortOrder} 
-            onChange={(e) => setSortOrder(e.target.value)}
-            className="filter-select"
-          >
-            <option value="DESC">Newest First</option>
-            <option value="ASC">Oldest First</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
-
-      {/* Loading State */}
-      {loading && (
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Loading bookings...</p>
-        </div>
-      )}
-
-      {/* Bookings Table */}
-      {!loading && (
-        <div className="table-container">
-          <table className="bookings-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Student</th>
-                <th>Tutor</th>
-                <th>Subject</th>
-                <th>Date & Time</th>
-                <th>Hours</th>
-                <th>Status</th>
-                <th>Pending Since</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.length === 0 ? (
-                <tr>
-                  <td colSpan="9" className="empty-state">
-                    <p>No bookings found</p>
-                  </td>
-                </tr>
-              ) : (
-                bookings.map(booking => (
-                  <tr 
-                    key={booking.id}
-                    className={
-                      booking.status === 'pending' && booking.hours_pending > 24 
-                        ? 'booking-row old-pending' 
-                        : 'booking-row'
-                    }
-                  >
-                    <td>#{booking.id}</td>
-                    <td>
-                      <div className="user-cell">
-                        <strong>{booking.student_name}</strong>
-                        <small>{booking.student_email}</small>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="user-cell">
-                        <strong>{booking.tutor_name}</strong>
-                        <small>{booking.tutor_email}</small>
-                      </div>
-                    </td>
-                    <td>{booking.subject}</td>
-                    <td>
-                      <div className="date-cell">
-                        <div>{formatDate(booking.preferred_date || booking.date)}</div>
-                        <small>{formatTime(booking.preferred_time || booking.time)}</small>
-                      </div>
-                    </td>
-                    <td>{booking.number_of_hours || 3}h</td>
-                    <td>
-                      <span className={`status-badge ${getStatusBadge(booking.status)}`}>
-                        {booking.status}
-                      </span>
-                      {booking.accepted_by_admin && (
-                        <span className="admin-badge">Admin</span>
-                      )}
-                    </td>
-                    <td>
-                      {booking.status === 'pending' && (
-                        <span className={booking.hours_pending > 24 ? 'text-danger' : ''}>
-                          {getPendingDuration(booking.hours_pending)}
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      {booking.status === 'pending' && (
-                        <div className="action-buttons">
-                          <button
-                            onClick={() => handleAcceptBooking(booking.id)}
-                            disabled={actionLoading}
-                            className="btn-accept"
-                            title="Accept booking on behalf of tutor"
-                          >
-                            ✓ Accept
-                          </button>
-                          <button
-                            onClick={() => openDeclineModal(booking)}
-                            disabled={actionLoading}
-                            className="btn-decline"
-                            title="Decline booking"
-                          >
-                            ✗ Decline
-                          </button>
-                        </div>
-                      )}
-                      {booking.status !== 'pending' && (
-                        <span className="text-muted">-</span>
-                      )}
-                    </td>
+        {loading ? <div className="text-center py-12">Loading...</div> : error ? <div className="text-red-400">{error}</div> : (
+          <div className="glass-card rounded-3xl overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-white/10 bg-[#0f172a]/5"><tr><th className="p-4 text-left">ID</th><th>Student</th><th>Tutor</th><th>Subject</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                {bookings.map(b => (
+                  <tr key={b.id} className="border-b border-white/5 hover:bg-[#0f172a]/5">
+                    <td className="p-4">#{b.id}</td><td><div><strong>{b.student_name}</strong><br/><small className="text-gray-400">{b.student_email}</small></div></td>
+                    <td><div><strong>{b.tutor_name}</strong><br/><small>{b.tutor_email}</small></div></td>
+                    <td>{b.subject}</td><td>{formatDate(b.preferred_date || b.date)} at {b.preferred_time || b.time}</td>
+                    <td>{getStatusBadge(b.status)}</td>
+                    <td>{b.status === 'pending' && <div className="flex gap-2"><button onClick={() => handleAcceptBooking(b.id)} className="px-3 py-1 bg-green-500/20 text-green-400 rounded-lg text-xs">Accept</button><button onClick={() => openDeclineModal(b)} className="px-3 py-1 bg-red-500/20 text-red-400 rounded-lg text-xs">Decline</button></div>}</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Decline Modal */}
       {showDeclineModal && (
-        <div className="modal-overlay" onClick={() => setShowDeclineModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Decline Booking</h2>
-              <button 
-                className="modal-close" 
-                onClick={() => setShowDeclineModal(false)}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="modal-body">
-              <div className="booking-details">
-                <h3>Booking Details:</h3>
-                <p><strong>Student:</strong> {selectedBooking?.student_name}</p>
-                <p><strong>Tutor:</strong> {selectedBooking?.tutor_name}</p>
-                <p><strong>Subject:</strong> {selectedBooking?.subject}</p>
-                <p><strong>Date:</strong> {formatDate(selectedBooking?.preferred_date || selectedBooking?.date)} at {formatTime(selectedBooking?.preferred_time || selectedBooking?.time)}</p>
-              </div>
-
-              <div className="form-group">
-                <label>Reason for declining: *</label>
-                <textarea
-                  value={declineReason}
-                  onChange={(e) => setDeclineReason(e.target.value)}
-                  placeholder="E.g., Tutor unavailable for this time slot, subject expertise mismatch, etc."
-                  rows="4"
-                  className="decline-textarea"
-                />
-              </div>
-
-              <p className="note">
-                The student will receive an email notification with this reason.
-              </p>
-            </div>
-
-            <div className="modal-footer">
-              <button 
-                onClick={() => setShowDeclineModal(false)}
-                className="btn-secondary"
-                disabled={actionLoading}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleDeclineBooking}
-                className="btn-danger"
-                disabled={actionLoading || !declineReason.trim()}
-              >
-                {actionLoading ? 'Declining...' : 'Decline Booking'}
-              </button>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="glass-card rounded-2xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold mb-4">Decline Booking</h3>
+            <textarea value={declineReason} onChange={(e) => setDeclineReason(e.target.value)} rows="4" className="w-full bg-[#0f172a]/5 border border-white/10 rounded-xl p-3" placeholder="Reason for declining..." />
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setShowDeclineModal(false)} className="flex-1 py-2 glass-card rounded-xl">Cancel</button>
+              <button onClick={handleDeclineBooking} disabled={actionLoading} className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-xl">Confirm Decline</button>
             </div>
           </div>
         </div>
       )}
-    </div>
     </div>
   );
 }

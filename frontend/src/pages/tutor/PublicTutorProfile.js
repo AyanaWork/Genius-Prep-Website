@@ -128,308 +128,103 @@ function PublicTutorProfile() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-600">Loading tutor profile...</p>
+      return (
+        <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+          <div className="text-center"><div className="inline-block w-12 h-12 border-4 border-[#00CC99] border-t-transparent rounded-full animate-spin"></div><p className="mt-4 text-gray-400">Loading tutor profile...</p></div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
   if (error || !tutor) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="text-6xl mb-4">😕</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Tutor Not Found</h2>
-          <p className="text-gray-600 mb-6">{error || 'This tutor profile does not exist.'}</p>
-          <button
-            onClick={() => navigate('/')}
-            className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
-          >
-            Back to Home
-          </button>
-        </div>
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+        <div className="text-center"><div className="text-6xl mb-4">😕</div><h2 className="text-2xl font-bold mb-2">Tutor Not Found</h2><button onClick={() => navigate('/')} className="px-6 py-3 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold">Back to Home</button></div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation Bar */}
-      <nav className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <button
-              onClick={() => navigate('/')}
-              className="text-2xl font-bold text-primary-800"
-            >
-              Genius Prep Tuition
-            </button>
-            <div className="flex items-center gap-4">
-              {currentUser ? (
-                <button
-                  onClick={() => navigate(`/${currentUser.role}/dashboard`)}
-                  className="text-gray-700 hover:text-primary-600 transition"
-                >
-                  Dashboard
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={() => navigate('/login')}
-                    className="text-gray-700 hover:text-primary-600 transition"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => navigate('/register')}
-                    className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
-                  >
-                    Get Started
-                  </button>
-                </>
-              )}
-            </div>
+    return (
+    <div className="min-h-screen bg-[#0f172a] text-white">
+      {/* Navbar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/80 backdrop-blur-md border-b border-white/10">
+        <div className="container mx-auto px-6 py-3 flex items-center justify-between">
+          <button onClick={() => navigate('/')} className="text-2xl font-bold text-[#00CC99] tracking-tight">GENIUS ACCELERATOR</button>
+          <div className="flex items-center gap-6">
+            {currentUser ? (
+              <button onClick={() => navigate(`/${currentUser.role}/dashboard`)} className="text-sm text-white/70 hover:text-[#00CC99] transition">Dashboard</button>
+            ) : (
+              <>
+                <button onClick={() => navigate('/login')} className="text-sm text-white/70 hover:text-[#00CC99] transition">Sign In</button>
+                <button onClick={() => navigate('/register')} className="px-6 py-2 bg-[#00CC99] text-[#0f172a] rounded-full font-bold text-sm">Get Started</button>
+              </>
+            )}
           </div>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="pt-24 pb-16 px-6 container mx-auto">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Sidebar - Tutor Info */}
+          {/* Left sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-md p-6 sticky top-24">
-              {/* Profile Picture */}
+            <div className="glass-card rounded-3xl p-6 sticky top-24">
               <div className="text-center mb-6">
                 {tutor.profile_picture_url ? (
-                  <img
-                    src={tutor.profile_picture_url}
-                    alt={tutor.display_name}
-                    className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-primary-100"
-                  />
+                  <img src={tutor.profile_picture_url} alt={tutor.display_name} className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-[#00CC99]" />
                 ) : (
-                  <div className="w-32 h-32 rounded-full mx-auto bg-primary-100 flex items-center justify-center border-4 border-primary-200">
-                    <span className="text-primary-600 font-bold text-4xl">
-                      {tutor.display_name?.charAt(0).toUpperCase()}
-                    </span>
+                  <div className="w-32 h-32 rounded-full mx-auto bg-[#00CC99]/20 flex items-center justify-center border-2 border-[#00CC99]">
+                    <span className="text-4xl font-bold text-[#00CC99]">{tutor.display_name?.charAt(0).toUpperCase()}</span>
                   </div>
                 )}
-                
-                {/* Elite Badge */}
                 {tutor.is_elite && (
-                  <div className="inline-flex items-center gap-2 mt-3 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                    </svg>
-                    Elite Tutor
-                  </div>
+                  <div className="inline-flex items-center gap-2 mt-3 px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-sm">⭐ Elite Tutor</div>
                 )}
               </div>
-
-              {/* Name and Rating */}
-              <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
-                {tutor.display_name}
-              </h1>
-              
-              <div className="flex items-center justify-center gap-2 mb-6">
+              <h1 className="text-2xl font-bold text-center mb-2">{tutor.display_name}</h1>
+              <div className="flex justify-center gap-2 mb-6">
                 <StarRating rating={parseFloat(tutor.average_rating || 0)} size="medium" />
-                <span className="text-sm text-gray-600">
-                  ({tutor.review_count || 0} reviews)
-                </span>
+                <span className="text-sm text-gray-400">({tutor.review_count || 0} reviews)</span>
               </div>
-
-              {/* Availability Status */}
-              <div className="mb-6 text-center">
-                <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold ${
-                  tutor.availability_status === 'active'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-700'
-                }`}>
-                  <span className={`w-2 h-2 rounded-full ${
-                    tutor.availability_status === 'active' ? 'bg-green-500' : 'bg-red-500'
-                  }`}></span>
+              <div className="text-center mb-6">
+                <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm ${tutor.availability_status === 'active' ? 'bg-green-500/20 text-green-400 border border-green-500/50' : 'bg-red-500/20 text-red-400 border border-red-500/50'}`}>
                   {tutor.availability_status === 'active' ? 'Available' : 'Unavailable'}
                 </span>
               </div>
-
-              {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold text-primary-600">
-                    {tutor.years_experience || 0}
-                  </div>
-                  <div className="text-xs text-gray-600">Years Experience</div>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold text-primary-600">
-                    R{tutor.hourly_rate || 0}
-                  </div>
-                  <div className="text-xs text-gray-600">Per Hour</div>
-                </div>
+                <div className="bg-[#0f172a]/5 rounded-xl p-3 text-center"><div className="text-2xl font-bold text-[#00CC99]">{tutor.years_experience || 0}</div><div className="text-xs text-gray-400">Years Exp.</div></div>
+                <div className="bg-[#0f172a]/5 rounded-xl p-3 text-center"><div className="text-2xl font-bold text-[#00CC99]">R{tutor.hourly_rate || 0}</div><div className="text-xs text-gray-400">Per Hour</div></div>
               </div>
-
-              {/* Booking Form */}
               {showBookingForm ? (
-                <div className="mb-3">
-                  <BookingForm
-                    tutorId={tutor.id}
-                    tutorName={`${tutor.first_name} ${tutor.last_name}`}
-                    hourlyRate={tutor.hourly_rate}
-                    onSubmit={handleBookingSubmit}
-                    onCancel={() => setShowBookingForm(false)}
-                  />
-                </div>
+                <BookingForm tutorId={tutor.id} tutorName={`${tutor.first_name} ${tutor.last_name}`} hourlyRate={tutor.hourly_rate} onSubmit={handleBookingSubmit} onCancel={() => setShowBookingForm(false)} />
               ) : (
                 <>
-                  {/* Request Button */}
-                  <button
-                    onClick={handleRequestTutor}
-                    disabled={tutor.availability_status !== 'active'}
-                    className="w-full py-3 px-6 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed mb-3"
-                  >
-                    Request Tutor
-                  </button>
-
-                  {tutor.availability_status !== 'active' && (
-                    <p className="text-sm text-gray-500 text-center mb-3">
-                      This tutor is currently unavailable
-                    </p>
-                  )}
+                  <button onClick={handleRequestTutor} disabled={tutor.availability_status !== 'active'} className="w-full py-3 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition disabled:opacity-50">Request Tutor</button>
+                  {tutor.availability_status !== 'active' && <p className="text-sm text-gray-400 text-center mt-2">Currently unavailable</p>}
                 </>
               )}
-
-              {/* Review Button for Students */}
               {isStudent && canReview && !showReviewForm && (
-                <button
-                  onClick={() => setShowReviewForm(true)}
-                  className="w-full mt-3 py-3 px-6 bg-white text-primary-600 border-2 border-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition"
-                >
-                  {editingReview ? 'Edit Your Review' : 'Write a Review'}
-                </button>
+                <button onClick={() => setShowReviewForm(true)} className="w-full mt-4 py-3 glass-card rounded-xl font-semibold hover:border-[#00CC99]/50 transition">{editingReview ? 'Edit Your Review' : 'Write a Review'}</button>
               )}
             </div>
           </div>
 
-          {/* Right Content - Details & Reviews */}
+          {/* Right content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* About Section */}
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">About</h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                {tutor.bio || 'No bio available.'}
-              </p>
-            </div>
+            <div className="glass-card rounded-3xl p-8"><h2 className="text-2xl font-bold mb-4">About</h2><p className="text-gray-300 whitespace-pre-line">{tutor.bio || 'No bio available.'}</p></div>
+            {tutor.qualifications && <div className="glass-card rounded-3xl p-8"><h2 className="text-2xl font-bold mb-4">Qualifications</h2><p className="text-gray-300">{tutor.qualifications}</p></div>}
+            <div className="glass-card rounded-3xl p-8"><h2 className="text-2xl font-bold mb-4">Subjects</h2><div className="flex flex-wrap gap-2">{tutor.subjects?.map((s, i) => <span key={i} className="px-4 py-2 bg-[#00CC99]/10 rounded-lg text-sm border border-[#00CC99]/30">{s}</span>)}</div></div>
+            {tutor.module_codes?.length > 0 && <div className="glass-card rounded-3xl p-8"><h2 className="text-2xl font-bold mb-4">University Modules</h2><div className="flex flex-wrap gap-2">{tutor.module_codes.map((c, i) => <span key={i} className="px-3 py-1 bg-blue-500/20 rounded-md font-mono text-sm">{c}</span>)}</div></div>}
+            {(tutor.teaching_mode || tutor.location) && <div className="glass-card rounded-3xl p-8"><h2 className="text-2xl font-bold mb-4">Teaching Details</h2><div className="space-y-3">{tutor.teaching_mode && <div><span className="text-2xl mr-2">💻</span> {tutor.teaching_mode}</div>}{tutor.location && <div><span className="text-2xl mr-2">📍</span> {tutor.location}</div>}</div></div>}
 
-            {/* Qualifications */}
-            {tutor.qualifications && (
-              <div className="bg-white rounded-xl shadow-md p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Qualifications</h2>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                  {tutor.qualifications}
-                </p>
-              </div>
-            )}
-
-            {/* Subjects */}
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Subjects Taught</h2>
-              <div className="flex flex-wrap gap-2">
-                {tutor.subjects && tutor.subjects.length > 0 ? (
-                  tutor.subjects.map((subject, index) => (
-                    <span
-                      key={index}
-                      className="px-4 py-2 bg-primary-50 text-primary-700 rounded-lg font-medium border border-primary-200"
-                    >
-                      {subject}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No subjects listed</p>
-                )}
-              </div>
-            </div>
-
-            {/* Module Codes */}
-            {tutor.module_codes && tutor.module_codes.length > 0 && (
-              <div className="bg-white rounded-xl shadow-md p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">University Modules</h2>
-                <div className="flex flex-wrap gap-2">
-                  {tutor.module_codes.map((code, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-blue-50 text-blue-700 rounded-md font-mono text-sm border border-blue-200"
-                    >
-                      {code}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Teaching Preferences */}
-            {(tutor.teaching_mode || tutor.location) && (
-              <div className="bg-white rounded-xl shadow-md p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Teaching Details</h2>
-                <div className="space-y-3">
-                  {tutor.teaching_mode && (
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">🖳</span>
-                      <div>
-                        <p className="font-medium text-gray-900">Teaching Mode</p>
-                        <p className="text-gray-600 capitalize">{tutor.teaching_mode}</p>
-                      </div>
-                    </div>
-                  )}
-                  {tutor.location && (
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">⟟</span>
-                      <div>
-                        <p className="font-medium text-gray-900">Location</p>
-                        <p className="text-gray-600">{tutor.location}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Review Form */}
             {showReviewForm && (
-              <div className="bg-white rounded-xl shadow-md p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  {editingReview ? 'Edit Your Review' : 'Write a Review'}
-                </h2>
-                <ReviewForm
-                  tutorId={tutor.id}
-                  initialData={editingReview}
-                  onSubmit={handleReviewSubmit}
-                  onCancel={() => {
-                    setShowReviewForm(false);
-                    setEditingReview(null);
-                  }}
-                />
+              <div className="glass-card rounded-3xl p-8">
+                <h2 className="text-2xl font-bold mb-6">{editingReview ? 'Edit Your Review' : 'Write a Review'}</h2>
+                <ReviewForm tutorId={tutor.id} initialData={editingReview} onSubmit={handleReviewSubmit} onCancel={() => { setShowReviewForm(false); setEditingReview(null); }} />
               </div>
             )}
 
-            {/* Reviews Section */}
-            <div className="bg-white rounded-xl shadow-md p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Student Reviews</h2>
-
-              {reviewsLoading ? (
-                <div className="text-center py-8">
-                  <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              ) : reviews.length === 0 ? (
-                <div className="text-center py-8 bg-gray-50 rounded-lg">
-                  <p className="text-gray-600">No reviews yet</p>
-                  <p className="text-sm text-gray-500 mt-2">Be the first to review!</p>
-                </div>
-              ) : (
-                <ReviewsList reviews={reviews} />
-              )}
+            <div className="glass-card rounded-3xl p-8">
+              <h2 className="text-2xl font-bold mb-6">Student Reviews</h2>
+              {reviewsLoading ? <div className="text-center py-8"><div className="inline-block w-8 h-8 border-4 border-[#00CC99] border-t-transparent rounded-full animate-spin"></div></div> : reviews.length === 0 ? <div className="text-center py-8 text-gray-400">No reviews yet. Be the first!</div> : <ReviewsList reviews={reviews} />}
             </div>
           </div>
         </div>
