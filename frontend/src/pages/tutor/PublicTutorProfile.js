@@ -8,6 +8,7 @@ import StarRating from '../../components/common/StarRating';
 import ReviewForm from '../../components/reviews/ReviewForm';
 import ReviewsList from '../../components/reviews/ReviewsList';
 import BookingForm from '../../components/bookings/BookingForm';
+import Navbar from '../../components/common/NavBar';
 
 function PublicTutorProfile() {
   const { id } = useParams();
@@ -143,6 +144,7 @@ function PublicTutorProfile() {
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
       {/* Navbar */}
+      <Navbar />
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/80 backdrop-blur-md border-b border-white/10">
         <div className="container mx-auto px-6 py-3 flex items-center justify-between">
           <button onClick={() => navigate('/')} className="text-2xl font-bold text-[#00CC99] tracking-tight">GENIUS ACCELERATOR</button>
