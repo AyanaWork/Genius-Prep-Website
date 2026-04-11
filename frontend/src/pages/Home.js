@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import authService from '../services/auth';
-
+import { Link } from 'react-router-dom';
 import tutoringImg from '../assets/images/tutoring.png';
-import booksImg from '../assets/images/books.png';
-import relocationImg from '../assets/images/relocation.png';
-import examImg from '../assets/images/exam.png';
 import assistantImg from '../assets/images/assistant.png';
 import upskillingImg from '../assets/images/upskilling.png';
 import upLogo from '../assets/images/up.jpeg';
@@ -44,13 +41,17 @@ const AnimatedCounter = ({ end, duration = 2000, suffix = '' }) => {
     const updateCount = (timestamp) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / duration, 1);
-      setCount(Math.floor(progress * end));
+      // setCount(Math.floor(progress * end));
+      const value = progress * end;
+      setCount(value);
       if (progress < 1) animationFrame = requestAnimationFrame(updateCount);
     };
     animationFrame = requestAnimationFrame(updateCount);
     return () => cancelAnimationFrame(animationFrame);
   }, [end, duration, isVisible]);
-  return <span ref={ref}>{count}{suffix}</span>;
+  // return <span ref={ref}>{count}{suffix}</span>;
+  const displayValue = Number.isInteger(end) ? Math.floor(count) : count.toFixed(1);
+  return <span ref={ref}>{displayValue}{suffix}</span>;
 };
 
 function Home() {
@@ -70,6 +71,13 @@ function Home() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Logout handler
+  const handleLogout = () => {
+    authService.logout();
+    setCurrentUser(null);
+    navigate('/');
+  };
 
   const [procRef, procVis] = useScrollReveal(0.2);
   const [optRef, optVis] = useScrollReveal(0.1);
@@ -110,12 +118,16 @@ function Home() {
             )}
           </div>
 
-          {/* Right button */}
+          {/* Right button - Conditional style and action */}
           <button 
-            onClick={() => navigate(currentUser ? '/tutors' : '/register')}
-            className="hidden md:block px-6 py-2.5 bg-[#00CC99] hover:bg-[#00b386] text-[#0f172a] rounded-full font-bold text-sm shadow-[0_0_20px_rgba(0,204,153,0.3)] transition-all hover:scale-105 active:scale-95"
+            onClick={() => currentUser ? handleLogout() : navigate('/register')}
+            className={`hidden md:block px-6 py-2.5 rounded-full font-bold text-sm transition-all hover:scale-105 active:scale-95 ${
+              currentUser 
+                ? 'bg-red-600 hover:bg-red-700 text-white' 
+                : 'bg-[#00CC99] hover:bg-[#00b386] text-[#0f172a] shadow-[0_0_20px_rgba(0,204,153,0.3)]'
+            }`}
           >
-            {!currentUser ?'Get Started' : 'Logout'}
+            {!currentUser ? 'Get Started' : 'Logout'}
           </button>
 
           {/* Mobile menu button */}
@@ -192,7 +204,7 @@ function Home() {
                 <div className="text-xs text-gray-500 uppercase tracking-widest mt-1">Students Helped</div>
               </div>
                 <div>
-                <div className="text-3xl font-black text-[#00CC99] text-glow-green"><AnimatedCounter end={4.9} suffix="*" /></div>
+                 <div className="text-3xl font-black text-[#00CC99] text-glow-green"><AnimatedCounter end={4.9} suffix="★" /></div>
                 <div className="text-xs text-gray-500 uppercase tracking-widest mt-1">Average Rating</div>
               </div>
             </div>
@@ -430,26 +442,28 @@ function Home() {
             <div>
               <h4 className="text-white font-bold mb-6">Platform</h4>
               <ul className="space-y-4">
-                {["Find Tutors", "Become a Mentor", "GPA AI Tool", "Pricing"].map(l => (
-                  <li key={l}><a href="#" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">{l}</a></li>
-                ))}
+                <li><Link to="/tutors" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Find Tutors</Link></li>
+                <li><Link to="/tutor/register" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Become a Mentor</Link></li>
+                <li><Link to="/gpa" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">GPA AI Tool</Link></li>
+                <li><Link to="/pricing-legal" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Pricing</Link></li>
               </ul>
             </div>
 
-            {/* Support column – with email added */}
-            <div>
-              <h4 className="text-white font-bold mb-6">Support</h4>
-              <ul className="space-y-4">
-                {["Help Center", "Safety Guidelines", "Terms of Use", "Privacy"].map(l => (
-                  <li key={l}><a href="#" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">{l}</a></li>
-                ))}
-                <li>
-                  <a href="mailto:admin@geniusaccelerator.co.za" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">
-                    admin@geniusaccelerator.co.za
-                  </a>
-                </li>
-              </ul>
-            </div>
+            {/* Support column*/}
+          <div>
+            <h4 className="text-white font-bold mb-6">Support</h4>
+            <ul className="space-y-4">
+              <li><Link to="/help" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Help Center</Link></li>
+              <li><Link to="/safety" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Safety Guidelines</Link></li>
+              <li><Link to="/terms" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Terms of Use</Link></li>
+              <li><Link to="/privacy" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Privacy</Link></li>
+              <li>
+                <a href="mailto:admin@geniusaccelerator.co.za" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">
+                  admin@geniusaccelerator.co.za
+                </a>
+              </li>
+            </ul>
+          </div>
 
             {/* Subscribe column */}
             <div>

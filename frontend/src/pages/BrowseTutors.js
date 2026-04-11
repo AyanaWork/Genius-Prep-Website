@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import profileService from '../services/profile';
 import authService from '../services/auth';
 import StarRating from '../components/common/StarRating';
-import companyLogo from '../assets/logos/GA_1.jpeg';
 import Navbar from '../components/common/NavBar';
 
 
@@ -41,15 +40,9 @@ function BrowseTutors() {
     setFilters({ ...filters, subject: e.target.value });
   };
 
-  const handleLogout = () => {
-    authService.logout();
-    navigate('/');
-  };
-
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
       {/* Navbar - identical to StudentDashboard */}
-        <Navbar />
 
       {/* Hero Header */}
       <div className="pt-24 pb-12 px-6 text-center">
@@ -61,7 +54,7 @@ function BrowseTutors() {
         </p>
       </div>
 
-      {/* Main Content (unchanged from your version) */}
+      {/* Main Content */}
       <div className="container mx-auto px-6 pb-16">
         {/* Filters Section */}
         <div className="glass-card rounded-2xl p-6 mb-8">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import bookingService from '../../services/booking';
 
-function TutorBookings() {
+function TutorBookings({ onBack }) {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState({
@@ -14,7 +14,7 @@ function TutorBookings() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('pending'); // pending, accepted, completed, declined
+  const [activeTab, setActiveTab] = useState('pending');
 
   useEffect(() => {
     loadBookings();
@@ -42,7 +42,6 @@ function TutorBookings() {
 
   const handleUpdateStatus = async (bookingId, newStatus) => {
     if (!window.confirm(`Change status to ${newStatus}?`)) return;
-
     try {
       await bookingService.updateBookingStatus(bookingId, newStatus);
       await loadBookings();
@@ -53,32 +52,21 @@ function TutorBookings() {
     }
   };
 
-
   const getStatusBadgeClass = (status) => {
     switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'accepted':
-        return 'bg-green-100 text-green-800';
-      case 'declined':
-        return 'bg-red-100 text-red-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
-      case 'cancelled':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'pending': return 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30';
+      case 'accepted': return 'bg-green-500/20 text-green-300 border border-green-500/30';
+      case 'declined': return 'bg-red-500/20 text-red-300 border border-red-500/30';
+      case 'completed': return 'bg-blue-500/20 text-blue-300 border border-blue-500/30';
+      case 'cancelled': return 'bg-gray-500/20 text-gray-300 border border-gray-500/30';
+      default: return 'bg-gray-500/20 text-gray-300 border border-gray-500/30';
     }
   };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Not specified';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-ZA', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
+    return date.toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   const formatTime = (timeString) => {
@@ -86,22 +74,20 @@ function TutorBookings() {
     return timeString;
   };
 
-  const filteredBookings = bookings.filter(
-    booking => booking.status === activeTab
-  );
+  const filteredBookings = bookings.filter(booking => booking.status === activeTab);
 
   if (loading) {
     return (
       <div className="text-center py-12">
-        <div className="inline-block w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-gray-600">Loading booking requests...</p>
+        <div className="inline-block w-8 h-8 border-4 border-[#00CC99] border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 text-gray-400">Loading booking requests...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+      <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg">
         {error}
       </div>
     );
@@ -109,54 +95,61 @@ function TutorBookings() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Booking Requests</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl md:text-3xl font-bold text-white">Booking Requests</h2>
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="px-4 py-2 glass-card rounded-xl text-sm hover:border-[#00CC99]/50 transition"
+          >
+            ← Back to Dashboard
+          </button>
+        )}
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-          <p className="text-2xl font-bold text-yellow-800">{stats.pending_count || 0}</p>
-          <p className="text-sm text-yellow-600">Pending</p>
+        <div className="glass-card rounded-xl p-4 text-center">
+          <div className="text-2xl font-bold text-yellow-400">{stats.pending_count || 0}</div>
+          <div className="text-xs text-gray-400">Pending</div>
         </div>
-        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-          <p className="text-2xl font-bold text-green-800">{stats.accepted_count || 0}</p>
-          <p className="text-sm text-green-600">Accepted</p>
+        <div className="glass-card rounded-xl p-4 text-center">
+          <div className="text-2xl font-bold text-green-400">{stats.accepted_count || 0}</div>
+          <div className="text-xs text-gray-400">Accepted</div>
         </div>
-        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-          <p className="text-2xl font-bold text-blue-800">{stats.completed_count || 0}</p>
-          <p className="text-sm text-blue-600">Completed</p>
+        <div className="glass-card rounded-xl p-4 text-center">
+          <div className="text-2xl font-bold text-blue-400">{stats.completed_count || 0}</div>
+          <div className="text-xs text-gray-400">Completed</div>
         </div>
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-          <p className="text-2xl font-bold text-gray-800">{stats.total_bookings || 0}</p>
-          <p className="text-sm text-gray-600">Total</p>
+        <div className="glass-card rounded-xl p-4 text-center">
+          <div className="text-2xl font-bold text-white">{stats.total_bookings || 0}</div>
+          <div className="text-xs text-gray-400">Total</div>
         </div>
       </div>
 
-      {/* Status Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-200">
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-2 border-b border-white/10">
         {['pending', 'accepted', 'completed', 'declined'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 font-medium transition ${
               activeTab === tab
-                ? 'text-primary-600 border-b-2 border-primary-600'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'text-[#00CC99] border-b-2 border-[#00CC99]'
+                : 'text-gray-400 hover:text-white'
             }`}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)} (
-            {bookings.filter(b => b.status === tab).length})
+            {tab.charAt(0).toUpperCase() + tab.slice(1)} ({bookings.filter(b => b.status === tab).length})
           </button>
         ))}
       </div>
 
       {/* Bookings List */}
       {filteredBookings.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <div className="text-5xl mb-4">✎𓂃</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            No {activeTab} booking requests
-          </h3>
-          <p className="text-gray-600">
+        <div className="glass-card rounded-2xl p-12 text-center">
+          <div className="text-5xl mb-4">📭</div>
+          <h3 className="text-xl font-bold text-white mb-2">No {activeTab} booking requests</h3>
+          <p className="text-gray-400">
             {activeTab === 'pending'
               ? "You don't have any pending requests at the moment."
               : `You don't have any ${activeTab} bookings right now.`}
@@ -165,36 +158,21 @@ function TutorBookings() {
       ) : (
         <div className="space-y-4">
           {filteredBookings.map((booking) => (
-            <div
-              key={booking.id}
-              className="bg-[#0f172a] rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition"
-            >
-              <div className="flex items-start justify-between mb-4">
+            <div key={booking.id} className="glass-card rounded-2xl p-6 transition-all hover:border-[#00CC99]/30">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                 <div className="flex items-center gap-4">
                   {booking.student_picture ? (
-                    <img
-                      src={booking.student_picture}
-                      alt={booking.student_name}
-                      className="w-16 h-16 rounded-full object-cover border-2 border-primary-100"
-                    />
+                    <img src={booking.student_picture} alt={booking.student_name} className="w-16 h-16 rounded-full object-cover border-2 border-[#00CC99]" />
                   ) : (
-                    <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center border-2 border-primary-200">
-                      <span className="text-primary-600 font-semibold text-xl">
-                        {booking.student_name?.charAt(0).toUpperCase()}
-                      </span>
+                    <div className="w-16 h-16 rounded-full bg-[#00CC99]/20 flex items-center justify-center border-2 border-[#00CC99]">
+                      <span className="text-[#00CC99] font-bold text-xl">{booking.student_name?.charAt(0).toUpperCase()}</span>
                     </div>
                   )}
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">
-                      {booking.student_name}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Subject: <span className="font-medium">{booking.subject}</span>
-                    </p>
+                    <h3 className="text-lg font-bold text-white">{booking.student_name}</h3>
+                    <p className="text-sm text-gray-400">Subject: <span className="font-medium text-white">{booking.subject}</span></p>
                     {booking.education_level && (
-                      <p className="text-sm text-gray-600">
-                        Level: <span className="font-medium">{booking.education_level}</span>
-                      </p>
+                      <p className="text-sm text-gray-400">Level: <span className="font-medium text-white">{booking.education_level}</span></p>
                     )}
                   </div>
                 </div>
@@ -204,9 +182,9 @@ function TutorBookings() {
               </div>
 
               {booking.message && (
-                <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold">Student's message: </span>
+                <div className="bg-white/5 rounded-xl p-4 mb-4">
+                  <p className="text-sm text-gray-300">
+                    <span className="font-semibold text-white">Student's message: </span>
                     {booking.message}
                   </p>
                 </div>
@@ -215,71 +193,32 @@ function TutorBookings() {
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Preferred Date</p>
-                  <p className="text-sm font-medium text-gray-900">{formatDate(booking.preferred_date)}</p>
+                  <p className="text-sm font-medium text-white">{formatDate(booking.preferred_date)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Preferred Time</p>
-                  <p className="text-sm font-medium text-gray-900">{formatTime(booking.preferred_time)}</p>
+                  <p className="text-sm font-medium text-white">{formatTime(booking.preferred_time)}</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-500">
-                  Requested on {formatDate(booking.created_at)}
-                </p>
-                <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/10">
+                <p className="text-xs text-gray-500">Requested on {formatDate(booking.created_at)}</p>
+                <div className="flex flex-wrap gap-2">
                   {booking.status === 'pending' && (
                     <>
-                      <button
-                        onClick={() => handleUpdateStatus(booking.id, 'accepted')}
-                        className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => handleUpdateStatus(booking.id, 'declined')}
-                        className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                      >
-                        Decline
-                      </button>
+                      <button onClick={() => handleUpdateStatus(booking.id, 'accepted')} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Accept</button>
+                      <button onClick={() => handleUpdateStatus(booking.id, 'declined')} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Decline</button>
                     </>
                   )}
-
                   {booking.status === 'accepted' && (
                     <>
-                      <button
-                        onClick={() => handleUpdateStatus(booking.id, 'completed')}
-                        className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                      >
-                        Mark as Completed
-                      </button>
-                      <button
-                        onClick={() => handleUpdateStatus(booking.id, 'declined')}
-                        className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                      >
-                        Cancel / Decline
-                      </button>
+                      <button onClick={() => handleUpdateStatus(booking.id, 'completed')} className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Mark Completed</button>
+                      <button onClick={() => handleUpdateStatus(booking.id, 'declined')} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Cancel</button>
                     </>
                   )}
-
-                  {booking.status === 'declined' && (
-                    <button
-                      onClick={() => handleUpdateStatus(booking.id, 'accepted')}
-                      className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                    >
-                      Move to Accepted
-                    </button>
+                  {(booking.status === 'declined' || booking.status === 'completed') && (
+                    <button onClick={() => handleUpdateStatus(booking.id, 'accepted')} className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Move to Accepted</button>
                   )}
-
-                  {booking.status === 'completed' && (
-                    <button
-                      onClick={() => handleUpdateStatus(booking.id, 'accepted')}
-                      className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                    >
-                      Move to Accepted
-                    </button>
-                  )}
-
                 </div>
               </div>
             </div>

@@ -53,8 +53,7 @@ function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
-      {/* Navigation Bar - glassmorphism with logo */}
-        <Navbar />
+      {/* Navigation Bar  */}
       {/* Main Content */}
       <div className="pt-24 pb-16 px-6 container mx-auto">
         {activeView === 'bookings' ? (

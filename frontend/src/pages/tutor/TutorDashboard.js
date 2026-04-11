@@ -58,10 +58,10 @@ function TutorDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block w-12 h-12 border-4 border-[#00CC99] border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-400">Loading dashboard...</p>
+          <p className="mt-4 text-gray-400">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -74,7 +74,7 @@ function TutorDashboard() {
       {/* Main Content */}
       <div className="pt-24 pb-16 px-6 container mx-auto">
         {activeView === 'bookings' ? (
-          <TutorBookings />
+          <TutorBookings onBack={() => setActiveView('overview')} />
         ) : activeView === 'reviews' ? (
           <div className="glass-card rounded-3xl p-8">
             <div className="flex justify-between items-center mb-6">

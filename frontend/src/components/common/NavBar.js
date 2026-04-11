@@ -66,11 +66,16 @@ function Navbar() {
             }`}>Browse Tutors</button>
           )}
 
-          {/* GPA AI - visible for students and logged-in users */}
-          {currentUser?.role === 'student' && (showStudentLinks ) && (
-            <button onClick={() => navigate('/gpa')} className={`text-sm font-medium transition ${
-              isActive('/gpa') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
-            }`}>GPA AI</button>
+          {/* GPA AI */}
+          {(currentUser?.role === 'student' || currentUser?.role === 'tutor') && (showStudentLinks || showTutorLinks) && (
+            <button 
+              onClick={() => navigate('/gpa')} 
+              className={`text-sm font-medium transition ${
+                isActive('/gpa') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
+              }`}
+            >
+              GPA AI
+            </button>
           )}
 
           {/* Dashboard - role-specific */}

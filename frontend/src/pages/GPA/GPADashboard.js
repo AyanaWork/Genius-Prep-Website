@@ -6,19 +6,16 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import companyLogo from '../../assets/logos/GA_1.jpeg';
-import Navbar from '../../components/common/NavBar';
 
 function GPADashboard() {
   const navigate = useNavigate();
-  const currentUser = authService.getCurrentUser();
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
   const [hasSubscription, setHasSubscription] = useState(false);
   const [subscription, setSubscription] = useState(null);
   const [freeTier, setFreeTier] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading,setLoading] = useState(true);
 
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
@@ -30,7 +27,6 @@ function GPADashboard() {
 
   const [uploadingPDF, setUploadingPDF] = useState(false);
   const [pdfFile, setPdfFile] = useState(null);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
     checkSubscriptionStatus();
@@ -291,27 +287,8 @@ function GPADashboard() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  const handleLogout = () => {
-    authService.logout();
-    navigate('/');
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-[#00CC99] border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-400">Loading GPA...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
-      {/* Navbar - same as StudentDashboard */}
-        <Navbar />
-
       {/* Main Content */}
       <div className="pt-20 flex h-screen">
         {/* Sidebar */}
