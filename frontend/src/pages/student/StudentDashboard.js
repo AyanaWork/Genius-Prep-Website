@@ -40,6 +40,20 @@ function StudentDashboard() {
 
   const currentUser = authService.getCurrentUser();
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0f172a]">
+        <Navbar />
+        <div className="flex items-center justify-center pt-32">
+          <div className="text-center">
+            <div className="inline-block w-12 h-12 border-4 border-[#00CC99] border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-gray-400">Loading your dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
       {/* Main Content */}
