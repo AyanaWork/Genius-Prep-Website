@@ -160,7 +160,7 @@ function Home() {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00CC99] to-emerald-400">Future Success.</span>
             </h1>
             <p className="text-gray-400 text-lg md:text-xl mb-10 max-w-xl leading-relaxed">
-              Experience South Africa's premier tutoring ecosystem. We pair top-tier academic mentors with driven students to achieve unprecedented results.
+              Experience South Africa's world class tutoring ecosystem. We pair top-tier academic mentors with driven students to achieve unprecedented results.
             </p>
           <div className="flex flex-wrap gap-5">
             {/* Conditionally show "Find a tutor" */}
