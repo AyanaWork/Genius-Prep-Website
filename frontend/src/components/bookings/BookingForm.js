@@ -102,24 +102,23 @@ function TutorProfileForm() {
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
-      <Navbar /> {/* Global navbar replaces the old back button */}
 
       <div className="pt-24 pb-16 px-6 container mx-auto">
         <div className="max-w-5xl mx-auto">
-          <div className="glass-card rounded-3xl p-8 md:p-12">
-            <h1 className="text-3xl md:text-4xl font-black mb-2 text-center">Your Tutor Profile</h1>
-            <p className="text-gray-400 text-center mb-8">Create an impressive profile to attract students</p>
+          {/* <div className="glass-card rounded-3xl p-8 md:p-12"> */}
+            {/* <h1 className="text-3xl md:text-4xl font-black mb-2 text-center">Your Tutor Profile</h1> */}
+            {/* <p className="text-gray-400 text-center mb-8">Create an impressive profile to attract students</p> */}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-lg">{error}</div>}
               {success && <div className="bg-green-500/20 border border-green-500 text-green-300 p-3 rounded-lg">{success}</div>}
 
-              {formData.approval_status && (
+              {/* {formData.approval_status && (
                 <div className={`p-4 rounded-lg border-l-4 ${formData.approval_status === 'approved' ? 'bg-green-500/10 border-green-500' : formData.approval_status === 'rejected' ? 'bg-red-500/10 border-red-500' : 'bg-yellow-500/10 border-yellow-500'}`}>
                   <p className="font-semibold">Status: {formData.approval_status.toUpperCase()}</p>
                   {formData.approval_status === 'pending' && <p className="text-sm">Awaiting admin review.</p>}
                 </div>
-              )}
+              )} */}
 
               <div className="flex flex-col items-center gap-4 pb-6 border-b border-white/10">
                 {formData.profilePictureUrl ? (
@@ -132,7 +131,7 @@ function TutorProfileForm() {
                 <ImageUpload onImageUpload={handleImageUpload} buttonText="Upload Photo" />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold mb-2 text-white">Display Name <span className="text-red-400">*</span></label>
                 <input
                   type="text"
@@ -142,9 +141,9 @@ function TutorProfileForm() {
                   className="w-full px-4 py-3 bg-[#1e2a3a] border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white placeholder-gray-400"
                   required
                 />
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold mb-2 text-white">Bio</label>
                 <textarea
                   name="bio"
@@ -154,9 +153,9 @@ function TutorProfileForm() {
                   className="w-full px-4 py-3 bg-[#1e2a3a] border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white placeholder-gray-400"
                   placeholder="Tell students about your teaching style..."
                 />
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold mb-2 text-white">Qualifications</label>
                 <input
                   type="text"
@@ -166,8 +165,8 @@ function TutorProfileForm() {
                   className="w-full px-4 py-3 bg-[#1e2a3a] border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white placeholder-gray-400"
                   placeholder="BSc Computer Science, TEFL..."
                 />
-              </div>
-
+              </div> */}
+{/* 
               <div>
                 <label className="block text-sm font-semibold mb-3 text-white">Subjects You Teach <span className="text-red-400">*</span></label>
                 {formData.subjects.length > 0 && (
@@ -211,9 +210,9 @@ function TutorProfileForm() {
                 ) : (
                   <button type="button" onClick={() => setShowCustomInput(true)} className="text-[#00CC99] text-sm mt-3 hover:underline">+ Add custom subject</button>
                 )}
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-semibold mb-2 text-white">Module Codes (comma-separated)</label>
                 <input
                   type="text"
@@ -223,7 +222,7 @@ function TutorProfileForm() {
                   className="w-full px-4 py-3 bg-[#1e2a3a] border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white placeholder-gray-400"
                   placeholder="MAT101, PHY201"
                 />
-              </div>
+              </div> */}
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
@@ -285,7 +284,7 @@ function TutorProfileForm() {
                 />
               </div>
 
-              {/* Document uploads */}
+              {/* Document uploads
               <div className="bg-yellow-500/10 border border-yellow-500/30 p-6 rounded-xl">
                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2 text-white">📄 Verification Documents</h3>
                 <p className="text-sm text-gray-300 mb-4">ID and academic transcript required for approval.</p>
@@ -307,8 +306,8 @@ function TutorProfileForm() {
                     className="w-full text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:bg-[#00CC99]/20 file:text-[#00CC99] file:border-0 file:cursor-pointer"
                   />
                 </div>
-              </div>
-
+              </div> */}
+{/* 
               <div className="flex gap-4 pt-6">
                 <button type="submit" disabled={loading} className="flex-1 py-3 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition disabled:opacity-50">
                   {loading ? 'Saving...' : 'Save Profile'}
@@ -316,10 +315,10 @@ function TutorProfileForm() {
                 <button type="button" onClick={() => navigate('/tutor/dashboard')} className="px-6 py-3 glass-card rounded-xl text-white hover:border-[#00CC99]/50">
                   Cancel
                 </button>
-              </div>
+              </div> */}
             </form>
           </div>
-        </div>
+        {/* </div> */}
       </div>
     </div>
   );
