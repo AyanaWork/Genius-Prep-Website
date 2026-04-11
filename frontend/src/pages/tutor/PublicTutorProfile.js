@@ -106,14 +106,13 @@ function PublicTutorProfile() {
       alert('Only students can request tutoring sessions. Please switch to a student account.');
       return;
     }
-    // Switch left sidebar to show booking form instead of tutor details
+    // Replace left sidebar with booking form
     setShowBookingForm(true);
   };
 
   const handleBookingSubmit = async (bookingData) => {
     try {
       await bookingService.createBooking(bookingData);
-      setShowBookingForm(false);
       alert('Booking request sent successfully! The tutor will review your request.');
       navigate('/student/dashboard');
     } catch (err) {
@@ -166,7 +165,7 @@ function PublicTutorProfile() {
           <div className="lg:col-span-1">
             <div className="glass-card rounded-3xl p-6 sticky top-24">
               {showBookingForm ? (
-                // Show booking form with tutor basic info
+                // Booking form with tutor basic info
                 <>
                   <div className="text-center mb-6">
                     {tutor.profile_picture_url ? (
@@ -194,7 +193,7 @@ function PublicTutorProfile() {
                   </button>
                 </>
               ) : (
-                // Normal tutor profile sidebar
+                // Tutor profile summary (initial view)
                 <>
                   <div className="text-center mb-6">
                     {tutor.profile_picture_url ? (
