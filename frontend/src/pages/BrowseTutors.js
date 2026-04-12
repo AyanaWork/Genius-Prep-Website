@@ -5,7 +5,6 @@ import authService from '../services/auth';
 import StarRating from '../components/common/StarRating';
 import Navbar from '../components/common/NavBar';
 
-
 function BrowseTutors() {
   const navigate = useNavigate();
   const [tutors, setTutors] = useState([]);
@@ -66,7 +65,7 @@ function BrowseTutors() {
               <select
                 value={filters.subject}
                 onChange={handleSubjectFilter}
-                className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white"
+                className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl focus:border-[#00CC99] focus:outline-none text-white"
               >
                 <option value="">All Subjects</option>
                 <option value="Mathematics">Mathematics</option>
@@ -90,7 +89,7 @@ function BrowseTutors() {
               <select
                 value={filters.availabilityStatus}
                 onChange={(e) => setFilters({ ...filters, availabilityStatus: e.target.value })}
-                className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white"
+                className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl focus:border-[#00CC99] focus:outline-none text-white"
               >
                 <option value="">All Tutors</option>
                 <option value="active">Available Now</option>
