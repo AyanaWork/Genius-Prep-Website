@@ -21,6 +21,7 @@ import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
 import RefundPolicy from './pages/Legal/RefundPolicy';
 import PricingAndLegal from './pages/Legal/PricingAndLegal';
 import AdminBookings from './pages/Admin/AdminBookings';
+import Layout from './components/layouts/Layout';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRole }) {
@@ -44,70 +45,65 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/tutors" element={<BrowseTutors />} /> 
-        <Route path="/tutors/:id" element={<PublicTutorProfile />} />
-        
-        <Route 
-          path="/tutor/dashboard" 
-          element={
-            <ProtectedRoute allowedRole="tutor">
-              <TutorDashboard />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/student/dashboard" 
-          element={
+
+        {/* Routes with persistent Navbar */}
+        <Route element={<Layout />}>
+          <Route path="/tutors" element={<BrowseTutors />} />
+          <Route path="/tutors/:id" element={<PublicTutorProfile />} />
+
+          {/* Student Routes */}
+          <Route path="/student/dashboard" element={
             <ProtectedRoute allowedRole="student">
               <StudentDashboard />
             </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/tutor/profile/edit" 
-          element={
-            <ProtectedRoute allowedRole="tutor">
-              <TutorProfileForm />
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route 
-          path="/student/profile/edit" 
-          element={
+          } />
+          <Route path="/student/profile/edit" element={
             <ProtectedRoute allowedRole="student">
               <StudentProfileForm />
             </ProtectedRoute>
-          } 
-        />
+          } />
 
-        <Route path="*" element={<Navigate to="/" />} />
+          {/* Tutor Routes */}
+          <Route path="/tutor/dashboard" element={
+            <ProtectedRoute allowedRole="tutor">
+              <TutorDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/tutor/profile/edit" element={
+            <ProtectedRoute allowedRole="tutor">
+              <TutorProfileForm />
+            </ProtectedRoute>
+          } />
 
-        {/* GPA Route (both students and tutors can access) */}
-        <Route
-          path="/gpa"
-          element={
+          {/* GPA Route */}
+          <Route path="/gpa" element={
             <ProtectedRoute>
               <GPADashboard />
             </ProtectedRoute>
-          }
-        />
-        
-        <Route path="/admin/tutors" element={<TutorApprovalPanel />} />
+          } />
+
+          {/* Admin Routes (optional) */}
+          <Route path="/admin/dashboard" element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/bookings" element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminBookings />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/tutors" element={<TutorApprovalPanel />} />
+        </Route>
+
+        {/* Routes without Navbar */}
         <Route path="/subscription" element={<SubscriptionPage />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/cancel" element={<PaymentCancel />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-
-        {/* Legal Pages */}
         <Route path="/terms" element={<TermsAndConditions />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/pricing-legal" element={<PricingAndLegal />} />
-
-        <Route path="/admin/bookings" element={<AdminBookings />} />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

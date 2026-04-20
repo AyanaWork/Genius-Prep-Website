@@ -80,7 +80,7 @@ function Chat({ recipientId, recipientName, recipientPicture, onClose }) {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 w-96 h-[600px] bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50">
+    <div className="fixed bottom-4 right-4 w-96 h-[600px] bg-[#0f172a] rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50">
       {/* Chat Header */}
       <div className="bg-primary-600 text-white p-4 rounded-t-lg flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -91,7 +91,7 @@ function Chat({ recipientId, recipientName, recipientPicture, onClose }) {
               className="w-10 h-10 rounded-full border-2 border-white"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center border-2 border-white">
+            <div className="w-10 h-10 rounded-full bg-[#0f172a]/20 flex items-center justify-center border-2 border-white">
               <span className="font-semibold text-lg">
                 {recipientName?.charAt(0).toUpperCase()}
               </span>
@@ -104,7 +104,7 @@ function Chat({ recipientId, recipientName, recipientPicture, onClose }) {
         </div>
         <button
           onClick={onClose}
-          className="text-white hover:bg-white/20 rounded-full p-2 transition"
+          className="text-white hover:bg-[#0f172a]/20 rounded-full p-2 transition"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -140,7 +140,7 @@ function Chat({ recipientId, recipientName, recipientPicture, onClose }) {
                       className={`rounded-lg px-4 py-2 ${
                         isOwnMessage
                           ? 'bg-primary-600 text-white'
-                          : 'bg-white text-gray-900 border border-gray-200'
+                          : 'bg-[#0f172a] text-gray-900 border border-gray-200'
                       }`}
                     >
                       <p className="text-sm whitespace-pre-wrap break-words">
@@ -164,7 +164,7 @@ function Chat({ recipientId, recipientName, recipientPicture, onClose }) {
       </div>
 
       {/* Message Input */}
-      <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-gray-200">
+      <form onSubmit={handleSendMessage} className="p-4 bg-[#0f172a] border-t border-gray-200">
         <div className="flex gap-2">
           <input
             type="text"

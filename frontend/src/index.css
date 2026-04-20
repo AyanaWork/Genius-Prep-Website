@@ -10,6 +10,76 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #f9f9f9;
-  color: #333;
+  background-color: #0f172a; /* Deep Slate Background */
+  color: #f8fafc;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Caribbean Green Gradient Shift */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 10s ease infinite;
+}
+
+/* Glassmorphism Classes */
+.glass-nav {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(0, 204, 153, 0.08);
+  border-color: rgba(0, 204, 153, 0.4);
+  transform: translateY(-8px);
+}
+
+/* Counter & Text Glow */
+.text-glow-green {
+  text-shadow: 0 0 15px rgba(0, 204, 153, 0.4);
+}
+
+/* Standard Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fadeUp 0.8s ease-out forwards;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #00CC99;
+  border-radius: 10px;
 }

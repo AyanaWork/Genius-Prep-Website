@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import profileService from '../services/profile';
 import authService from '../services/auth';
 import StarRating from '../components/common/StarRating';
+import Navbar from '../components/common/NavBar';
 
 function BrowseTutors() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ function BrowseTutors() {
     subject: '',
     availabilityStatus: 'active'
   });
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const currentUser = authService.getCurrentUser();
 
@@ -38,68 +40,32 @@ function BrowseTutors() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <button
-              onClick={() => navigate('/')}
-              className="text-2xl font-bold text-primary-800"
-            >
-              Genius Prep Tuition
-            </button>
-            <div className="flex items-center gap-4">
-              {currentUser ? (
-                <button
-                  onClick={() => navigate(`/${currentUser.role}/dashboard`)}
-                  className="text-gray-700 hover:text-primary-600 transition"
-                >
-                  Dashboard
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={() => navigate('/login')}
-                    className="text-gray-700 hover:text-primary-600 transition"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => navigate('/register')}
-                    className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
-                  >
-                    Get Started
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-[#0f172a] text-white">
+      {/* Navbar - identical to StudentDashboard */}
 
-      {/* Header Section */}
-      <div className="bg-gradient-to-br from-primary-900 to-primary-800 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Find Your Perfect Tutor</h1>
-          <p className="text-xl text-gray-200">
-            Browse our verified tutors and find the perfect match for your learning needs
-          </p>
-        </div>
+      {/* Hero Header */}
+      <div className="pt-24 pb-12 px-6 text-center">
+        <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">
+          Find Your Perfect Tutor
+        </h1>
+        <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          Browse our verified tutors and find the perfect match for your learning needs
+        </p>
       </div>
 
-      {/* Filters Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+      {/* Main Content */}
+      <div className="container mx-auto px-6 pb-16">
+        {/* Filters Section */}
+        <div className="glass-card rounded-2xl p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-white/80 mb-2">
                 Filter by Subject
               </label>
               <select
                 value={filters.subject}
                 onChange={handleSubjectFilter}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl focus:border-[#00CC99] focus:outline-none text-white"
               >
                 <option value="">All Subjects</option>
                 <option value="Mathematics">Mathematics</option>
@@ -117,13 +83,13 @@ function BrowseTutors() {
               </select>
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-white/80 mb-2">
                 Availability
               </label>
               <select
                 value={filters.availabilityStatus}
                 onChange={(e) => setFilters({ ...filters, availabilityStatus: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl focus:border-[#00CC99] focus:outline-none text-white"
               >
                 <option value="">All Tutors</option>
                 <option value="active">Available Now</option>
@@ -135,7 +101,7 @@ function BrowseTutors() {
 
         {/* Results Count */}
         <div className="mb-6">
-          <p className="text-gray-600">
+          <p className="text-gray-400">
             {loading ? 'Loading...' : `${tutors.length} ${tutors.length === 1 ? 'tutor' : 'tutors'} found`}
           </p>
         </div>
@@ -143,37 +109,37 @@ function BrowseTutors() {
         {/* Loading State */}
         {loading && (
           <div className="text-center py-12">
-            <div className="inline-block w-12 h-12 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-gray-600">Finding tutors...</p>
+            <div className="inline-block w-12 h-12 border-4 border-[#00CC99] border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-gray-400">Finding tutors...</p>
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
 
         {/* Tutors Grid */}
         {!loading && tutors.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl">
+          <div className="glass-card rounded-2xl p-12 text-center">
             <div className="text-6xl mb-4">🔍︎</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No tutors found</h3>
-            <p className="text-gray-600">Try adjusting your filters</p>
+            <h3 className="text-xl font-bold mb-2">No tutors found</h3>
+            <p className="text-gray-400">Try adjusting your filters</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tutors.map((tutor) => (
               <div
                 key={tutor.id}
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden cursor-pointer"
+                className="glass-card rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:border-[#00CC99]/40"
                 onClick={() => navigate(`/tutors/${tutor.id}`)}
               >
-                {/* Card Header */}
-                <div className="h-32 bg-gradient-to-br from-primary-500 to-primary-600 relative">
+                {/* Card Header Gradient */}
+                <div className="h-32 bg-gradient-to-r from-[#00CC99]/20 to-emerald-500/20 relative">
                   {tutor.is_elite && (
-                    <div className="absolute top-3 right-3 px-3 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-bold">
+                    <div className="absolute top-3 right-3 px-3 py-1 bg-yellow-500/80 text-yellow-900 rounded-full text-xs font-bold">
                       ★ Elite
                     </div>
                   )}
@@ -185,11 +151,11 @@ function BrowseTutors() {
                     <img
                       src={tutor.profile_picture_url}
                       alt={tutor.display_name}
-                      className="w-24 h-24 rounded-full border-4 border-white object-cover mx-auto"
+                      className="w-24 h-24 rounded-full border-4 border-[#0f172a] object-cover mx-auto"
                     />
                   ) : (
-                    <div className="w-24 h-24 rounded-full border-4 border-white bg-primary-100 flex items-center justify-center mx-auto">
-                      <span className="text-primary-600 font-bold text-2xl">
+                    <div className="w-24 h-24 rounded-full border-4 border-[#0f172a] bg-[#00CC99]/20 flex items-center justify-center mx-auto">
+                      <span className="text-[#00CC99] font-bold text-2xl">
                         {tutor.display_name?.charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -198,20 +164,20 @@ function BrowseTutors() {
 
                 {/* Card Content */}
                 <div className="p-6 pt-4">
-                  <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                  <h3 className="text-xl font-bold text-center mb-2">
                     {tutor.display_name}
                   </h3>
 
                   {/* Rating */}
                   <div className="flex items-center justify-center gap-2 mb-4">
                     <StarRating rating={parseFloat(tutor.average_rating || 0)} size="small" />
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-400">
                       ({tutor.review_count || 0})
                     </span>
                   </div>
 
                   {/* Bio Preview */}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2 text-center">
+                  <p className="text-gray-400 text-sm mb-4 line-clamp-2 text-center">
                     {tutor.bio || 'Experienced tutor ready to help you succeed'}
                   </p>
 
@@ -220,37 +186,37 @@ function BrowseTutors() {
                     {tutor.subjects && tutor.subjects.slice(0, 3).map((subject, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-xs font-medium"
+                        className="px-3 py-1 bg-[#00CC99]/10 text-[#00CC99] rounded-full text-xs font-medium border border-[#00CC99]/20"
                       >
                         {subject}
                       </span>
                     ))}
                     {tutor.subjects && tutor.subjects.length > 3 && (
-                      <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                      <span className="px-3 py-1 bg-[#0f172a]/5 text-gray-400 rounded-full text-xs font-medium">
                         +{tutor.subjects.length - 3} more
                       </span>
                     )}
                   </div>
 
                   {/* Stats */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
                     <div className="text-center">
-                      <div className="text-sm font-semibold text-gray-900">
+                      <div className="text-sm font-semibold text-white">
                         {tutor.years_experience || 0} years
                       </div>
-                      <div className="text-xs text-gray-500">Experience</div>
+                      <div className="text-xs text-gray-400">Experience</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-sm font-semibold text-primary-600">
+                      <div className="text-sm font-semibold text-[#00CC99]">
                         R{tutor.hourly_rate || 0}/hr
                       </div>
-                      <div className="text-xs text-gray-500">Rate</div>
+                      <div className="text-xs text-gray-400">Rate</div>
                     </div>
                     <div className="text-center">
                       <span className={`inline-block w-3 h-3 rounded-full ${
                         tutor.availability_status === 'active' ? 'bg-green-500' : 'bg-red-500'
                       }`}></span>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-400 mt-1">
                         {tutor.availability_status === 'active' ? 'Available' : 'Busy'}
                       </div>
                     </div>
