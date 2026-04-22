@@ -14,6 +14,8 @@ const allowedOrigins = [
   "https://www.geniuspreptuition.com",
   "https://genius-prep-website.vercel.app",
   "https://genius-prep-tuition.vercel.app",
+  "https://www.geniusaccelerator.co.za",
+  "https://geniusaccelerator.co.za",  
   process.env.FRONTEND_URL,
   "http://localhost:3000",
 ].filter(Boolean); // removes undefined entries
