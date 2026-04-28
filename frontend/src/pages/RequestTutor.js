@@ -160,13 +160,6 @@ function RequestTutor() {
     <div className="px-4 pt-24 pb-12">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <img src={companyLogo} alt="Logo" className="h-12 w-auto object-contain" />
-            <div className="flex flex-col leading-none text-left">
-              <span className="text-[#00CC99] font-black text-xl tracking-tighter">GENIUS</span>
-              <span className="text-white/90 font-light text-xs tracking-[0.2em]">ACCELERATOR</span>
-            </div>
-          </div>
           <h1 className="text-3xl md:text-4xl font-black mb-2">Request a Tutor</h1>
           <p className="text-gray-400">
             Fill in a few details and our team will hand-pick a shortlist for you.
