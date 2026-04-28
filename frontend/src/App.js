@@ -10,6 +10,7 @@ import StudentProfileForm from './pages/student/StudentProfileForm';
 import PublicTutorProfile from './pages/tutor/PublicTutorProfile';
 import BrowseTutors from './pages/BrowseTutors';
 import RequestTutor from './pages/RequestTutor';
+import Documents from './pages/Documents';
 import authService from './services/auth';
 import GPADashboard from './pages/GPA/GPADashboard';
 import TutorApprovalPanel from './pages/Admin/TutorApprovalPanel';
@@ -24,18 +25,10 @@ import PricingAndLegal from './pages/Legal/PricingAndLegal';
 import AdminBookings from './pages/Admin/AdminBookings';
 import Layout from './components/layouts/Layout';
 
-// Protected Route Component
 function ProtectedRoute({ children, allowedRole }) {
   const user = authService.getCurrentUser();
-
-  if (!authService.isLoggedIn()) {
-    return <Navigate to="/login" />;
-  }
-
-  if (allowedRole && user.role !== allowedRole) {
-    return <Navigate to={`/${user.role}/dashboard`} />;
-  }
-
+  if (!authService.isLoggedIn()) return <Navigate to="/login" />;
+  if (allowedRole && user.role !== allowedRole) return <Navigate to={`/${user.role}/dashboard`} />;
   return children;
 }
 
@@ -47,12 +40,15 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Routes with persistent Navbar */}
         <Route element={<Layout />}>
           <Route path="/tutors" element={<BrowseTutors />} />
           <Route path="/tutors/:id" element={<PublicTutorProfile />} />
-          {/* Public — no login required for the tutor request form */}
           <Route path="/request-tutor" element={<RequestTutor />} />
+          <Route path="/documents" element={
+            <ProtectedRoute>
+              <Documents />
+            </ProtectedRoute>
+          } />
 
           <Route path="/student/dashboard" element={
             <ProtectedRoute allowedRole="student">
@@ -95,7 +91,6 @@ function App() {
           <Route path="/admin/tutors" element={<TutorApprovalPanel />} />
         </Route>
 
-        {/* Routes without Navbar */}
         <Route path="/subscription" element={<SubscriptionPage />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/cancel" element={<PaymentCancel />} />
