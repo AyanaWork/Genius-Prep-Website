@@ -6,6 +6,10 @@ const pool = require("./config/database");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust the first proxy (Vercel/Render/etc.) so req.ip and rate-limit
+// keying are based on the real client IP and not the proxy's.
+app.set('trust proxy', 1);
+
 // ============================================
 // CORS CONFIGURATION
 // ============================================
@@ -62,6 +66,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const adminBookingRoutes = require("./routes/adminBookingRoutes");
+const tutorRequestRoutes = require("./routes/tutorRequestRoutes");
 
 // ============================================
 // TEST ROUTES
@@ -97,6 +102,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/admin", adminBookingRoutes);
+app.use("/api/tutor-requests", tutorRequestRoutes);
 
 app.get("/api/test-payment-route", (req, res) => {
   res.json({ message: "Payment routes loaded", version: "1.0.1" });

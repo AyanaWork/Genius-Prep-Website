@@ -66,6 +66,11 @@ function Navbar() {
             }`}>Browse Tutors</button>
           )}
 
+          {/* Request a Tutor - visible to everyone (public form) */}
+          <button onClick={() => navigate('/request-tutor')} className={`text-sm font-medium transition ${
+            isActive('/request-tutor') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
+          }`}>Request a Tutor</button>
+
           {/* GPA AI */}
           {(currentUser?.role === 'student' || currentUser?.role === 'tutor') && (showStudentLinks || showTutorLinks) && (
             <button 
@@ -171,6 +176,7 @@ function Navbar() {
           <div className="container mx-auto px-6 flex flex-col gap-3">
             <button onClick={() => { navigate('/'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Home</button>
             <button onClick={() => { navigate('/tutors'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Browse Tutors</button>
+            <button onClick={() => { navigate('/request-tutor'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Request a Tutor</button>
             {currentUser && (showStudentLinks || showTutorLinks) && (
               <button onClick={() => { navigate('/gpa'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">GPA AI</button>
             )}

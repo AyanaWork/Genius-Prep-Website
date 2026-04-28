@@ -22,9 +22,28 @@ class ProfileService {
     return response.data;
   }
 
+  // List tutors with filters + pagination + sort.
+  // Returns { tutors, count, total, page, limit, totalPages }
   async getAllTutors(filters = {}) {
-    const params = new URLSearchParams(filters).toString();
+    // Drop empty values so we don't ship `subject=` to the API.
+    const cleaned = Object.fromEntries(
+      Object.entries(filters).filter(([, v]) => v !== '' && v !== undefined && v !== null)
+    );
+    const params = new URLSearchParams(cleaned).toString();
     const response = await api.get(`/tutors/all?${params}`);
+    return response.data;
+  }
+
+  // Free-text search (used by the search bar / autocomplete).
+  async searchTutors(q) {
+    const response = await api.get(`/tutors/search?q=${encodeURIComponent(q)}`);
+    return response.data;
+  }
+
+  // Distinct module codes across all approved tutors. Cached in-memory
+  // by the BrowseTutors page after first load.
+  async getModuleCodes() {
+    const response = await api.get('/tutors/module-codes');
     return response.data;
   }
 
@@ -51,16 +70,12 @@ class ProfileService {
 
   // Image upload
   async uploadImage(imageData) {
-    // imageData can be a File object (from input) or base64 string
     if (imageData instanceof File) {
       const formData = new FormData();
       formData.append('image', imageData);
-      const response = await api.post('/upload/image', formData, {
-        
-      });
+      const response = await api.post('/upload/image', formData, {});
       return response.data;
     } else {
-      // base64 string
       const response = await api.post('/upload/image', { image: imageData });
       return response.data;
     }

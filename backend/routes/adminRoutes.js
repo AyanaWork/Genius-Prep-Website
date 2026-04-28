@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
+const tutorRequestController = require('../controllers/tutorRequestController');
 const auth = require('../middleware/auth');
 
 // Middleware to check if user is admin
@@ -21,6 +22,12 @@ router.get('/stats', adminController.getStats);
 // Users management
 router.get('/users', adminController.getAllUsers);
 
+// Phone / contact lookup (audit-logged)
+router.get('/users/:userId/contact', adminController.getUserContact);
+
+// Audit log viewer
+router.get('/audit-log', adminController.getAuditLog);
+
 // Tutors management
 router.get('/tutors/pending', adminController.getPendingTutors);
 router.get('/tutors/:tutorId', adminController.getTutorById);
@@ -28,6 +35,13 @@ router.post('/tutors/:tutorId/approve', adminController.approveTutor);
 router.post('/tutors/:tutorId/reject', adminController.rejectTutor);
 router.get('/tutors', adminController.getAllTutorsAdmin);
 router.patch('/tutors/:tutorId/elite', adminController.toggleTutorElite);
+
+// Tutor requests (Feature 3) — admin-only management of incoming
+// "Request a Tutor" form submissions.
+router.get('/tutor-requests', tutorRequestController.adminListRequests);
+router.get('/tutor-requests/:id', tutorRequestController.adminGetRequest);
+router.patch('/tutor-requests/:id', tutorRequestController.adminUpdateRequest);
+router.get('/tutor-requests/:id/shortlist', tutorRequestController.adminGetShortlist);
 
 // Subscriptions management
 router.get('/subscriptions', adminController.getAllSubscriptions);

@@ -8,13 +8,14 @@ class StudentProfile {
       education_level: educationLevel,
       subjects_interested: subjectsInterested,
       location,
-      profile_picture_url: profilePictureUrl
+      profile_picture_url: profilePictureUrl,
+      phone_number: phoneNumber
     } = profileData;
 
     const query = `
-      INSERT INTO student_profiles 
-      (user_id, display_name, education_level, subjects_interested, location, profile_picture_url)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO student_profiles
+      (user_id, display_name, education_level, subjects_interested, location, profile_picture_url, phone_number)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `;
 
@@ -24,7 +25,8 @@ class StudentProfile {
       educationLevel,
       subjectsInterested,
       location,
-      profilePictureUrl || null
+      profilePictureUrl || null,
+      phoneNumber || null
     ]);
 
     return result.rows[0];
@@ -44,19 +46,21 @@ class StudentProfile {
       education_level: educationLevel,
       subjects_interested: subjectsInterested,
       location,
-      profile_picture_url: profilePictureUrl
+      profile_picture_url: profilePictureUrl,
+      phone_number: phoneNumber
     } = profileData;
 
     const query = `
       UPDATE student_profiles
-      SET 
+      SET
         display_name = COALESCE($1, display_name),
         education_level = COALESCE($2, education_level),
         subjects_interested = COALESCE($3, subjects_interested),
         location = COALESCE($4, location),
         profile_picture_url = COALESCE($5, profile_picture_url),
+        phone_number = COALESCE($6, phone_number),
         updated_at = CURRENT_TIMESTAMP
-      WHERE user_id = $6
+      WHERE user_id = $7
       RETURNING *
     `;
 
@@ -66,10 +70,18 @@ class StudentProfile {
       subjectsInterested,
       location,
       profilePictureUrl,
+      phoneNumber || null,
       userId
     ]);
 
     return result.rows[0];
+  }
+
+  // Strip private fields before returning to non-admin callers.
+  static toPublic(profile) {
+    if (!profile) return profile;
+    const { phone_number, ...safe } = profile;
+    return safe;
   }
 }
 

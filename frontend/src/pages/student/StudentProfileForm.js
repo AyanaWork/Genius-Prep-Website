@@ -12,7 +12,7 @@ function StudentProfileForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [formData, setFormData] = useState({ displayName: '', educationLevel: '', subjectsInterested: [], location: '', profilePictureUrl: null });
+  const [formData, setFormData] = useState({ displayName: '', educationLevel: '', subjectsInterested: [], location: '', phoneNumber: '', profilePictureUrl: null });
   const [customSubject, setCustomSubject] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
 
@@ -26,6 +26,7 @@ function StudentProfileForm() {
         educationLevel: res.profile.education_level || '',
         subjectsInterested: res.profile.subjects_interested || [],
         location: res.profile.location || '',
+        phoneNumber: res.profile.phone_number || '',
         profilePictureUrl: res.profile.profile_picture_url || null
       });
     } catch (err) { console.error(err); }
@@ -50,6 +51,8 @@ function StudentProfileForm() {
     e.preventDefault();
     setError('');
     if (!formData.displayName.trim()) return setError('Please enter your name');
+    if (!formData.phoneNumber.trim()) return setError('Please enter your phone number — admin needs it to reach you');
+    if (!/^[+0-9 ()\-]{6,20}$/.test(formData.phoneNumber.trim())) return setError('Please enter a valid phone number');
     setLoading(true);
     try {
       await profileService.updateStudentProfile({
@@ -57,6 +60,7 @@ function StudentProfileForm() {
         education_level: formData.educationLevel,
         subjects_interested: formData.subjectsInterested,
         location: formData.location,
+        phone_number: formData.phoneNumber.trim(),
         profile_picture_url: formData.profilePictureUrl
       });
       setSuccess('Profile saved! Redirecting...');
@@ -106,6 +110,24 @@ function StudentProfileForm() {
                   <label className="block text-sm font-semibold mb-2">Location</label>
                   <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white" placeholder="e.g., Pretoria" />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">
+                  Phone Number <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-[#0f172a]/5 border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white"
+                  placeholder="+27 82 123 4567"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  🔒 Only visible to the Genius Prep admin team — never shown publicly.
+                </p>
               </div>
 
               <div>

@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const { logAdminAction } = require('../utils/auditLog');
 
 // Get platform statistics
 exports.getStats = async (req, res) => {
@@ -59,18 +60,20 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// Get all pending tutors for approval
+// Get all pending tutors for approval.
+// Phone numbers are returned here because this endpoint is gated by
+// adminAuth — see adminRoutes.js where router.use(isAdmin) is applied.
 exports.getPendingTutors = async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT 
+      SELECT
         tp.*,
         u.email,
-        (SELECT document_url FROM tutor_documents 
-         WHERE tutor_id = tp.id AND document_type = 'id_document' 
+        (SELECT document_url FROM tutor_documents
+         WHERE tutor_id = tp.id AND document_type = 'id_document'
          ORDER BY uploaded_at DESC LIMIT 1) as id_document_url,
-        (SELECT document_url FROM tutor_documents 
-         WHERE tutor_id = tp.id AND document_type = 'academic_transcript' 
+        (SELECT document_url FROM tutor_documents
+         WHERE tutor_id = tp.id AND document_type = 'academic_transcript'
          ORDER BY uploaded_at DESC LIMIT 1) as transcript_url
       FROM tutor_profiles tp
       JOIN users u ON tp.user_id = u.id
@@ -127,8 +130,8 @@ exports.approveTutor = async (req, res) => {
     const { tutorId } = req.params;
 
     const result = await pool.query(`
-      UPDATE tutor_profiles 
-      SET 
+      UPDATE tutor_profiles
+      SET
         approval_status = 'approved',
         approved_at = CURRENT_TIMESTAMP,
         updated_at = CURRENT_TIMESTAMP
@@ -139,6 +142,15 @@ exports.approveTutor = async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Tutor not found' });
     }
+
+    // Audit: who approved which tutor.
+    logAdminAction({
+      adminUserId: req.userId,
+      action: 'approved_tutor',
+      targetType: 'tutor',
+      targetId: parseInt(tutorId, 10),
+      ipAddress: req.ip
+    });
 
     res.json({
       message: 'Tutor approved successfully',
@@ -175,6 +187,16 @@ exports.rejectTutor = async (req, res) => {
       return res.status(404).json({ error: 'Tutor not found' });
     }
 
+    // Audit: who rejected, with reason.
+    logAdminAction({
+      adminUserId: req.userId,
+      action: 'rejected_tutor',
+      targetType: 'tutor',
+      targetId: parseInt(tutorId, 10),
+      metadata: { reason },
+      ipAddress: req.ip
+    });
+
     res.json({
       message: 'Tutor rejected',
       tutor: result.rows[0]
@@ -182,6 +204,92 @@ exports.rejectTutor = async (req, res) => {
   } catch (error) {
     console.error('Reject tutor error:', error);
     res.status(500).json({ error: 'Failed to reject tutor' });
+  }
+};
+
+/**
+ * Get contact details (email + phone) for a user — admin only.
+ * Logged to admin_audit_log every time so we can answer "who saw whose
+ * phone number, when?".
+ *
+ * Pass `?type=tutor` or `?type=student`. If omitted we infer from role.
+ */
+exports.getUserContact = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { type } = req.query;
+
+    // Look up the role first if type wasn't given.
+    const userResult = await pool.query(
+      'SELECT id, email, role FROM users WHERE id = $1',
+      [userId]
+    );
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const user = userResult.rows[0];
+    const resolvedType = type || user.role;
+
+    let phoneRow = null;
+    if (resolvedType === 'tutor') {
+      const r = await pool.query(
+        'SELECT display_name, phone_number FROM tutor_profiles WHERE user_id = $1',
+        [userId]
+      );
+      phoneRow = r.rows[0] || null;
+    } else if (resolvedType === 'student') {
+      const r = await pool.query(
+        'SELECT display_name, phone_number FROM student_profiles WHERE user_id = $1',
+        [userId]
+      );
+      phoneRow = r.rows[0] || null;
+    }
+
+    // Audit: who looked up which user's contact details.
+    logAdminAction({
+      adminUserId: req.userId,
+      action: 'viewed_contact',
+      targetType: resolvedType,
+      targetId: parseInt(userId, 10),
+      ipAddress: req.ip
+    });
+
+    res.json({
+      contact: {
+        userId: user.id,
+        role: user.role,
+        displayName: phoneRow?.display_name || null,
+        email: user.email,
+        phoneNumber: phoneRow?.phone_number || null
+      }
+    });
+  } catch (error) {
+    console.error('Get user contact error:', error);
+    res.status(500).json({ error: 'Failed to fetch contact details' });
+  }
+};
+
+/**
+ * Recent admin audit entries — supports a "who did what" page.
+ */
+exports.getAuditLog = async (req, res) => {
+  try {
+    const { limit = 100 } = req.query;
+    const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 100, 1), 500);
+    const result = await pool.query(`
+      SELECT
+        a.id, a.action, a.target_type, a.target_id, a.metadata,
+        a.ip_address, a.created_at,
+        u.email AS admin_email
+      FROM admin_audit_log a
+      LEFT JOIN users u ON a.admin_user_id = u.id
+      ORDER BY a.created_at DESC
+      LIMIT $1
+    `, [safeLimit]);
+    res.json({ entries: result.rows });
+  } catch (error) {
+    console.error('Get audit log error:', error);
+    res.status(500).json({ error: 'Failed to fetch audit log' });
   }
 };
 

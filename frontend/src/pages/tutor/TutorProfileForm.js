@@ -16,7 +16,9 @@ function TutorProfileForm() {
   const [idDocument, setIdDocument] = useState(null);
   const [transcript, setTranscript] = useState(null);
   const [formData, setFormData] = useState({
-    displayName: '', bio: '', qualifications: '', subjects: [], moduleCodes: '', hourlyRate: '', yearsExperience: '', teachingMode: 'both', location: '', profilePictureUrl: null,
+    displayName: '', bio: '', qualifications: '', subjects: [], moduleCodes: '', hourlyRate: '', yearsExperience: '', teachingMode: 'both', location: '',
+    phoneNumber: '',
+    profilePictureUrl: null,
     id_document_url: null, transcript_url: null, approval_status: 'pending'
   });
   const [customSubject, setCustomSubject] = useState('');
@@ -37,6 +39,7 @@ function TutorProfileForm() {
         yearsExperience: res.profile.years_experience || '',
         teachingMode: res.profile.teaching_mode || 'both',
         location: res.profile.location || '',
+        phoneNumber: res.profile.phone_number || '',
         profilePictureUrl: res.profile.profile_picture_url || null,
         id_document_url: res.profile.id_document_url || null,
         transcript_url: res.profile.transcript_url || null,
@@ -64,6 +67,8 @@ function TutorProfileForm() {
     e.preventDefault();
     setError('');
     if (!formData.displayName.trim()) return setError('Please enter your name');
+    if (!formData.phoneNumber.trim()) return setError('Please enter your phone number — admin needs it to reach you');
+    if (!/^[+0-9 ()\-]{6,20}$/.test(formData.phoneNumber.trim())) return setError('Please enter a valid phone number');
     if (formData.subjects.length === 0) return setError('Select at least one subject');
     setLoading(true);
     try {
@@ -89,6 +94,7 @@ function TutorProfileForm() {
         years_experience: parseInt(formData.yearsExperience) || 0,
         teaching_mode: formData.teachingMode,
         location: formData.location,
+        phone_number: formData.phoneNumber.trim(),
         profile_picture_url: formData.profilePictureUrl,
         id_document_url: idDocUrl,
         transcript_url: transcriptUrl
@@ -201,9 +207,28 @@ function TutorProfileForm() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-white">Location</label>
-                <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full px-4 py-3 bg-[#1e2a3a] border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white placeholder-gray-400" placeholder="Cape Town, Western Cape" />
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-white">Location</label>
+                  <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full px-4 py-3 bg-[#1e2a3a] border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white placeholder-gray-400" placeholder="Cape Town, Western Cape" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-white">
+                    Phone Number <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 bg-[#1e2a3a] border border-white/10 rounded-xl focus:border-[#00CC99] focus:outline-none text-white placeholder-gray-400"
+                    placeholder="+27 82 123 4567"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    🔒 Only visible to the Genius Prep admin team — never shown publicly.
+                  </p>
+                </div>
               </div>
 
               <div className="bg-yellow-500/10 border border-yellow-500/30 p-6 rounded-xl">
