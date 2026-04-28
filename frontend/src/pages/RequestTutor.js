@@ -3,20 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import tutorRequestService from '../services/tutorRequest';
 import companyLogo from '../assets/logos/GA_1.jpeg';
 
-/**
- * RequestTutor (Feature 3)
- * ------------------------
- * Public, no-auth multi-step form. Anyone — students who don't want to
- * browse, parents, or bursaries placing students in bulk — can submit a
- * request and the admin team picks up the matching from the dashboard.
- *
- * Steps:
- *   1) About you (name, email, phone, requester type)
- *   2) Academic needs (level, subjects, module codes)
- *   3) Logistics (budget, format, location, number of students)
- *   4) Review & submit
- */
-
 const SUBJECT_OPTIONS = [
   'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Afrikaans',
   'History', 'Geography', 'Accounting', 'Economics', 'Life Sciences',

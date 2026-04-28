@@ -4,20 +4,6 @@ import profileService from '../services/profile';
 import authService from '../services/auth';
 import StarRating from '../components/common/StarRating';
 
-/**
- * BrowseTutors
- * ------------
- * Enhancements over the previous version:
- *   1. Search bar with debounced typing + module-code autocomplete.
- *   2. Sort options (elite/rating/price/newest).
- *   3. Skeleton loaders instead of a spinner.
- *   4. Pagination (LIMIT/OFFSET on the API).
- *   5. CTA pointing to the "Request a Tutor" form for users who don't
- *      know exactly what they need.
- *   6. Tutor cards now surface 1-2 module codes — that's what students
- *      actually search for.
- */
-
 const SUBJECT_OPTIONS = [
   '', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'Afrikaans',
   'History', 'Geography', 'Accounting', 'Economics', 'Life Sciences',
