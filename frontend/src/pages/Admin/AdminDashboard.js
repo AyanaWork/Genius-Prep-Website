@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import documentService from '../../services/document';
+import tutorRequestService from '../../services/tutorRequest';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -13,14 +14,17 @@ function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Tutor approval modal
   const [selectedTutor, setSelectedTutor] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Tutor request modal state
+  // Tutor request modal + shortlist picker state
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [shortlist, setShortlist] = useState([]);
+  const [pickedIds, setPickedIds] = useState([]);
 
   // Documents moderation state
   const [pendingDocs, setPendingDocs] = useState([]);
@@ -61,12 +65,13 @@ function AdminDashboard() {
     }
   };
 
+  // ----- Tutor handlers (unchanged) -----
   const viewTutorDetails = async (tutorId) => {
     try {
       const res = await axios.get(`${API_URL}/admin/tutors/${tutorId}`, config());
       setSelectedTutor(res.data.tutor);
       setShowModal(true);
-    } catch (err) { alert('Failed to load tutor details'); }
+    } catch { alert('Failed to load tutor details'); }
   };
 
   const changeStatusToApproved = async (tutorId) => {
@@ -77,7 +82,7 @@ function AdminDashboard() {
       alert('Tutor approved');
       setShowModal(false);
       loadData();
-    } catch (err) { alert('Failed'); }
+    } catch { alert('Failed'); }
     finally { setActionLoading(false); }
   };
 
@@ -90,32 +95,59 @@ function AdminDashboard() {
       alert('Tutor rejected');
       setShowModal(false);
       loadData();
-    } catch (err) { alert('Failed'); }
+    } catch { alert('Failed'); }
     finally { setActionLoading(false); }
   };
 
+  // ----- Tutor request handlers -----
   const viewRequestDetails = async (requestId) => {
     try {
       const [reqRes, shortlistRes] = await Promise.all([
-        axios.get(`${API_URL}/admin/tutor-requests/${requestId}`, config()),
-        axios.get(`${API_URL}/admin/tutor-requests/${requestId}/shortlist`, config())
+        tutorRequestService.adminGet(requestId),
+        tutorRequestService.adminShortlist(requestId)
       ]);
-      setSelectedRequest(reqRes.data.request);
-      setShortlist(shortlistRes.data.shortlist || []);
+      const req = reqRes.request;
+      setSelectedRequest(req);
+      setShortlist(shortlistRes.shortlist || []);
+      // Pre-populate the picker with whatever the admin has already saved.
+      setPickedIds((req.matched_tutor_ids || []).map(Number));
       setShowRequestModal(true);
-    } catch (err) { alert('Failed to load request'); }
+    } catch { alert('Failed to load request'); }
+  };
+
+  const togglePicked = (tutorId) => {
+    setPickedIds((prev) =>
+      prev.includes(tutorId) ? prev.filter((id) => id !== tutorId) : [...prev, tutorId]
+    );
+  };
+
+  // Save the picked tutors (one or many) as the shortlist.
+  // Backend auto-flips status to 'matched' when at least 1 tutor is saved.
+  const saveShortlist = async () => {
+    if (!selectedRequest) return;
+    setActionLoading(true);
+    try {
+      const res = await tutorRequestService.adminUpdate(selectedRequest.id, {
+        matched_tutor_ids: pickedIds
+      });
+      alert(`Saved ${pickedIds.length} tutor${pickedIds.length === 1 ? '' : 's'} for the student.`);
+      setSelectedRequest(res.request);
+      loadData();
+    } catch { alert('Failed to save shortlist'); }
+    finally { setActionLoading(false); }
   };
 
   const updateRequestStatus = async (requestId, status) => {
     setActionLoading(true);
     try {
-      await axios.patch(`${API_URL}/admin/tutor-requests/${requestId}`, { status }, config());
+      await tutorRequestService.adminUpdate(requestId, { status });
       setShowRequestModal(false);
       loadData();
-    } catch (err) { alert('Failed to update'); }
+    } catch { alert('Failed to update'); }
     finally { setActionLoading(false); }
   };
 
+  // ----- Document moderation handlers -----
   const approveDoc = async (id) => {
     setActionLoading(true);
     try { await documentService.adminApprove(id); setPreviewDoc(null); loadData(); }
@@ -138,11 +170,11 @@ function AdminDashboard() {
     finally { setActionLoading(false); }
   };
 
+  // ----- Helpers -----
   const copyToClipboard = (text, label = 'Copied') => {
     navigator.clipboard.writeText(text);
     alert(`${label}: ${text}`);
   };
-
   const waLink = (phone) => {
     if (!phone) return '#';
     const cleaned = phone.replace(/[^0-9+]/g, '').replace(/^\+/, '');
@@ -248,6 +280,7 @@ function AdminDashboard() {
         </div>
       </div>
 
+      {/* Tutor approval modal */}
       {showModal && selectedTutor && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="glass-card rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
@@ -296,9 +329,10 @@ function AdminDashboard() {
         </div>
       )}
 
+      {/* Tutor request modal — with shortlist picker */}
       {showRequestModal && selectedRequest && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="glass-card rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6">
+          <div className="glass-card rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto p-6">
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-2xl font-bold">{selectedRequest.full_name}</h2>
@@ -332,24 +366,64 @@ function AdminDashboard() {
               <p><strong>Number of students:</strong> {selectedRequest.number_of_students}</p>
               {selectedRequest.notes && <p><strong>Notes:</strong> {selectedRequest.notes}</p>}
 
+              {/* Shortlist picker */}
               <div className="mt-4 pt-4 border-t border-white/10">
-                <h3 className="font-bold mb-3">Auto-matched shortlist ({shortlist.length})</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-bold">Pick tutors for this student ({pickedIds.length} selected)</h3>
+                  <button
+                    onClick={saveShortlist}
+                    disabled={actionLoading}
+                    className="px-4 py-2 bg-[#00CC99] text-[#0f172a] rounded-lg font-bold disabled:opacity-50"
+                  >
+                    {actionLoading ? 'Saving…' : 'Save shortlist'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mb-3">
+                  Tick one tutor for a single match, or several to send a shortlist. Saving auto-flips status to "matched" and the student sees the picks under "My Requests".
+                </p>
+
                 {shortlist.length === 0 ? (
-                  <p className="text-gray-400 text-sm">No matching tutors found.</p>
+                  <p className="text-gray-400 text-sm">No matching tutors found. Try widening the request criteria, or save with no picks to leave the request open.</p>
                 ) : (
                   <div className="space-y-2">
-                    {shortlist.map((t) => (
-                      <button key={t.id} onClick={() => navigate(`/tutors/${t.id}`)} className="w-full text-left bg-[#0f172a]/30 hover:bg-[#0f172a]/50 rounded-lg p-3 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#00CC99]/20 flex items-center justify-center text-[#00CC99] font-bold">
-                          {t.display_name?.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-semibold">{t.display_name}{t.is_elite && <span className="ml-2 text-yellow-400 text-xs">Elite</span>}</p>
-                          <p className="text-xs text-gray-400">R{t.hourly_rate || 0}/hr · {parseFloat(t.average_rating || 0).toFixed(1)} ({t.review_count || 0})</p>
-                          {t.module_codes?.length > 0 && <p className="text-xs text-yellow-300 font-mono">{t.module_codes.slice(0, 4).join(' · ')}</p>}
-                        </div>
-                      </button>
-                    ))}
+                    {shortlist.map((t) => {
+                      const checked = pickedIds.includes(t.id);
+                      return (
+                        <label
+                          key={t.id}
+                          className={`w-full flex items-center gap-3 rounded-lg p-3 cursor-pointer transition ${
+                            checked ? 'bg-[#00CC99]/15 border border-[#00CC99]/40' : 'bg-[#0f172a]/30 hover:bg-[#0f172a]/50 border border-transparent'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => togglePicked(t.id)}
+                            className="w-4 h-4 accent-[#00CC99]"
+                          />
+                          <div className="w-10 h-10 rounded-full bg-[#00CC99]/20 flex items-center justify-center text-[#00CC99] font-bold shrink-0">
+                            {t.display_name?.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold truncate">
+                              {t.display_name}
+                              {t.is_elite && <span className="ml-2 text-yellow-400 text-xs">★ Elite</span>}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              R{t.hourly_rate || 0}/hr · ⭐ {parseFloat(t.average_rating || 0).toFixed(1)} ({t.review_count || 0})
+                            </p>
+                            {t.module_codes?.length > 0 && <p className="text-xs text-yellow-300 font-mono truncate">{t.module_codes.slice(0, 4).join(' · ')}</p>}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); navigate(`/tutors/${t.id}`); }}
+                            className="text-xs text-[#00CC99] hover:underline shrink-0"
+                          >
+                            View →
+                          </button>
+                        </label>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -357,13 +431,19 @@ function AdminDashboard() {
 
             <div className="flex gap-3 mt-6 flex-wrap">
               {['reviewing', 'matched', 'contacted', 'closed'].map((status) => (
-                <button key={status} onClick={() => updateRequestStatus(selectedRequest.id, status)} disabled={actionLoading || selectedRequest.status === status} className="px-4 py-2 bg-[#00CC99]/20 text-[#00CC99] rounded-lg disabled:opacity-30 capitalize">Mark {status}</button>
+                <button
+                  key={status}
+                  onClick={() => updateRequestStatus(selectedRequest.id, status)}
+                  disabled={actionLoading || selectedRequest.status === status}
+                  className="px-4 py-2 bg-[#00CC99]/20 text-[#00CC99] rounded-lg disabled:opacity-30 capitalize"
+                >Mark {status}</button>
               ))}
             </div>
           </div>
         </div>
       )}
 
+      {/* Document preview/moderation modal */}
       {previewDoc && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setPreviewDoc(null)}>
           <div className="bg-[#0f172a] rounded-2xl max-w-5xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-white/10" onClick={(e) => e.stopPropagation()}>

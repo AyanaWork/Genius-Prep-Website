@@ -1,13 +1,11 @@
 import api from './api';
 
 class DocumentService {
-  // Status — tells the UI whether to render the locked or browse view.
   async getMyStatus() {
     const res = await api.get('/documents/status');
     return res.data;
   }
 
-  // List approved documents (gated server-side).
   async list(filters = {}) {
     const cleaned = Object.fromEntries(
       Object.entries(filters).filter(([, v]) => v !== '' && v !== undefined && v !== null)
@@ -32,7 +30,6 @@ class DocumentService {
     return res.data;
   }
 
-  // Upload a file with metadata. Pass a File object plus the form fields.
   async upload({ file, docType, subject, moduleCode, institution, year, semester, title, description }) {
     const fd = new FormData();
     fd.append('file', file);
@@ -45,6 +42,12 @@ class DocumentService {
     fd.append('title', title);
     if (description) fd.append('description', description);
     const res = await api.post('/documents', fd);
+    return res.data;
+  }
+
+  // Owner deletes their own document.
+  async deleteMyUpload(id) {
+    const res = await api.delete(`/documents/${id}`);
     return res.data;
   }
 

@@ -4,7 +4,6 @@ const { v4: uuidv4 } = require('uuid');
 const { logAdminAction } = require('../utils/auditLog');
 
 const BUCKET = 'documents';
-const REQUIRED_APPROVED_UPLOADS = 1;
 
 const VALID_TYPES = ['past_paper', 'notes', 'memo', 'tutorial', 'other'];
 const VALID_STATUSES_FOR_LIST = ['pending', 'approved', 'rejected'];
@@ -18,29 +17,19 @@ const ALLOWED_MIME = new Set([
 ]);
 const MAX_BYTES = 20 * 1024 * 1024;
 
-// Detect "relation does not exist" Postgres errors so we can return a
-// clear message instead of a generic 500. Postgres SQLSTATE 42P01 =
-// undefined_table.
 function isMissingTable(err) {
   return err && (err.code === '42P01' || /relation .* does not exist/i.test(err.message || ''));
 }
-
 function missingTableResponse(res) {
   return res.status(503).json({
     error: 'documents_table_missing',
-    message:
-      'The documents library has not been set up yet. Run backend/migrations/documents_2026_04_28.sql in your Supabase SQL editor, then try again.'
+    message: 'The documents library has not been set up yet. Run backend/migrations/documents_2026_04_28.sql in your Supabase SQL editor, then try again.'
   });
 }
 
-async function userIsUnlocked(userId) {
-  const n = await Document.approvedUploadCountByUser(userId);
-  return n >= REQUIRED_APPROVED_UPLOADS;
-}
-
-// ---------------------------------------------------------------------
+// =====================================================================
 // CREATE
-// ---------------------------------------------------------------------
+// =====================================================================
 exports.upload = async (req, res) => {
   try {
     const userId = req.userId;
@@ -48,49 +37,35 @@ exports.upload = async (req, res) => {
 
     if (!file) return res.status(400).json({ error: 'No file uploaded' });
     if (!ALLOWED_MIME.has(file.mimetype)) {
-      return res.status(400).json({
-        error: `Unsupported file type: ${file.mimetype}. Allowed: PDF, images, Word, PowerPoint, plain text.`
-      });
+      return res.status(400).json({ error: `Unsupported file type: ${file.mimetype}.` });
     }
-    if (file.size > MAX_BYTES) {
-      return res.status(400).json({ error: 'File too large (20 MB max)' });
-    }
+    if (file.size > MAX_BYTES) return res.status(400).json({ error: 'File too large (20 MB max)' });
 
     const { docType, subject, moduleCode, institution, year, semester, title, description } = req.body;
-
-    if (!docType || !VALID_TYPES.includes(docType)) {
-      return res.status(400).json({ error: 'Invalid document type' });
-    }
-    if (!title || title.trim().length < 3) {
-      return res.status(400).json({ error: 'Title is required (min 3 chars)' });
-    }
+    if (!docType || !VALID_TYPES.includes(docType)) return res.status(400).json({ error: 'Invalid document type' });
+    if (!title || title.trim().length < 3) return res.status(400).json({ error: 'Title is required (min 3 chars)' });
 
     const fileExt = (file.originalname.split('.').pop() || 'bin').toLowerCase();
     const fileName = `${uuidv4()}.${fileExt}`;
     const storagePath = `${docType}/${userId}/${fileName}`;
 
-    console.log('📤 Uploading document to Supabase:', { bucket: BUCKET, path: storagePath, size: file.size, mime: file.mimetype });
+    console.log('📤 Uploading document to Supabase:', { bucket: BUCKET, path: storagePath, size: file.size });
 
     const { error: upErr } = await supabase.storage
       .from(BUCKET)
-      .upload(storagePath, file.buffer, {
-        contentType: file.mimetype,
-        upsert: false
-      });
+      .upload(storagePath, file.buffer, { contentType: file.mimetype, upsert: false });
 
     if (upErr) {
       console.error('❌ Supabase upload error:', upErr);
       return res.status(500).json({
         error: 'Upload failed',
         details: upErr.message,
-        hint: `Make sure a "${BUCKET}" bucket exists in Supabase Storage and SUPABASE_SERVICE_ROLE_KEY is set in backend/.env.`
+        hint: `Make sure a "${BUCKET}" bucket exists in Supabase Storage and SUPABASE_SERVICE_ROLE_KEY is set.`
       });
     }
 
     const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
     const fileUrl = publicData?.publicUrl || '';
-
-    console.log('✅ Document uploaded:', fileUrl);
 
     let created;
     try {
@@ -107,7 +82,6 @@ exports.upload = async (req, res) => {
       });
     } catch (dbErr) {
       console.error('❌ DB insert error:', dbErr);
-      // Roll back the storage upload so we don't orphan files.
       try { await supabase.storage.from(BUCKET).remove([storagePath]); } catch {}
       if (isMissingTable(dbErr)) return missingTableResponse(res);
       throw dbErr;
@@ -124,29 +98,15 @@ exports.upload = async (req, res) => {
   }
 };
 
+// =====================================================================
+// LIST — PRIVATE per uploader.
+// Each student only ever sees their OWN uploads (any status).
+// Admins see everything via the admin endpoints.
+// =====================================================================
 exports.list = async (req, res) => {
   try {
-    const userId = req.userId;
-    const isAdmin = req.userRole === 'admin';
-    const unlocked = isAdmin || (await userIsUnlocked(userId));
-
-    if (!unlocked) {
-      const totalUploads = await Document.totalUploadCountByUser(userId);
-      const approvedUploads = await Document.approvedUploadCountByUser(userId);
-      return res.status(403).json({
-        error: 'locked',
-        unlocked: false,
-        requiredApprovedUploads: REQUIRED_APPROVED_UPLOADS,
-        approvedUploads,
-        totalUploads,
-        message: totalUploads === 0
-          ? 'Upload at least one past paper, set of notes, or memo to unlock the library.'
-          : 'Your uploads are awaiting admin approval. Once approved, the library unlocks.'
-      });
-    }
-
-    const result = await Document.listApproved(req.query);
-    res.json({ ...result, unlocked: true });
+    const docs = await Document.listByUploader(req.userId);
+    res.json({ documents: docs, total: docs.length, page: 1, totalPages: 1 });
   } catch (error) {
     console.error('List documents error:', error);
     if (isMissingTable(error)) return missingTableResponse(res);
@@ -164,13 +124,7 @@ exports.getOne = async (req, res) => {
     if (!doc) return res.status(404).json({ error: 'Not found' });
 
     const isOwner = doc.uploader_user_id === userId;
-    if (doc.status !== 'approved' && !isAdmin && !isOwner) {
-      return res.status(404).json({ error: 'Not found' });
-    }
-    if (!isAdmin && !isOwner) {
-      const unlocked = await userIsUnlocked(userId);
-      if (!unlocked) return res.status(403).json({ error: 'locked' });
-    }
+    if (!isOwner && !isAdmin) return res.status(404).json({ error: 'Not found' });
 
     Document.incrementViewCount(id).catch(() => {});
     res.json({ document: doc });
@@ -192,17 +146,18 @@ exports.listMyUploads = async (req, res) => {
   }
 };
 
+/**
+ * In private mode the "status" endpoint only reports counts. There's no
+ * unlock gate any more, but the UI still uses it to render summary numbers.
+ */
 exports.getMyStatus = async (req, res) => {
   try {
-    const userId = req.userId;
-    const isAdmin = req.userRole === 'admin';
-    const approved = await Document.approvedUploadCountByUser(userId);
-    const total = await Document.totalUploadCountByUser(userId);
+    const approved = await Document.approvedUploadCountByUser(req.userId);
+    const total = await Document.totalUploadCountByUser(req.userId);
     res.json({
-      unlocked: isAdmin || approved >= REQUIRED_APPROVED_UPLOADS,
+      unlocked: true,            // always true now — private library
       approvedUploads: approved,
-      totalUploads: total,
-      requiredApprovedUploads: REQUIRED_APPROVED_UPLOADS
+      totalUploads: total
     });
   } catch (error) {
     console.error('Get my status error:', error);
@@ -223,14 +178,37 @@ exports.listModuleCodes = async (req, res) => {
 };
 
 // =====================================================================
-// ADMIN moderation
+// DELETE — owner can delete their own upload.
+// =====================================================================
+exports.deleteMyUpload = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { id } = req.params;
+    const doc = await Document.findById(id);
+    if (!doc) return res.status(404).json({ error: 'Not found' });
+    if (doc.uploader_user_id !== userId) {
+      return res.status(403).json({ error: 'You can only delete your own uploads' });
+    }
+
+    await Document.deleteById(id);
+    try { await supabase.storage.from(BUCKET).remove([doc.storage_path]); } catch (err) {
+      console.warn('Storage delete failed:', err.message);
+    }
+    res.json({ message: 'Deleted' });
+  } catch (error) {
+    console.error('Delete my upload error:', error);
+    if (isMissingTable(error)) return missingTableResponse(res);
+    res.status(500).json({ error: 'Failed to delete' });
+  }
+};
+
+// =====================================================================
+// ADMIN
 // =====================================================================
 exports.adminList = async (req, res) => {
   try {
     const { status = 'pending' } = req.query;
-    if (!VALID_STATUSES_FOR_LIST.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status filter' });
-    }
+    if (!VALID_STATUSES_FOR_LIST.includes(status)) return res.status(400).json({ error: 'Invalid status filter' });
     const docs = await Document.listForModeration(status);
     res.json({ documents: docs });
   } catch (error) {
@@ -248,7 +226,6 @@ exports.adminApprove = async (req, res) => {
     logAdminAction({ adminUserId: req.userId, action: 'approved_document', targetType: 'document', targetId: parseInt(id, 10), ipAddress: req.ip });
     res.json({ document: updated });
   } catch (error) {
-    console.error('Admin approve error:', error);
     if (isMissingTable(error)) return missingTableResponse(res);
     res.status(500).json({ error: 'Failed to approve' });
   }
@@ -264,7 +241,6 @@ exports.adminReject = async (req, res) => {
     logAdminAction({ adminUserId: req.userId, action: 'rejected_document', targetType: 'document', targetId: parseInt(id, 10), metadata: { reason }, ipAddress: req.ip });
     res.json({ document: updated });
   } catch (error) {
-    console.error('Admin reject error:', error);
     if (isMissingTable(error)) return missingTableResponse(res);
     res.status(500).json({ error: 'Failed to reject' });
   }
@@ -275,11 +251,10 @@ exports.adminDelete = async (req, res) => {
     const { id } = req.params;
     const removed = await Document.deleteById(id);
     if (!removed) return res.status(404).json({ error: 'Not found' });
-    try { await supabase.storage.from(BUCKET).remove([removed.storage_path]); } catch (err) { console.warn('Storage delete failed:', err.message); }
+    try { await supabase.storage.from(BUCKET).remove([removed.storage_path]); } catch (err) { console.warn(err.message); }
     logAdminAction({ adminUserId: req.userId, action: 'deleted_document', targetType: 'document', targetId: parseInt(id, 10), ipAddress: req.ip });
     res.json({ message: 'Deleted' });
   } catch (error) {
-    console.error('Admin delete error:', error);
     if (isMissingTable(error)) return missingTableResponse(res);
     res.status(500).json({ error: 'Failed to delete' });
   }

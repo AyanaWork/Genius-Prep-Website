@@ -1,40 +1,19 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import documentService from '../services/document';
 import authService from '../services/auth';
 
 const TYPE_LABEL = {
-  past_paper: 'Past paper',
-  notes: 'Notes',
-  memo: 'Memo',
-  tutorial: 'Tutorial',
-  other: 'Other'
+  past_paper: 'Past paper', notes: 'Notes', memo: 'Memo',
+  tutorial: 'Tutorial', other: 'Other'
 };
 const TYPE_ICON = {
-  past_paper: '📝',
-  notes: '📒',
-  memo: '🗒️',
-  tutorial: '🎯',
-  other: '📎'
+  past_paper: '📝', notes: '📒', memo: '🗒️', tutorial: '🎯', other: '📎'
 };
-const TYPE_OPTIONS = [
-  { value: '', label: 'All types' },
-  { value: 'past_paper', label: 'Past papers' },
-  { value: 'notes', label: 'Notes' },
-  { value: 'memo', label: 'Memos' },
-  { value: 'tutorial', label: 'Tutorials' },
-  { value: 'other', label: 'Other' }
-];
 const SUBJECT_OPTIONS = [
   '', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English',
   'Accounting', 'Economics', 'Computer Science', 'Statistics', 'Law',
   'Psychology', 'Programming', 'Finance'
 ];
-
-function useDebouncedValue(value, delay = 300) {
-  const [v, setV] = useState(value);
-  useEffect(() => { const id = setTimeout(() => setV(value), delay); return () => clearTimeout(id); }, [value, delay]);
-  return v;
-}
 
 function isPdf(mime) { return mime === 'application/pdf'; }
 function isImage(mime) { return typeof mime === 'string' && mime.startsWith('image/'); }
@@ -52,17 +31,13 @@ function PreviewModal({ doc, onClose }) {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {doc.file_url && (
-              <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-[#00CC99]/20 text-[#00CC99] rounded-lg text-sm">Open in tab</a>
-            )}
+            {doc.file_url && <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-[#00CC99]/20 text-[#00CC99] rounded-lg text-sm">Open in tab</a>}
             <button onClick={onClose} className="text-gray-400 hover:text-white px-2">✕</button>
           </div>
         </div>
         <div className="flex-1 bg-black/40 overflow-auto">
           {!doc.file_url ? (
-            <div className="p-8 text-center text-gray-400">
-              No preview available — the storage URL is empty. The Supabase bucket may be private; ask the admin to make it public.
-            </div>
+            <div className="p-8 text-center text-gray-400">No preview available — the storage URL is empty. The Supabase bucket may be private; ask the admin to make it public.</div>
           ) : isPdf(doc.mime_type) ? (
             <iframe title={doc.title} src={doc.file_url} className="w-full h-[80vh]" />
           ) : isImage(doc.mime_type) ? (
@@ -90,6 +65,7 @@ function UploadCard({ onUploaded }) {
     year: '', semester: '', title: '', description: ''
   });
   const update = (k, v) => setForm((s) => ({ ...s, [k]: v }));
+
   const submit = async (e) => {
     e.preventDefault();
     setErr(''); setMsg('');
@@ -98,7 +74,7 @@ function UploadCard({ onUploaded }) {
     setSubmitting(true);
     try {
       await documentService.upload({ file, ...form });
-      setMsg('Uploaded! Awaiting admin review. You will unlock the library once it is approved.');
+      setMsg('Uploaded! Awaiting admin review. Once approved you can preview it from "Your uploads" below.');
       setFile(null);
       if (fileRef.current) fileRef.current.value = '';
       setForm({ docType: 'past_paper', subject: '', moduleCode: '', institution: '', year: '', semester: '', title: '', description: '' });
@@ -112,7 +88,7 @@ function UploadCard({ onUploaded }) {
   return (
     <div className="glass-card rounded-2xl p-6 mb-6">
       <h3 className="text-xl font-bold mb-1">Upload a study resource</h3>
-      <p className="text-sm text-gray-400 mb-4">Past papers, notes, and memos are welcome. Files go through admin review before they appear in the library.</p>
+      <p className="text-sm text-gray-400 mb-4">Files go through admin review before they're available on your account.</p>
       {err && <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-xl mb-3">{err}</div>}
       {msg && <div className="bg-green-500/20 border border-green-500 text-green-300 p-3 rounded-xl mb-3">{msg}</div>}
       <form onSubmit={submit} className="space-y-4">
@@ -164,7 +140,7 @@ function UploadCard({ onUploaded }) {
         </div>
         <div>
           <label className="block text-sm font-semibold mb-1">Description (optional)</label>
-          <textarea rows="2" value={form.description} onChange={(e) => update('description', e.target.value)} className="w-full px-3 py-2 bg-[#0f172a]/40 border border-white/10 rounded-lg text-white" placeholder="Anything that helps other students find or use this resource" />
+          <textarea rows="2" value={form.description} onChange={(e) => update('description', e.target.value)} className="w-full px-3 py-2 bg-[#0f172a]/40 border border-white/10 rounded-lg text-white" placeholder="Anything that helps you find or use this resource later" />
         </div>
         <button type="submit" disabled={submitting} className="w-full md:w-auto px-6 py-3 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition disabled:opacity-50">{submitting ? 'Uploading…' : 'Upload'}</button>
       </form>
@@ -172,54 +148,47 @@ function UploadCard({ onUploaded }) {
   );
 }
 
-function LockedView({ status, onUploaded }) {
-  return (
-    <div>
-      <div className="glass-card rounded-2xl p-8 mb-6 text-center">
-        <div className="text-5xl mb-3">🔒</div>
-        <h2 className="text-2xl font-bold mb-2">Library locked</h2>
-        <p className="text-gray-400 mb-4 max-w-xl mx-auto">
-          {status?.totalUploads === 0
-            ? 'Help your peers and unlock everyone else\'s study materials. Upload at least one past paper, set of notes, or memo to access the library.'
-            : 'Your uploads are awaiting admin approval. The library unlocks as soon as one of them is approved.'}
-        </p>
-        <p className="text-xs text-gray-500">
-          Required: {status?.requiredApprovedUploads ?? 1} approved upload — you have{' '}
-          <span className="text-[#00CC99] font-semibold">{status?.approvedUploads ?? 0}</span> approved
-          {' '}({status?.totalUploads ?? 0} total submitted)
-        </p>
+function MyUploadsList({ items, onPreview, onDelete }) {
+  if (!items || items.length === 0) {
+    return (
+      <div className="glass-card rounded-2xl p-8 text-center text-gray-400">
+        You haven't uploaded any documents yet. Use the form above to add your first one.
       </div>
-      <UploadCard onUploaded={onUploaded} />
-    </div>
-  );
-}
-
-function MyUploadsList({ items, onPreview }) {
-  if (!items || items.length === 0) return null;
+    );
+  }
   return (
-    <div className="glass-card rounded-2xl p-6 mb-6">
-      <h3 className="text-lg font-bold mb-3">Your uploads</h3>
-      <p className="text-xs text-gray-500 mb-3">Click an approved upload to preview it.</p>
+    <div className="glass-card rounded-2xl p-6">
+      <h3 className="text-lg font-bold mb-3">Your uploads ({items.length})</h3>
+      <p className="text-xs text-gray-500 mb-3">Click an approved upload to preview. Use 🗑 to delete.</p>
       <div className="space-y-2">
         {items.map((d) => {
           const clickable = d.status === 'approved';
-          const Wrapper = clickable ? 'button' : 'div';
           return (
-            <Wrapper
-              key={d.id}
-              type={clickable ? 'button' : undefined}
-              onClick={clickable ? () => onPreview(d) : undefined}
-              className={`w-full flex items-center justify-between bg-[#0f172a]/40 rounded-lg p-3 text-left ${clickable ? 'hover:bg-[#0f172a]/60 cursor-pointer' : ''}`}
-            >
-              <div className="min-w-0 pr-3">
+            <div key={d.id} className="flex items-center justify-between bg-[#0f172a]/40 rounded-lg p-3 gap-3">
+              <button
+                type="button"
+                disabled={!clickable}
+                onClick={clickable ? () => onPreview(d) : undefined}
+                className={`flex-1 min-w-0 text-left ${clickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+              >
                 <p className="font-semibold truncate">{TYPE_ICON[d.doc_type]} {d.title}</p>
                 <p className="text-xs text-gray-400 truncate">
                   {d.module_code || '—'} · {TYPE_LABEL[d.doc_type]}
                   {d.rejection_reason ? ` · Reason: ${d.rejection_reason}` : ''}
                 </p>
-              </div>
-              <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${d.status === 'approved' ? 'bg-green-500/20 text-green-400' : d.status === 'rejected' ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{d.status}</span>
-            </Wrapper>
+              </button>
+              <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                d.status === 'approved' ? 'bg-green-500/20 text-green-400'
+                : d.status === 'rejected' ? 'bg-red-500/20 text-red-400'
+                : 'bg-yellow-500/20 text-yellow-400'
+              }`}>{d.status}</span>
+              <button
+                type="button"
+                onClick={() => onDelete(d)}
+                className="px-2 py-1 text-red-400 hover:bg-red-500/10 rounded-lg"
+                title="Delete"
+              >🗑</button>
+            </div>
           );
         })}
       </div>
@@ -229,33 +198,15 @@ function MyUploadsList({ items, onPreview }) {
 
 function Documents() {
   const currentUser = authService.getCurrentUser();
-  const [status, setStatus] = useState(null);
-  const [loadingStatus, setLoadingStatus] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [setupError, setSetupError] = useState('');
   const [myUploads, setMyUploads] = useState([]);
-  const [docs, setDocs] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const [filters, setFilters] = useState({ docType: '', subject: '', moduleCode: '', sort: 'newest' });
-  const [searchInput, setSearchInput] = useState('');
-  const debouncedSearch = useDebouncedValue(searchInput, 300);
-
-  const [moduleCodes, setModuleCodes] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const searchBoxRef = useRef(null);
-
   const [previewDoc, setPreviewDoc] = useState(null);
 
-  const refreshStatus = useCallback(async () => {
-    setLoadingStatus(true);
+  const refresh = useCallback(async () => {
+    setLoading(true);
     setSetupError('');
     try {
-      const s = await documentService.getMyStatus();
-      setStatus(s);
       const my = await documentService.listMyUploads();
       setMyUploads(my.documents || []);
     } catch (e) {
@@ -264,59 +215,16 @@ function Documents() {
       if (e?.response?.status === 503 && data?.error === 'documents_table_missing') {
         setSetupError(data.message || 'Documents library is not set up yet.');
       } else {
-        setSetupError('Could not load your document status. Please try again later.');
+        setSetupError('Could not load your documents. Please try again later.');
       }
     } finally {
-      setLoadingStatus(false);
+      setLoading(false);
     }
   }, []);
 
-  useEffect(() => { refreshStatus(); }, [refreshStatus]);
+  useEffect(() => { refresh(); }, [refresh]);
 
-  useEffect(() => { setPage(1); }, [filters.docType, filters.subject, filters.moduleCode, filters.sort, debouncedSearch]);
-
-  useEffect(() => {
-    if (!status?.unlocked) return;
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const res = await documentService.list({ ...filters, q: debouncedSearch.trim() || undefined, page, limit: 24 });
-        if (cancelled) return;
-        setDocs(res.documents || []);
-        setTotal(res.total || 0);
-        setTotalPages(res.totalPages || 1);
-      } catch (e) {
-        if (!cancelled) setError('Failed to load documents');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [status?.unlocked, filters, debouncedSearch, page]);
-
-  useEffect(() => {
-    if (!status?.unlocked) return;
-    documentService.getModuleCodes().then((r) => setModuleCodes(r.moduleCodes || [])).catch(() => setModuleCodes([]));
-  }, [status?.unlocked]);
-
-  useEffect(() => {
-    const onClick = (e) => {
-      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) setShowSuggestions(false);
-    };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, []);
-
-  const codeSuggestions = useMemo(() => {
-    const t = searchInput.trim().toUpperCase();
-    if (!t) return [];
-    return moduleCodes.filter((c) => c.includes(t)).slice(0, 8);
-  }, [searchInput, moduleCodes]);
-
-  const handlePreviewMyDoc = async (doc) => {
-    // Hit the backend to get the freshest record (and bump view counter).
+  const handlePreview = async (doc) => {
     try {
       const res = await documentService.getOne(doc.id);
       setPreviewDoc(res.document || doc);
@@ -325,18 +233,30 @@ function Documents() {
     }
   };
 
+  const handleDelete = async (doc) => {
+    if (!window.confirm(`Delete "${doc.title}"? This cannot be undone.`)) return;
+    try {
+      await documentService.deleteMyUpload(doc.id);
+      refresh();
+    } catch (e) {
+      alert(e.response?.data?.error || 'Failed to delete');
+    }
+  };
+
   if (!currentUser) {
-    return (<div className="px-6 pt-24 pb-12 text-center"><p className="text-gray-400">Please sign in to access the document library.</p></div>);
+    return (<div className="px-6 pt-24 pb-12 text-center"><p className="text-gray-400">Please sign in to access your documents.</p></div>);
   }
 
   return (
     <div className="container mx-auto px-6 pt-24 pb-12">
       <div className="text-center mb-8">
-        <h1 className="text-4xl md:text-5xl font-black mb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">Document Library</h1>
-        <p className="text-gray-400">Past papers, notes, memos. Share to unlock — quality is reviewed by the team.</p>
+        <h1 className="text-4xl md:text-5xl font-black mb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">My Documents</h1>
+        <p className="text-gray-400">
+          Upload your past papers, notes, and memos. Only you can see your own uploads.
+        </p>
       </div>
 
-      {loadingStatus ? (
+      {loading ? (
         <div className="text-center py-12 text-gray-400">Loading…</div>
       ) : setupError ? (
         <div className="glass-card rounded-2xl p-8 text-center">
@@ -344,80 +264,10 @@ function Documents() {
           <h2 className="text-xl font-bold mb-2">Documents library not ready</h2>
           <p className="text-gray-400 max-w-xl mx-auto">{setupError}</p>
         </div>
-      ) : !status?.unlocked ? (
-        <>
-          <LockedView status={status} onUploaded={refreshStatus} />
-          <MyUploadsList items={myUploads} onPreview={handlePreviewMyDoc} />
-        </>
       ) : (
         <>
-          <UploadCard onUploaded={refreshStatus} />
-          <MyUploadsList items={myUploads} onPreview={handlePreviewMyDoc} />
-
-          <div className="glass-card rounded-2xl p-6 mb-6">
-            <div className="relative mb-4" ref={searchBoxRef}>
-              <label className="block text-sm font-semibold mb-2">Search title, module code, subject</label>
-              <input type="text" value={searchInput} onChange={(e) => { setSearchInput(e.target.value); setShowSuggestions(true); }} onFocus={() => setShowSuggestions(true)} className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-white placeholder-gray-500" placeholder="e.g. FRK300, Exam 2024" />
-              {showSuggestions && codeSuggestions.length > 0 && (
-                <div className="absolute z-20 mt-1 w-full bg-[#1e293b] border border-[#334155] rounded-xl shadow-xl overflow-hidden">
-                  <div className="px-4 py-2 text-xs text-gray-400 border-b border-[#334155]">Module codes</div>
-                  {codeSuggestions.map((c) => (
-                    <button key={c} type="button" onClick={() => { setSearchInput(c); setShowSuggestions(false); }} className="w-full text-left px-4 py-2 hover:bg-[#00CC99]/10 text-white">
-                      <span className="font-semibold text-[#00CC99]">{c}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="grid md:grid-cols-4 gap-3">
-              <select value={filters.docType} onChange={(e) => setFilters({ ...filters, docType: e.target.value })} className="px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-lg text-white">
-                {TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-              <select value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })} className="px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-lg text-white">
-                {SUBJECT_OPTIONS.map((s) => <option key={s} value={s}>{s || 'All subjects'}</option>)}
-              </select>
-              <input type="text" value={filters.moduleCode} onChange={(e) => setFilters({ ...filters, moduleCode: e.target.value.toUpperCase() })} className="px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-lg text-white" placeholder="Module code (e.g. FRK300)" />
-              <select value={filters.sort} onChange={(e) => setFilters({ ...filters, sort: e.target.value })} className="px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-lg text-white">
-                <option value="newest">Newest</option>
-                <option value="popular">Most viewed</option>
-                <option value="year_desc">Year (newest first)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="mb-3 text-sm text-gray-400">{loading ? 'Loading…' : `${total} document${total === 1 ? '' : 's'}`}</div>
-
-          {error && <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-xl mb-4">{error}</div>}
-
-          {loading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">{Array.from({ length: 6 }).map((_, i) => (<div key={i} className="glass-card rounded-2xl h-40 animate-pulse" />))}</div>
-          ) : docs.length === 0 ? (
-            <div className="glass-card rounded-2xl p-10 text-center text-gray-400">No documents match those filters yet. Try a different module code, or upload one to get started.</div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {docs.map((d) => (
-                <button key={d.id} onClick={() => setPreviewDoc(d)} className="glass-card rounded-2xl p-5 text-left hover:scale-[1.02] hover:border-[#00CC99]/40 transition">
-                  <div className="text-3xl mb-2">{TYPE_ICON[d.doc_type] || '📄'}</div>
-                  <h3 className="font-bold text-white line-clamp-2 mb-2">{d.title}</h3>
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    <span className="text-xs px-2 py-0.5 bg-[#00CC99]/10 text-[#00CC99] rounded">{TYPE_LABEL[d.doc_type]}</span>
-                    {d.module_code && <span className="text-xs px-2 py-0.5 bg-yellow-500/10 text-yellow-300 font-mono rounded">{d.module_code}</span>}
-                    {d.year && <span className="text-xs px-2 py-0.5 bg-white/5 text-gray-300 rounded">{d.year}</span>}
-                  </div>
-                  {d.description && <p className="text-sm text-gray-400 line-clamp-2">{d.description}</p>}
-                  <div className="text-xs text-gray-500 mt-3 flex justify-between"><span>{d.subject || ''}</span><span>👁 {d.view_count || 0}</span></div>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {totalPages > 1 && (
-            <div className="mt-8 flex items-center justify-center gap-2">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-4 py-2 rounded-lg glass-card text-white disabled:opacity-30">← Prev</button>
-              <span className="px-4 py-2 text-gray-400">Page {page} of {totalPages}</span>
-              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-4 py-2 rounded-lg glass-card text-white disabled:opacity-30">Next →</button>
-            </div>
-          )}
+          <UploadCard onUploaded={refresh} />
+          <MyUploadsList items={myUploads} onPreview={handlePreview} onDelete={handleDelete} />
         </>
       )}
 

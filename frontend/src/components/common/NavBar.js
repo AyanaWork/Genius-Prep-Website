@@ -27,17 +27,18 @@ function Navbar() {
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path);
 
-  // Role gates
   const showStudentLinks = currentUser?.role === 'student';
   const showTutorLinks = currentUser?.role === 'tutor';
   const showAdminLinks = currentUser?.role === 'admin';
 
-  // Visibility rules per the latest spec:
-  //   - "Documents"      → students AND admins
-  //   - "Request a Tutor"→ students only (logged in)
-  //   - "Browse Tutors"  → students only
+  // Visibility rules:
+  //   - Documents      → students AND admins
+  //   - Request a Tutor→ students only
+  //   - My Requests    → students only
+  //   - Browse Tutors  → students only
   const canSeeDocuments = showStudentLinks || showAdminLinks;
   const canSeeRequestTutor = showStudentLinks;
+  const canSeeMyRequests = showStudentLinks;
   const canSeeBrowseTutors = showStudentLinks;
 
   return (
@@ -68,6 +69,12 @@ function Navbar() {
             <button onClick={() => navigate('/request-tutor')} className={`text-sm font-medium transition ${
               isActive('/request-tutor') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
             }`}>Request a Tutor</button>
+          )}
+
+          {canSeeMyRequests && (
+            <button onClick={() => navigate('/my-requests')} className={`text-sm font-medium transition ${
+              isActive('/my-requests') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
+            }`}>My Requests</button>
           )}
 
           {canSeeDocuments && (
@@ -121,16 +128,15 @@ function Navbar() {
                     <p className="text-sm font-medium text-white">{currentUser.displayName || currentUser.email}</p>
                     <p className="text-xs text-gray-400">{currentUser.email}</p>
                   </div>
-
                   {showStudentLinks && (
                     <>
                       <button onClick={() => { navigate('/student/dashboard'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Dashboard</button>
                       <button onClick={() => { navigate('/student/profile/edit'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Edit Profile</button>
+                      <button onClick={() => { navigate('/my-requests'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">My Requests</button>
                       <button onClick={() => { navigate('/documents'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Documents</button>
                       <button onClick={() => { navigate('/gpa'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">GPA AI</button>
                     </>
                   )}
-
                   {showTutorLinks && (
                     <>
                       <button onClick={() => { navigate('/tutor/dashboard'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Dashboard</button>
@@ -138,7 +144,6 @@ function Navbar() {
                       <button onClick={() => { if (currentUser.tutorProfileId) navigate(`/tutors/${currentUser.tutorProfileId}`); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Public Profile</button>
                     </>
                   )}
-
                   {showAdminLinks && (
                     <>
                       <button onClick={() => { navigate('/admin/dashboard'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Dashboard</button>
@@ -146,7 +151,6 @@ function Navbar() {
                       <button onClick={() => { navigate('/documents'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Documents</button>
                     </>
                   )}
-
                   <div className="border-t border-white/10 mt-2 pt-2">
                     <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10">Logout</button>
                   </div>
@@ -172,6 +176,9 @@ function Navbar() {
             )}
             {canSeeRequestTutor && (
               <button onClick={() => { navigate('/request-tutor'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Request a Tutor</button>
+            )}
+            {canSeeMyRequests && (
+              <button onClick={() => { navigate('/my-requests'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">My Requests</button>
             )}
             {canSeeDocuments && (
               <button onClick={() => { navigate('/documents'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Documents</button>

@@ -10,6 +10,7 @@ import StudentProfileForm from './pages/student/StudentProfileForm';
 import PublicTutorProfile from './pages/tutor/PublicTutorProfile';
 import BrowseTutors from './pages/BrowseTutors';
 import RequestTutor from './pages/RequestTutor';
+import MyTutorRequests from './pages/MyTutorRequests';
 import Documents from './pages/Documents';
 import authService from './services/auth';
 import GPADashboard from './pages/GPA/GPADashboard';
@@ -44,6 +45,11 @@ function App() {
           <Route path="/tutors" element={<BrowseTutors />} />
           <Route path="/tutors/:id" element={<PublicTutorProfile />} />
           <Route path="/request-tutor" element={<RequestTutor />} />
+          <Route path="/my-requests" element={
+            <ProtectedRoute>
+              <MyTutorRequests />
+            </ProtectedRoute>
+          } />
           <Route path="/documents" element={
             <ProtectedRoute>
               <Documents />
