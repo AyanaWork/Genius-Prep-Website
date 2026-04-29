@@ -12,8 +12,7 @@ function Navbar() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
-    const user = authService.getCurrentUser();
-    setCurrentUser(user);
+    setCurrentUser(authService.getCurrentUser());
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -28,9 +27,18 @@ function Navbar() {
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path);
 
+  // Role gates
   const showStudentLinks = currentUser?.role === 'student';
   const showTutorLinks = currentUser?.role === 'tutor';
   const showAdminLinks = currentUser?.role === 'admin';
+
+  // Visibility rules per the latest spec:
+  //   - "Documents"      → students AND admins
+  //   - "Request a Tutor"→ students only (logged in)
+  //   - "Browse Tutors"  → students only
+  const canSeeDocuments = showStudentLinks || showAdminLinks;
+  const canSeeRequestTutor = showStudentLinks;
+  const canSeeBrowseTutors = showStudentLinks;
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -50,23 +58,25 @@ function Navbar() {
             isActive('/') && location.pathname === '/' ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
           }`}>Home</button>
 
-          {currentUser?.role === 'student' && (
+          {canSeeBrowseTutors && (
             <button onClick={() => navigate('/tutors')} className={`text-sm font-medium transition ${
               isActive('/tutors') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
             }`}>Browse Tutors</button>
           )}
 
-          <button onClick={() => navigate('/request-tutor')} className={`text-sm font-medium transition ${
-            isActive('/request-tutor') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
-          }`}>Request a Tutor</button>
+          {canSeeRequestTutor && (
+            <button onClick={() => navigate('/request-tutor')} className={`text-sm font-medium transition ${
+              isActive('/request-tutor') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
+            }`}>Request a Tutor</button>
+          )}
 
-          {currentUser && (
+          {canSeeDocuments && (
             <button onClick={() => navigate('/documents')} className={`text-sm font-medium transition ${
               isActive('/documents') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
             }`}>Documents</button>
           )}
 
-          {(currentUser?.role === 'student' || currentUser?.role === 'tutor') && (showStudentLinks || showTutorLinks) && (
+          {(showStudentLinks || showTutorLinks) && (
             <button onClick={() => navigate('/gpa')} className={`text-sm font-medium transition ${
               isActive('/gpa') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
             }`}>GPA AI</button>
@@ -125,7 +135,6 @@ function Navbar() {
                     <>
                       <button onClick={() => { navigate('/tutor/dashboard'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Dashboard</button>
                       <button onClick={() => { navigate('/tutor/profile/edit'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Edit Profile</button>
-                      <button onClick={() => { navigate('/documents'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Documents</button>
                       <button onClick={() => { if (currentUser.tutorProfileId) navigate(`/tutors/${currentUser.tutorProfileId}`); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Public Profile</button>
                     </>
                   )}
@@ -158,12 +167,16 @@ function Navbar() {
         <div className="md:hidden bg-[#0f172a]/95 backdrop-blur-md border-t border-white/10 mt-3 py-4">
           <div className="container mx-auto px-6 flex flex-col gap-3">
             <button onClick={() => { navigate('/'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Home</button>
-            <button onClick={() => { navigate('/tutors'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Browse Tutors</button>
-            <button onClick={() => { navigate('/request-tutor'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Request a Tutor</button>
-            {currentUser && (
+            {canSeeBrowseTutors && (
+              <button onClick={() => { navigate('/tutors'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Browse Tutors</button>
+            )}
+            {canSeeRequestTutor && (
+              <button onClick={() => { navigate('/request-tutor'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Request a Tutor</button>
+            )}
+            {canSeeDocuments && (
               <button onClick={() => { navigate('/documents'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Documents</button>
             )}
-            {currentUser && (showStudentLinks || showTutorLinks) && (
+            {(showStudentLinks || showTutorLinks) && (
               <button onClick={() => { navigate('/gpa'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">GPA AI</button>
             )}
             {currentUser && (
