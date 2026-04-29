@@ -1,73 +1,49 @@
 const Document = require('../models/Document');
 const supabase = require('../config/supabase');
+const { v4: uuidv4 } = require('uuid');
 const { logAdminAction } = require('../utils/auditLog');
 
+// Bucket name (the user has created this in Supabase Storage).
 const BUCKET = 'documents';
 
-// Configure the give-to-get gate. Default: 1 approved upload required.
+// "Give to get" gate: how many APPROVED uploads required to unlock the library.
 const REQUIRED_APPROVED_UPLOADS = 1;
 
 const VALID_TYPES = ['past_paper', 'notes', 'memo', 'tutorial', 'other'];
 const VALID_STATUSES_FOR_LIST = ['pending', 'approved', 'rejected'];
 const ALLOWED_MIME = new Set([
   'application/pdf',
-  'image/png',
-  'image/jpeg',
-  'image/webp',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-  'application/msword',                                                       // .doc
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+  'image/png', 'image/jpeg', 'image/webp',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   'text/plain'
 ]);
 const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
 
-function safeFilename(name) {
-  return (name || 'upload')
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]/g, '-')
-    .slice(-80);
-}
-
-/**
- * Has this user uploaded enough to be unlocked?
- */
 async function userIsUnlocked(userId) {
   const n = await Document.approvedUploadCountByUser(userId);
   return n >= REQUIRED_APPROVED_UPLOADS;
 }
 
-/**
- * Generate a signed URL with reasonable expiry. Falls back to whatever
- * was stored in file_url if signing fails (e.g. when Supabase is in
- * stub mode in dev).
- */
-async function freshSignedUrl(storagePath, fallback, expiresIn = 60 * 60) {
-  try {
-    const { data, error } = await supabase
-      .storage
-      .from(BUCKET)
-      .createSignedUrl(storagePath, expiresIn);
-    if (error || !data?.signedUrl) return fallback;
-    return data.signedUrl;
-  } catch {
-    return fallback;
-  }
-}
-
 // ---------------------------------------------------------------------
-// CREATE
+// CREATE — mirrors the working profile-picture upload flow.
+// Uses getPublicUrl (same as uploadController.js) so previews work
+// without re-signing every time. Make the bucket PUBLIC in Supabase
+// (Storage → bucket → settings → make public). Files stay obscure
+// because the URL embeds a UUID-based path.
 // ---------------------------------------------------------------------
 exports.upload = async (req, res) => {
   try {
     const userId = req.userId;
     const file = req.file;
+
     if (!file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-
     if (!ALLOWED_MIME.has(file.mimetype)) {
       return res.status(400).json({
-        error: 'Unsupported file type. Allowed: PDF, images, Word, PowerPoint, plain text.'
+        error: `Unsupported file type: ${file.mimetype}. Allowed: PDF, images, Word, PowerPoint, plain text.`
       });
     }
     if (file.size > MAX_BYTES) {
@@ -75,14 +51,8 @@ exports.upload = async (req, res) => {
     }
 
     const {
-      docType,
-      subject,
-      moduleCode,
-      institution,
-      year,
-      semester,
-      title,
-      description
+      docType, subject, moduleCode, institution,
+      year, semester, title, description
     } = req.body;
 
     if (!docType || !VALID_TYPES.includes(docType)) {
@@ -92,12 +62,13 @@ exports.upload = async (req, res) => {
       return res.status(400).json({ error: 'Title is required (min 3 chars)' });
     }
 
-    // Path layout makes browsing/cleanup easy in the Supabase dashboard.
-    const ts = Date.now();
-    const storagePath = `${docType}/${userId}/${ts}-${safeFilename(file.originalname)}`;
+    const fileExt = (file.originalname.split('.').pop() || 'bin').toLowerCase();
+    const fileName = `${uuidv4()}.${fileExt}`;
+    const storagePath = `${docType}/${userId}/${fileName}`;
 
-    const { error: upErr } = await supabase
-      .storage
+    console.log('📤 Uploading document to Supabase:', { bucket: BUCKET, path: storagePath, size: file.size, mime: file.mimetype });
+
+    const { data: upData, error: upErr } = await supabase.storage
       .from(BUCKET)
       .upload(storagePath, file.buffer, {
         contentType: file.mimetype,
@@ -105,15 +76,21 @@ exports.upload = async (req, res) => {
       });
 
     if (upErr) {
-      console.error('Supabase upload error:', upErr);
+      console.error('❌ Supabase upload error:', upErr);
       return res.status(500).json({
-        error: 'Upload failed. Make sure the "documents" bucket exists in Supabase.'
+        error: 'Upload failed',
+        details: upErr.message,
+        hint: `Make sure a "${BUCKET}" bucket exists in Supabase Storage and SUPABASE_SERVICE_ROLE_KEY is set in backend/.env.`
       });
     }
 
-    // Best-effort signed URL — saved on the row for convenience and
-    // re-signed on every read for fresh links.
-    const signed = await freshSignedUrl(storagePath, '', 60 * 60);
+    // Public URL — works as long as the bucket is set to "public" in Supabase.
+    const { data: publicData } = supabase.storage
+      .from(BUCKET)
+      .getPublicUrl(storagePath);
+    const fileUrl = publicData?.publicUrl || '';
+
+    console.log('✅ Document uploaded:', fileUrl);
 
     const created = await Document.create({
       uploaderUserId: userId,
@@ -126,7 +103,7 @@ exports.upload = async (req, res) => {
       title: title.trim(),
       description,
       storagePath,
-      fileUrl: signed || '',
+      fileUrl,
       mimeType: file.mimetype,
       fileSize: file.size
     });
@@ -136,8 +113,11 @@ exports.upload = async (req, res) => {
       document: created
     });
   } catch (error) {
-    console.error('Document upload error:', error);
-    res.status(500).json({ error: 'Failed to upload document' });
+    console.error('❌ Document upload error:', error);
+    res.status(500).json({
+      error: 'Failed to upload document',
+      details: error.message
+    });
   }
 };
 
@@ -147,8 +127,6 @@ exports.upload = async (req, res) => {
 exports.list = async (req, res) => {
   try {
     const userId = req.userId;
-
-    // Admins can always see; everyone else must be unlocked.
     const isAdmin = req.userRole === 'admin';
     const unlocked = isAdmin || (await userIsUnlocked(userId));
 
@@ -161,24 +139,14 @@ exports.list = async (req, res) => {
         requiredApprovedUploads: REQUIRED_APPROVED_UPLOADS,
         approvedUploads,
         totalUploads,
-        message:
-          totalUploads === 0
-            ? 'Upload at least one past paper, set of notes, or memo to unlock the library.'
-            : 'Your uploads are awaiting admin approval. Once approved, the library unlocks.'
+        message: totalUploads === 0
+          ? 'Upload at least one past paper, set of notes, or memo to unlock the library.'
+          : 'Your uploads are awaiting admin approval. Once approved, the library unlocks.'
       });
     }
 
     const result = await Document.listApproved(req.query);
-
-    // Re-sign URLs so links don't go stale.
-    const documents = await Promise.all(
-      result.documents.map(async (d) => ({
-        ...d,
-        file_url: await freshSignedUrl(undefined, d.file_url, 60 * 60) // keep stored URL if no path
-      }))
-    );
-
-    res.json({ ...result, documents, unlocked: true });
+    res.json({ ...result, unlocked: true });
   } catch (error) {
     console.error('List documents error:', error);
     res.status(500).json({ error: 'Failed to load documents' });
@@ -186,7 +154,7 @@ exports.list = async (req, res) => {
 };
 
 // ---------------------------------------------------------------------
-// READ ONE — also bumps view count and refreshes the signed URL
+// READ ONE
 // ---------------------------------------------------------------------
 exports.getOne = async (req, res) => {
   try {
@@ -195,32 +163,26 @@ exports.getOne = async (req, res) => {
     const { id } = req.params;
 
     const doc = await Document.findById(id);
-    if (!doc || (doc.status !== 'approved' && !isAdmin && doc.uploader_user_id !== userId)) {
+    if (!doc) return res.status(404).json({ error: 'Not found' });
+
+    const isOwner = doc.uploader_user_id === userId;
+    if (doc.status !== 'approved' && !isAdmin && !isOwner) {
       return res.status(404).json({ error: 'Not found' });
     }
 
-    // Gate: same as list, except a user can always preview their own
-    // documents to see what was approved/rejected.
-    if (!isAdmin && doc.uploader_user_id !== userId) {
+    if (!isAdmin && !isOwner) {
       const unlocked = await userIsUnlocked(userId);
-      if (!unlocked) {
-        return res.status(403).json({ error: 'locked' });
-      }
+      if (!unlocked) return res.status(403).json({ error: 'locked' });
     }
 
-    Document.incrementViewCount(id).catch(() => {}); // fire-and-forget
-    const fresh = await freshSignedUrl(doc.storage_path, doc.file_url, 60 * 60);
-
-    res.json({ document: { ...doc, file_url: fresh } });
+    Document.incrementViewCount(id).catch(() => {});
+    res.json({ document: doc });
   } catch (error) {
     console.error('Get document error:', error);
     res.status(500).json({ error: 'Failed to fetch document' });
   }
 };
 
-// ---------------------------------------------------------------------
-// MY UPLOADS (always visible to the uploader)
-// ---------------------------------------------------------------------
 exports.listMyUploads = async (req, res) => {
   try {
     const docs = await Document.listByUploader(req.userId);
@@ -231,9 +193,6 @@ exports.listMyUploads = async (req, res) => {
   }
 };
 
-// ---------------------------------------------------------------------
-// STATUS — quick check for the UI to render the locked/unlocked screen
-// ---------------------------------------------------------------------
 exports.getMyStatus = async (req, res) => {
   try {
     const userId = req.userId;
@@ -252,9 +211,6 @@ exports.getMyStatus = async (req, res) => {
   }
 };
 
-// ---------------------------------------------------------------------
-// MODULE CODE LIST — autocomplete for the search box
-// ---------------------------------------------------------------------
 exports.listModuleCodes = async (req, res) => {
   try {
     const codes = await Document.distinctModuleCodes();
@@ -285,19 +241,9 @@ exports.adminList = async (req, res) => {
 exports.adminApprove = async (req, res) => {
   try {
     const { id } = req.params;
-    const updated = await Document.setStatus(id, 'approved', {
-      moderatorUserId: req.userId
-    });
+    const updated = await Document.setStatus(id, 'approved', { moderatorUserId: req.userId });
     if (!updated) return res.status(404).json({ error: 'Not found' });
-
-    logAdminAction({
-      adminUserId: req.userId,
-      action: 'approved_document',
-      targetType: 'document',
-      targetId: parseInt(id, 10),
-      ipAddress: req.ip
-    });
-
+    logAdminAction({ adminUserId: req.userId, action: 'approved_document', targetType: 'document', targetId: parseInt(id, 10), ipAddress: req.ip });
     res.json({ document: updated });
   } catch (error) {
     console.error('Admin approve error:', error);
@@ -309,24 +255,10 @@ exports.adminReject = async (req, res) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;
-    if (!reason || !reason.trim()) {
-      return res.status(400).json({ error: 'Rejection reason is required' });
-    }
-    const updated = await Document.setStatus(id, 'rejected', {
-      moderatorUserId: req.userId,
-      rejectionReason: reason
-    });
+    if (!reason || !reason.trim()) return res.status(400).json({ error: 'Rejection reason is required' });
+    const updated = await Document.setStatus(id, 'rejected', { moderatorUserId: req.userId, rejectionReason: reason });
     if (!updated) return res.status(404).json({ error: 'Not found' });
-
-    logAdminAction({
-      adminUserId: req.userId,
-      action: 'rejected_document',
-      targetType: 'document',
-      targetId: parseInt(id, 10),
-      metadata: { reason },
-      ipAddress: req.ip
-    });
-
+    logAdminAction({ adminUserId: req.userId, action: 'rejected_document', targetType: 'document', targetId: parseInt(id, 10), metadata: { reason }, ipAddress: req.ip });
     res.json({ document: updated });
   } catch (error) {
     console.error('Admin reject error:', error);
@@ -339,22 +271,12 @@ exports.adminDelete = async (req, res) => {
     const { id } = req.params;
     const removed = await Document.deleteById(id);
     if (!removed) return res.status(404).json({ error: 'Not found' });
-
-    // Best-effort delete from Supabase storage too.
     try {
       await supabase.storage.from(BUCKET).remove([removed.storage_path]);
     } catch (err) {
       console.warn('Storage delete failed:', err.message);
     }
-
-    logAdminAction({
-      adminUserId: req.userId,
-      action: 'deleted_document',
-      targetType: 'document',
-      targetId: parseInt(id, 10),
-      ipAddress: req.ip
-    });
-
+    logAdminAction({ adminUserId: req.userId, action: 'deleted_document', targetType: 'document', targetId: parseInt(id, 10), ipAddress: req.ip });
     res.json({ message: 'Deleted' });
   } catch (error) {
     console.error('Admin delete error:', error);
