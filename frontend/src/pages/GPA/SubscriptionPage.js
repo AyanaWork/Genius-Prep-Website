@@ -121,7 +121,7 @@ function SubscriptionPage() {
       {/* Main Content */}
       <div className="pt-24 pb-16 px-6 container mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-black mb-4 text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">
             Subscribe to GPA 🚀
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">

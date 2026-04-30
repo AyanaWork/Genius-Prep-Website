@@ -56,7 +56,7 @@ function TutorVerification() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <img src={companyLogo} alt="Logo" className="h-10 w-auto" />
-            <h1 className="text-3xl font-black">Tutor Verification</h1>
+            <h1 className="text-3xl md:text-4xl font-black text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">Tutor Verification</h1>
           </div>
           <button onClick={() => navigate('/admin/dashboard')} className="text-[#00CC99] hover:underline">← Back to Dashboard</button>
         </div>

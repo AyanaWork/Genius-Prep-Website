@@ -33,7 +33,7 @@ function TutorApprovalPanel() {
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
           <img src={companyLogo} alt="Logo" className="h-10 w-auto" />
-          <h1 className="text-3xl font-black">Tutor Approval Panel</h1>
+          <h1 className="text-3xl md:text-4xl font-black text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">Tutor Approval Panel</h1>
         </div>
         {pendingTutors.length === 0 ? <div className="glass-card rounded-3xl p-8 text-center">No pending applications</div> : (
           <div className="space-y-6">

@@ -23,7 +23,7 @@ function PricingAndLegal() {
           >
             ← Back to Home
           </button>
-          <h1 className="text-4xl font-black">Pricing & Legal</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">Pricing & Legal</h1>
           <p className="text-gray-400 mt-2">Transparent pricing and policies for Genius Accelerator</p>
         </div>
       </div>

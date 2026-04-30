@@ -185,7 +185,7 @@ function AdminDashboard() {
     <div className="min-h-screen bg-[#0f172a] text-white">
       <div className="pt-24 pb-16 px-6 container mx-auto">
         <div className="glass-card rounded-3xl p-8 mb-8">
-          <h1 className="text-3xl font-black mb-2">Admin Dashboard</h1>
+          <h1 className="text-3xl md:text-4xl font-black mb-2 text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">Admin Dashboard</h1>
           <p className="text-gray-400">Manage tutors, requests, and documents</p>
         </div>
 

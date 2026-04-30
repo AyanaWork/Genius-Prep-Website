@@ -103,7 +103,7 @@ function PaymentSuccess() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Payment Successful!</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">Payment Successful!</h1>
           <p className="text-gray-400">
             Thank you for your payment. Your transaction has been completed successfully.
           </p>
