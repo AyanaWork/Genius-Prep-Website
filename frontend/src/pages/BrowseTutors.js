@@ -98,7 +98,7 @@ function BrowseTutors() {
   return (
     <div className="min-h-screen bg-[#0f172a] text-white">
       <div className="pt-24 pb-8 px-6 text-center">
-        <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl md:text-5xl font-black mb-4 leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">
           Find Your Perfect Tutor
         </h1>
         <p className="text-gray-400 text-lg max-w-2xl mx-auto">

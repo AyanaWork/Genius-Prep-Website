@@ -366,7 +366,7 @@ function GPADashboard() {
         <div className="flex-1 flex flex-col m-4 ml-0">
           <div className="glass-card rounded-3xl p-4 mb-4">
             <h1 className="text-xl font-bold">
-              {activeConversation ? conversations.find(c => c.id === activeConversation)?.title || 'Chat' : 'GPA AI Assistant'}
+              {activeConversation ? conversations.find(c => c.id === activeConversation)?.title || 'Chat' : 'Lwazi'}
             </h1>
             <p className="text-sm text-gray-400">Your AI study companion</p>
           </div>

@@ -51,7 +51,7 @@ function PrivacyPolicy() {
               <li>To create and manage your account on the Platform</li>
               <li>To match students with suitable tutors</li>
               <li>To process bookings and payments</li>
-              <li>To provide access to the GPA AI tool</li>
+              <li>To provide access to the Lwazi</li>
               <li>To send important notifications about your bookings and account</li>
               <li>To improve our services and platform experience</li>
               <li>To comply with legal obligations</li>

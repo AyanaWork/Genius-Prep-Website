@@ -183,13 +183,13 @@ function Home() {
               </button>
             )}
 
-            {/* GPA AI button – always visible to logged in users */}
+            {/* Lwazi button – always visible to logged in users */}
             {(!currentUser || currentUser.role === 'student') && (
               <button
                 onClick={() => navigate('/gpa')}
                 className="px-10 py-4 glass-card rounded-xl font-bold text-lg hover:border-[#00CC99]/50 transition-all"
               >
-                GPA AI Assistant ⚡
+                Lwazi ⚡
               </button>
             )}
           </div>
@@ -271,7 +271,7 @@ function Home() {
             {[
               { img: tutoringImg, title: "1-on-1 Mentoring", desc: "Focused private sessions for University and High School excellence." },
               // { img: examImg, title: "Exam Crushing", desc: "Intensive prep for NBTs, SATs, and Matric finals." },
-              { img: assistantImg, title: "AI Learning Tools", desc: "Harness the power of GPA AI to generate notes and mock tests." },
+              { img: assistantImg, title: "AI Learning Tools", desc: "Harness the power of Lwazi to generate notes and mock tests." },
               // { img: booksImg, title: "Curriculum Support", desc: "Full coverage for NSC, IEB, Cambridge, and IB." },
               { img: upskillingImg, title: "Skill Up", desc: "Python, Data Science, and Machine Learning courses." },
               // { img: relocationImg, title: "Global Transition", desc: "Curriculum alignment for students moving abroad." }
@@ -444,7 +444,7 @@ function Home() {
               <ul className="space-y-4">
                 <li><Link to="/tutors" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Find Tutors</Link></li>
                 <li><Link to="/tutor/register" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Become a Mentor</Link></li>
-                <li><Link to="/gpa" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">GPA AI Tool</Link></li>
+                <li><Link to="/gpa" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Lwazi</Link></li>
                 <li><Link to="/pricing-legal" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Pricing</Link></li>
               </ul>
             </div>

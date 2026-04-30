@@ -60,7 +60,7 @@ function PricingAndLegal() {
               </p>
             </div>
 
-            {/* GPA Subscription */}
+            {/* Lwazi Subscription */}
             <div>
               <h3 className="text-2xl font-bold mb-6 text-center">
                 GPA — Genius Prep Accelerator (AI Tool)
@@ -76,7 +76,7 @@ function PricingAndLegal() {
                   </div>
                   <ul className="space-y-2 mb-6 flex-1">
                     {[
-                      'Full GPA AI access for 24 hours',
+                      'Full Lwazi access for 24 hours',
                       'Generate notes, tests & memos',
                       'Upload & analyse PDF documents',
                       'Multilingual academic support',
@@ -108,7 +108,7 @@ function PricingAndLegal() {
                   </div>
                   <ul className="space-y-2 mb-6 flex-1">
                     {[
-                      'Full GPA AI access for 30 days',
+                      'Full Lwazi access for 30 days',
                       'Generate notes, tests & memos',
                       'Upload & analyse PDF documents',
                       'Multilingual academic support',
@@ -138,7 +138,7 @@ function PricingAndLegal() {
                   </div>
                   <ul className="space-y-2 mb-6 flex-1">
                     {[
-                      'Full GPA AI access for 6 months',
+                      'Full Lwazi access for 6 months',
                       'Generate notes, tests & memos',
                       'Upload & analyse PDF documents',
                       'Multilingual academic support',
@@ -172,7 +172,7 @@ function PricingAndLegal() {
                   </div>
                   <ul className="space-y-2 mb-6 flex-1">
                     {[
-                      'Full GPA AI access for 12 months',
+                      'Full Lwazi access for 12 months',
                       'Generate notes, tests & memos',
                       'Upload & analyse PDF documents',
                       'Multilingual academic support',
@@ -248,9 +248,9 @@ function PricingAndLegal() {
 
             {[
               { title: '1. Introduction', text: 'Welcome to Genius Accelerator. By accessing or using our platform at geniusaccelerator.co.za, you agree to be bound by these Terms and Conditions. Please read them carefully before using our services.' },
-              { title: '2. Services', text: 'We offer academic tutoring (online and in-person), home-school support, relocation tutoring, exam preparation, academic coaching, upskilling courses, and access to the GPA AI tool.' },
+              { title: '2. Services', text: 'We offer academic tutoring (online and in-person), home-school support, relocation tutoring, exam preparation, academic coaching, upskilling courses, and access to the Lwazi.' },
               { title: '3. User Accounts', text: 'Users must provide accurate information, maintain account security, and notify us of unauthorized use. We may suspend accounts that violate these terms.' },
-              { title: '4. Payment Terms', text: 'Minimum booking is 3 hours. Full payment is required before session confirmation. GPA subscriptions are available at R100/day, R250/month, R450/semester, or R700/year. Payments are processed via Paystack.' },
+              { title: '4. Payment Terms', text: 'Minimum booking is 3 hours. Full payment is required before session confirmation. Lwazi subscriptions are available at R100/day, R250/month, R450/semester, or R700/year. Payments are processed via Paystack.' },
               { title: '5. Governing Law', text: 'These terms are governed by the laws of the Republic of South Africa. Disputes are subject to the jurisdiction of Gauteng courts.' },
             ].map((section, i) => (
               <section key={i}>
@@ -284,7 +284,7 @@ function PricingAndLegal() {
 
             {[
               { title: 'What We Collect', text: 'We collect identity info (name, photo), contact info (email, phone), academic info, payment info (processed by Paystack. We do not store card details), and usage data.' },
-              { title: 'How We Use It', text: 'To manage your account, match students with tutors, process bookings and payments, provide the GPA tool, and improve our platform.' },
+              { title: 'How We Use It', text: 'To manage your account, match students with tutors, process bookings and payments, provide the Lwazi, and improve our platform.' },
               { title: 'Who We Share With', text: 'We share with tutors (booking details only), Paystack (payment processing), Cloudinary (image storage), and OpenAI (GPA queries. No personal data shared). We never sell your data.' },
               { title: 'Your Rights (POPIA)', text: 'You have the right to access, correct, or delete your personal information, and to object to its processing. Contact us at admin@geniusaccelerator.co.za.' },
             ].map((section, i) => (
@@ -328,7 +328,7 @@ function PricingAndLegal() {
             </div>
 
             <div className="bg-[#00CC99]/10 border border-[#00CC99]/30 rounded-lg p-4">
-              <h3 className="font-bold text-[#00CC99] mb-3">GPA Subscriptions</h3>
+              <h3 className="font-bold text-[#00CC99] mb-3">Lwazi Subscriptions</h3>
               <div className="space-y-2 text-sm text-gray-300">
                 <p><strong>Within 7 days (unused):</strong> Full refund</p>
                 <p><strong>After 7 days:</strong> No refund for used subscriptions</p>

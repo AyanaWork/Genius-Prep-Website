@@ -86,7 +86,7 @@ function Navbar() {
           {(showStudentLinks || showTutorLinks) && (
             <button onClick={() => navigate('/gpa')} className={`text-sm font-medium transition ${
               isActive('/gpa') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
-            }`}>GPA AI</button>
+            }`}>Lwazi</button>
           )}
 
           {currentUser && (
@@ -134,7 +134,7 @@ function Navbar() {
                       <button onClick={() => { navigate('/student/profile/edit'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Edit Profile</button>
                       <button onClick={() => { navigate('/my-requests'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">My Requests</button>
                       <button onClick={() => { navigate('/documents'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Documents</button>
-                      <button onClick={() => { navigate('/gpa'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">GPA AI</button>
+                      <button onClick={() => { navigate('/gpa'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Lwazi</button>
                     </>
                   )}
                   {showTutorLinks && (
@@ -184,7 +184,7 @@ function Navbar() {
               <button onClick={() => { navigate('/documents'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Documents</button>
             )}
             {(showStudentLinks || showTutorLinks) && (
-              <button onClick={() => { navigate('/gpa'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">GPA AI</button>
+              <button onClick={() => { navigate('/gpa'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Lwazi</button>
             )}
             {currentUser && (
               <button onClick={() => { navigate(`/${currentUser.role}/dashboard`); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Dashboard</button>

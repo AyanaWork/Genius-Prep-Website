@@ -83,7 +83,7 @@ function PaymentSuccess() {
           <p className="text-gray-300 mb-6">{error}</p>
           <div className="flex flex-col gap-3">
             <button onClick={() => navigate('/gpa')} className="px-6 py-3 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition">
-              Go to GPA Dashboard
+              Go to Lwazi
             </button>
             <button onClick={() => navigate('/')} className="px-6 py-3 glass-card rounded-xl font-semibold hover:border-[#00CC99]/50 transition">
               Go to Home
@@ -133,7 +133,7 @@ function PaymentSuccess() {
             onClick={() => navigate(paymentType === 'booking' ? '/student/dashboard' : '/gpa')}
             className="flex-1 px-6 py-3 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition"
           >
-            {paymentType === 'booking' ? 'Go to My Dashboard' : 'Go to GPA Dashboard'}
+            {paymentType === 'booking' ? 'Go to My Dashboard' : 'Go to Lwazi'}
           </button>
           <button
             onClick={() => navigate('/')}

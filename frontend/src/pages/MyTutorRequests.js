@@ -168,7 +168,7 @@ function MyTutorRequests() {
   return (
     <div className="container mx-auto px-6 pt-24 pb-12">
       <div className="text-center mb-8">
-        <h1 className="text-4xl md:text-5xl font-black mb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">My Tutor Requests</h1>
+        <h1 className="text-4xl md:text-5xl font-black mb-2 leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">My Tutor Requests</h1>
         <p className="text-gray-400">Track requests you've submitted and see the tutors our team has matched.</p>
       </div>
 

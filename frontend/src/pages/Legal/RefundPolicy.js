@@ -48,9 +48,9 @@ function RefundPolicy() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4">3. GPA Subscription Refunds</h2>
+            <h2 className="text-2xl font-bold mb-4">3. Lwazi Subscription Refunds</h2>
             <ul className="list-disc pl-6 text-gray-300 space-y-2">
-              <li><strong>Within 7 days of purchase:</strong> Full refund if the GPA tool has not been used</li>
+              <li><strong>Within 7 days of purchase:</strong> Full refund if the Lwazi has not been used</li>
               <li><strong>After 7 days:</strong> No refund for used subscriptions</li>
               <li><strong>Technical issues:</strong> If GPA is inaccessible for more than 72 consecutive hours due to our fault, a pro-rata refund or subscription extension will be offered</li>
             </ul>
@@ -71,7 +71,7 @@ function RefundPolicy() {
             <h2 className="text-2xl font-bold mb-4">5. Non-Refundable Items</h2>
             <ul className="list-disc pl-6 text-gray-300 space-y-2">
               <li>Sessions that have already been completed</li>
-              <li>GPA subscriptions where the service has been used</li>
+              <li>Lwazi subscriptions where the service has been used</li>
               <li>Administrative or processing fees</li>
             </ul>
           </section>
