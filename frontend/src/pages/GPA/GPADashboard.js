@@ -376,7 +376,7 @@ function GPADashboard() {
             {messages.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">🎓</div>
-                <h2 className="text-2xl font-bold mb-2">Welcome to GPA!</h2>
+                <h2 className="text-2xl font-bold mb-2">Welcome to Lwazi!</h2>
                 <p className="text-gray-400 mb-6 max-w-md mx-auto">
                   Ask me anything about your studies. I can help with notes, practice tests, explanations, and more.
                 </p>
