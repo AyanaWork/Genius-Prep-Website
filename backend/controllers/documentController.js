@@ -65,12 +65,33 @@ async function getAccessStatus(userId, userRole) {
   }
 
   // Default: students.
+  // Two gates have to pass:
+  //   (a) profile must be populated (display_name set)
+  //   (b) at least one approved upload of their own
+  let profilePopulated = false;
+  try {
+    const r = await pool.query(
+      "SELECT 1 FROM student_profiles WHERE user_id = $1 AND display_name IS NOT NULL AND length(trim(display_name)) > 0",
+      [userId]
+    );
+    profilePopulated = r.rows.length > 0;
+  } catch { /* table missing handled upstream */ }
+
   const approved = await Document.approvedUploadCountByUser(userId);
   const total    = await Document.totalUploadCountByUser(userId);
-  const unlocked = approved >= REQUIRED_APPROVED_UPLOADS;
+  const hasApprovedUpload = approved >= REQUIRED_APPROVED_UPLOADS;
+  const unlocked = profilePopulated && hasApprovedUpload;
+
+  let reason;
+  if (unlocked)              reason = 'approved_upload';
+  else if (!profilePopulated) reason = 'no_profile';
+  else if (total === 0)       reason = 'no_upload';
+  else                        reason = 'pending_upload';
+
   return {
     unlocked,
-    reason: unlocked ? 'approved_upload' : (total === 0 ? 'no_upload' : 'pending_upload'),
+    reason,
+    profilePopulated,
     approvedUploads: approved,
     totalUploads: total,
     requiredApprovedUploads: REQUIRED_APPROVED_UPLOADS
@@ -160,6 +181,7 @@ exports.list = async (req, res) => {
 
     if (!status.unlocked) {
       const messages = {
+        no_profile:               'Complete your student profile first, then upload at least one document to unlock the library.',
         no_upload:                'Upload at least one past paper, set of notes, or memo to unlock the library.',
         pending_upload:           'Your uploads are awaiting admin approval. The library unlocks as soon as one is approved.',
         tutor_pending_approval:   'Your tutor profile is awaiting admin approval. Once approved you\'ll have access to the library.',
