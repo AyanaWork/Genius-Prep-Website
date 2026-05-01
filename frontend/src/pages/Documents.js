@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import documentService from '../services/document';
 import authService from '../services/auth';
 
@@ -9,6 +9,14 @@ const TYPE_LABEL = {
 const TYPE_ICON = {
   past_paper: '📝', notes: '📒', memo: '🗒️', tutorial: '🎯', other: '📎'
 };
+const TYPE_OPTIONS = [
+  { value: '', label: 'All types' },
+  { value: 'past_paper', label: 'Past papers' },
+  { value: 'notes', label: 'Notes' },
+  { value: 'memo', label: 'Memos' },
+  { value: 'tutorial', label: 'Tutorials' },
+  { value: 'other', label: 'Other' }
+];
 const SUBJECT_OPTIONS = [
   '', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English',
   'Accounting', 'Economics', 'Computer Science', 'Statistics', 'Law',
@@ -18,10 +26,13 @@ const SUBJECT_OPTIONS = [
 function isPdf(mime) { return mime === 'application/pdf'; }
 function isImage(mime) { return typeof mime === 'string' && mime.startsWith('image/'); }
 
-// =====================================================================
-// PreviewModal — used by both student and admin views.
-// `actions` is an optional render-prop for footer buttons (used by admin).
-// =====================================================================
+function useDebouncedValue(value, delay = 300) {
+  const [v, setV] = useState(value);
+  useEffect(() => { const id = setTimeout(() => setV(value), delay); return () => clearTimeout(id); }, [value, delay]);
+  return v;
+}
+
+// Shared preview modal — admin pass `actions` for moderation buttons.
 function PreviewModal({ doc, onClose, actions }) {
   if (!doc) return null;
   return (
@@ -61,9 +72,9 @@ function PreviewModal({ doc, onClose, actions }) {
 }
 
 // =====================================================================
-// Student view: upload form + private list + delete-own.
+// Upload form (students + tutors)
 // =====================================================================
-function StudentUploadCard({ onUploaded }) {
+function UploadCard({ onUploaded }) {
   const fileRef = useRef(null);
   const [file, setFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -83,7 +94,7 @@ function StudentUploadCard({ onUploaded }) {
     setSubmitting(true);
     try {
       await documentService.upload({ file, ...form });
-      setMsg('Uploaded! Awaiting admin review. Once approved you can preview it from "Your uploads" below.');
+      setMsg('Uploaded! Awaiting admin review. Once one of your uploads is approved you unlock the full library.');
       setFile(null);
       if (fileRef.current) fileRef.current.value = '';
       setForm({ docType: 'past_paper', subject: '', moduleCode: '', institution: '', year: '', semester: '', title: '', description: '' });
@@ -95,9 +106,9 @@ function StudentUploadCard({ onUploaded }) {
   };
 
   return (
-    <div className="glass-card rounded-2xl p-6 mb-6">
+    <div className="glass-card rounded-2xl p-6 mb-6 border border-white/10">
       <h3 className="text-xl font-bold mb-1">Upload a study resource</h3>
-      <p className="text-sm text-gray-400 mb-4">Files go through admin review before they're available on your account.</p>
+      <p className="text-sm text-gray-400 mb-4">Files go through admin review before they appear in the library.</p>
       {err && <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-xl mb-3">{err}</div>}
       {msg && <div className="bg-green-500/20 border border-green-500 text-green-300 p-3 rounded-xl mb-3">{msg}</div>}
       <form onSubmit={submit} className="space-y-4">
@@ -149,7 +160,7 @@ function StudentUploadCard({ onUploaded }) {
         </div>
         <div>
           <label className="block text-sm font-semibold mb-1">Description (optional)</label>
-          <textarea rows="2" value={form.description} onChange={(e) => update('description', e.target.value)} className="w-full px-3 py-2 bg-[#0f172a]/40 border border-white/10 rounded-lg text-white" placeholder="Anything that helps you find or use this resource later" />
+          <textarea rows="2" value={form.description} onChange={(e) => update('description', e.target.value)} className="w-full px-3 py-2 bg-[#0f172a]/40 border border-white/10 rounded-lg text-white" placeholder="Anything that helps other students find or use this resource" />
         </div>
         <button type="submit" disabled={submitting} className="w-full md:w-auto px-6 py-3 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition disabled:opacity-50">{submitting ? 'Uploading…' : 'Upload'}</button>
       </form>
@@ -160,15 +171,15 @@ function StudentUploadCard({ onUploaded }) {
 function MyUploadsList({ items, onPreview, onDelete }) {
   if (!items || items.length === 0) {
     return (
-      <div className="glass-card rounded-2xl p-8 text-center text-gray-400 border border-white/10">
-        You haven't uploaded any documents yet. Use the form above to add your first one.
+      <div className="glass-card rounded-2xl p-6 text-center text-gray-400 border border-white/10 mb-6">
+        You haven't uploaded any documents yet.
       </div>
     );
   }
   return (
-    <div className="glass-card rounded-2xl p-6 border border-white/10">
+    <div className="glass-card rounded-2xl p-6 border border-white/10 mb-6">
       <h3 className="text-lg font-bold mb-3">Your uploads ({items.length})</h3>
-      <p className="text-xs text-gray-500 mb-3">Click an approved upload to preview. Use 🗑 to delete.</p>
+      <p className="text-xs text-gray-500 mb-3">Click an approved upload to preview it. 🗑 to delete.</p>
       <div className="space-y-2">
         {items.map((d) => {
           const clickable = d.status === 'approved';
@@ -191,12 +202,7 @@ function MyUploadsList({ items, onPreview, onDelete }) {
                 : d.status === 'rejected' ? 'bg-red-500/20 text-red-400 border-red-500/40'
                 : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40'
               }`}>{d.status}</span>
-              <button
-                type="button"
-                onClick={() => onDelete(d)}
-                className="px-2 py-1 text-red-400 hover:bg-red-500/10 rounded-lg"
-                title="Delete"
-              >🗑</button>
+              <button type="button" onClick={() => onDelete(d)} className="px-2 py-1 text-red-400 hover:bg-red-500/10 rounded-lg" title="Delete">🗑</button>
             </div>
           );
         })}
@@ -206,11 +212,182 @@ function MyUploadsList({ items, onPreview, onDelete }) {
 }
 
 // =====================================================================
-// Admin view: all uploads across students with filter + moderation.
-// Deleting a doc here removes it from storage and the DB → the student's
-// page will no longer show it (cascades via the same row deletion).
+// Library — visible once unlocked. Includes search + filters.
 // =====================================================================
-function AdminDocumentsView({ refreshKey, onPreview, onChange }) {
+function LibraryView({ onPreview }) {
+  const [docs, setDocs] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const [filters, setFilters] = useState({ docType: '', subject: '', moduleCode: '', sort: 'newest' });
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebouncedValue(searchInput, 300);
+
+  const [moduleCodes, setModuleCodes] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchBoxRef = useRef(null);
+
+  useEffect(() => {
+    documentService.getModuleCodes()
+      .then((r) => setModuleCodes(r.moduleCodes || []))
+      .catch(() => setModuleCodes([]));
+  }, []);
+
+  useEffect(() => {
+    const h = (e) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target)) setShowSuggestions(false);
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  useEffect(() => { setPage(1); }, [filters.docType, filters.subject, filters.moduleCode, filters.sort, debouncedSearch]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await documentService.list({ ...filters, q: debouncedSearch.trim() || undefined, page, limit: 24 });
+        if (cancelled) return;
+        setDocs(res.documents || []);
+        setTotal(res.total || 0);
+        setTotalPages(res.totalPages || 1);
+      } catch (e) {
+        if (!cancelled) setError(e.response?.data?.message || 'Failed to load documents');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [filters, debouncedSearch, page]);
+
+  const codeSuggestions = useMemo(() => {
+    const t = searchInput.trim().toUpperCase();
+    if (!t) return [];
+    return moduleCodes.filter((c) => c.includes(t)).slice(0, 8);
+  }, [searchInput, moduleCodes]);
+
+  return (
+    <div className="glass-card rounded-2xl p-6 border border-white/10 mb-6">
+      <h3 className="text-lg font-bold mb-3">Document library</h3>
+
+      {/* Search */}
+      <div className="relative mb-4" ref={searchBoxRef}>
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => { setSearchInput(e.target.value); setShowSuggestions(true); }}
+          onFocus={() => setShowSuggestions(true)}
+          placeholder="Search title, module code, subject…"
+          className="w-full pl-11 pr-10 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-white placeholder-gray-500"
+        />
+        <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+        </svg>
+        {searchInput && (
+          <button type="button" onClick={() => setSearchInput('')} className="absolute right-3 top-3.5 text-gray-400 hover:text-white">×</button>
+        )}
+        {showSuggestions && codeSuggestions.length > 0 && (
+          <div className="absolute z-20 mt-1 w-full bg-[#1e293b] border border-[#334155] rounded-xl shadow-xl overflow-hidden">
+            <div className="px-4 py-2 text-xs text-gray-400 border-b border-[#334155]">Module codes</div>
+            {codeSuggestions.map((c) => (
+              <button key={c} type="button" onClick={() => { setSearchInput(c); setShowSuggestions(false); }} className="w-full text-left px-4 py-2 hover:bg-[#00CC99]/10 text-white">
+                <span className="font-semibold text-[#00CC99]">{c}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="grid md:grid-cols-4 gap-3 mb-5">
+        <select value={filters.docType} onChange={(e) => setFilters({ ...filters, docType: e.target.value })} className="px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-lg text-white">
+          {TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <select value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })} className="px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-lg text-white">
+          {SUBJECT_OPTIONS.map((s) => <option key={s} value={s}>{s || 'All subjects'}</option>)}
+        </select>
+        <input type="text" value={filters.moduleCode} onChange={(e) => setFilters({ ...filters, moduleCode: e.target.value.toUpperCase() })} className="px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-lg text-white" placeholder="Module code (e.g. FRK300)" />
+        <select value={filters.sort} onChange={(e) => setFilters({ ...filters, sort: e.target.value })} className="px-3 py-2 bg-[#1e293b] border border-[#334155] rounded-lg text-white">
+          <option value="newest">Newest</option>
+          <option value="popular">Most viewed</option>
+          <option value="year_desc">Year (newest first)</option>
+        </select>
+      </div>
+
+      <div className="mb-3 text-sm text-gray-400">
+        {loading ? 'Loading…' : `${total} document${total === 1 ? '' : 's'}`}
+      </div>
+
+      {error && <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-xl mb-4">{error}</div>}
+
+      {loading ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">{Array.from({ length: 6 }).map((_, i) => (<div key={i} className="glass-card rounded-2xl h-40 animate-pulse" />))}</div>
+      ) : docs.length === 0 ? (
+        <div className="text-center text-gray-400 py-8">No documents match those filters.</div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {docs.map((d) => (
+            <button key={d.id} onClick={() => onPreview(d)} className="glass-card rounded-2xl p-5 text-left border border-white/10 hover:scale-[1.02] hover:border-[#00CC99]/40 transition">
+              <div className="text-3xl mb-2">{TYPE_ICON[d.doc_type] || '📄'}</div>
+              <h4 className="font-bold text-white line-clamp-2 mb-2">{d.title}</h4>
+              <div className="flex flex-wrap gap-1 mb-2">
+                <span className="text-xs px-2 py-0.5 bg-[#00CC99]/10 text-[#00CC99] rounded">{TYPE_LABEL[d.doc_type]}</span>
+                {d.module_code && <span className="text-xs px-2 py-0.5 bg-yellow-500/10 text-yellow-300 font-mono rounded">{d.module_code}</span>}
+                {d.year && <span className="text-xs px-2 py-0.5 bg-white/5 text-gray-300 rounded">{d.year}</span>}
+              </div>
+              {d.description && <p className="text-sm text-gray-400 line-clamp-2">{d.description}</p>}
+              <div className="text-xs text-gray-500 mt-3 flex justify-between"><span>{d.subject || ''}</span><span>👁 {d.view_count || 0}</span></div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-2">
+          <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-4 py-2 rounded-lg glass-card text-white disabled:opacity-30">← Prev</button>
+          <span className="px-4 py-2 text-gray-400">Page {page} of {totalPages}</span>
+          <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-4 py-2 rounded-lg glass-card text-white disabled:opacity-30">Next →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =====================================================================
+// Locked screen — explains how to unlock
+// =====================================================================
+function LockedView({ status, isTutor }) {
+  const isPending = status?.reason === 'pending_upload';
+  return (
+    <div className="glass-card rounded-2xl p-8 text-center border border-white/10 mb-6">
+      <div className="text-5xl mb-3">🔒</div>
+      <h2 className="text-2xl font-bold mb-2">Library locked</h2>
+      <p className="text-gray-400 mb-4 max-w-xl mx-auto">
+        {isTutor && status?.reason === 'tutor_pending_approval' && 'Your tutor profile is awaiting admin approval. The library unlocks as soon as you\'re approved.'}
+        {isTutor && status?.reason === 'tutor_rejected' && 'Your tutor profile was not approved. Update your profile and resubmit to gain access.'}
+        {!isTutor && status?.reason === 'no_upload' && 'Upload at least one past paper, set of notes, or memo to unlock the full library and see what other students have shared.'}
+        {!isTutor && isPending && 'Your uploads are awaiting admin approval. The library unlocks as soon as one of them is approved.'}
+      </p>
+      {!isTutor && (
+        <p className="text-xs text-gray-500">
+          Required: {status?.requiredApprovedUploads ?? 1} approved upload — you have{' '}
+          <span className="text-[#00CC99] font-semibold">{status?.approvedUploads ?? 0}</span> approved
+          {' '}({status?.totalUploads ?? 0} total submitted)
+        </p>
+      )}
+    </div>
+  );
+}
+
+// =====================================================================
+// Admin variant (existing)
+// =====================================================================
+function AdminDocumentsView({ refreshKey, onPreview }) {
   const [filter, setFilter] = useState('pending');
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -222,8 +399,7 @@ function AdminDocumentsView({ refreshKey, onPreview, onChange }) {
       const res = await documentService.adminList(filter);
       setDocs(res.documents || []);
     } catch (e) {
-      const data = e?.response?.data;
-      setError(data?.message || 'Failed to load documents');
+      setError(e?.response?.data?.message || 'Failed to load documents');
     } finally { setLoading(false); }
   }, [filter]);
 
@@ -232,7 +408,7 @@ function AdminDocumentsView({ refreshKey, onPreview, onChange }) {
   return (
     <div className="glass-card rounded-2xl p-6 border border-white/10">
       <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <h3 className="text-lg font-bold">Student uploads</h3>
+        <h3 className="text-lg font-bold">Student / tutor uploads</h3>
         <div className="flex gap-2 flex-wrap">
           {['pending', 'approved', 'rejected'].map((s) => (
             <button
@@ -257,11 +433,7 @@ function AdminDocumentsView({ refreshKey, onPreview, onChange }) {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {docs.map((d) => (
-            <button
-              key={d.id}
-              onClick={() => onPreview(d, onChange)}
-              className="glass-card rounded-xl p-4 text-left border border-white/10 hover:border-[#00CC99]/50 transition"
-            >
+            <button key={d.id} onClick={() => onPreview(d)} className="glass-card rounded-xl p-4 text-left border border-white/10 hover:border-[#00CC99]/50 transition">
               <div className="flex items-start justify-between mb-2 gap-2">
                 <h4 className="font-bold text-sm line-clamp-2">{TYPE_ICON[d.doc_type]} {d.title}</h4>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap border ${
@@ -287,92 +459,87 @@ function AdminDocumentsView({ refreshKey, onPreview, onChange }) {
 // =====================================================================
 function Documents() {
   const currentUser = authService.getCurrentUser();
-  const isAdmin = currentUser?.role === 'admin';
+  const role = currentUser?.role;
+  const isAdmin = role === 'admin';
+  const isTutor = role === 'tutor';
 
-  // Student state
   const [loading, setLoading] = useState(true);
   const [setupError, setSetupError] = useState('');
+  const [status, setStatus] = useState(null);
   const [myUploads, setMyUploads] = useState([]);
 
-  // Shared
   const [previewDoc, setPreviewDoc] = useState(null);
-  // Bumped after admin actions to refetch
+  const [previewKind, setPreviewKind] = useState(null); // 'admin' | other
   const [adminRefreshKey, setAdminRefreshKey] = useState(0);
-  // For preview-modal moderation actions
   const [modActionLoading, setModActionLoading] = useState(false);
 
-  const refreshMy = useCallback(async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     setSetupError('');
     try {
-      const my = await documentService.listMyUploads();
-      setMyUploads(my.documents || []);
+      // Status drives unlocked vs locked.
+      const s = await documentService.getMyStatus();
+      setStatus(s);
+      // Students AND tutors can upload, so always fetch their list.
+      if (!isAdmin) {
+        const my = await documentService.listMyUploads();
+        setMyUploads(my.documents || []);
+      }
     } catch (e) {
       const data = e?.response?.data;
       if (e?.response?.status === 503 && data?.error === 'documents_table_missing') {
         setSetupError(data.message || 'Documents library is not set up yet.');
       } else {
-        setSetupError('Could not load your documents. Please try again later.');
+        setSetupError('Could not load documents. Please try again later.');
       }
     } finally { setLoading(false); }
-  }, []);
+  }, [isAdmin]);
 
-  useEffect(() => {
-    if (isAdmin) {
-      // Admin doesn't need their own uploads list (admins don't upload).
-      setLoading(false);
-    } else {
-      refreshMy();
-    }
-  }, [isAdmin, refreshMy]);
+  useEffect(() => { refresh(); }, [refresh]);
 
-  // ----- Student handlers -----
-  const handleStudentPreview = async (doc) => {
+  const handlePreview = async (doc) => {
+    setPreviewKind('user');
     try {
       const res = await documentService.getOne(doc.id);
-      setPreviewDoc({ doc: res.document || doc, kind: 'student' });
-    } catch { setPreviewDoc({ doc, kind: 'student' }); }
+      setPreviewDoc(res.document || doc);
+    } catch { setPreviewDoc(doc); }
   };
-  const handleStudentDelete = async (doc) => {
+  const handleDelete = async (doc) => {
     if (!window.confirm(`Delete "${doc.title}"? This cannot be undone.`)) return;
     try {
       await documentService.deleteMyUpload(doc.id);
-      refreshMy();
+      refresh();
     } catch (e) { alert(e.response?.data?.error || 'Failed to delete'); }
   };
 
-  // ----- Admin handlers (preview opens with action buttons) -----
-  const handleAdminPreview = (doc) => {
-    setPreviewDoc({ doc, kind: 'admin' });
-  };
+  // Admin moderation handlers
+  const handleAdminPreview = (doc) => { setPreviewKind('admin'); setPreviewDoc(doc); };
   const adminApprove = async () => {
-    if (!previewDoc?.doc) return;
+    if (!previewDoc) return;
     setModActionLoading(true);
     try {
-      await documentService.adminApprove(previewDoc.doc.id);
+      await documentService.adminApprove(previewDoc.id);
       setPreviewDoc(null);
       setAdminRefreshKey((k) => k + 1);
     } catch { alert('Failed to approve'); }
     finally { setModActionLoading(false); }
   };
   const adminReject = async () => {
-    if (!previewDoc?.doc) return;
     const reason = prompt('Reason for rejection:');
     if (!reason) return;
     setModActionLoading(true);
     try {
-      await documentService.adminReject(previewDoc.doc.id, reason);
+      await documentService.adminReject(previewDoc.id, reason);
       setPreviewDoc(null);
       setAdminRefreshKey((k) => k + 1);
     } catch { alert('Failed to reject'); }
     finally { setModActionLoading(false); }
   };
   const adminDelete = async () => {
-    if (!previewDoc?.doc) return;
-    if (!window.confirm('Delete this document? This will also remove it from the student\'s account.')) return;
+    if (!window.confirm('Delete this document? This will also remove it from the uploader\'s account.')) return;
     setModActionLoading(true);
     try {
-      await documentService.adminDelete(previewDoc.doc.id);
+      await documentService.adminDelete(previewDoc.id);
       setPreviewDoc(null);
       setAdminRefreshKey((k) => k + 1);
     } catch { alert('Failed to delete'); }
@@ -383,13 +550,12 @@ function Documents() {
     return (<div className="px-6 pt-24 pb-12 text-center"><p className="text-gray-400">Please sign in to access documents.</p></div>);
   }
 
-  // Build the modal action footer (admin only)
-  const adminActions = previewDoc?.kind === 'admin' && previewDoc?.doc ? (
+  const adminActions = previewKind === 'admin' && previewDoc ? (
     <>
-      {previewDoc.doc.status !== 'approved' && (
+      {previewDoc.status !== 'approved' && (
         <button onClick={adminApprove} disabled={modActionLoading} className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg border border-green-500/40">Approve</button>
       )}
-      {previewDoc.doc.status !== 'rejected' && (
+      {previewDoc.status !== 'rejected' && (
         <button onClick={adminReject} disabled={modActionLoading} className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg border border-red-500/40">Reject</button>
       )}
       <button onClick={adminDelete} disabled={modActionLoading} className="ml-auto px-4 py-2 bg-red-500/30 text-red-300 rounded-lg border border-red-500/50">Delete</button>
@@ -399,13 +565,13 @@ function Documents() {
   return (
     <div className="container mx-auto px-6 pt-24 pb-12">
       <div className="text-center mb-8">
-        <h1 className="text-4xl md:text-5xl font-black mb-2 leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">
-          {isAdmin ? 'Student Documents' : 'My Documents'}
+        <h1 className="text-4xl md:text-5xl font-black mb-2 text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">
+          {isAdmin ? 'Student Documents' : 'Document Library'}
         </h1>
         <p className="text-gray-400">
           {isAdmin
-            ? 'Review, approve, reject, or delete documents uploaded by students. Deleting also removes the file from the student\'s account.'
-            : 'Upload your past papers, notes, and memos. Only you can see your own uploads.'}
+            ? 'Approve, reject, or delete documents uploaded by students and tutors.'
+            : 'Past papers, notes, and memos. Share to unlock the full library.'}
         </p>
       </div>
 
@@ -421,16 +587,14 @@ function Documents() {
         <AdminDocumentsView refreshKey={adminRefreshKey} onPreview={handleAdminPreview} />
       ) : (
         <>
-          <StudentUploadCard onUploaded={refreshMy} />
-          <MyUploadsList items={myUploads} onPreview={handleStudentPreview} onDelete={handleStudentDelete} />
+          {!status?.unlocked && <LockedView status={status} isTutor={isTutor} />}
+          {status?.unlocked && <LibraryView onPreview={handlePreview} />}
+          <UploadCard onUploaded={refresh} />
+          <MyUploadsList items={myUploads} onPreview={handlePreview} onDelete={handleDelete} />
         </>
       )}
 
-      <PreviewModal
-        doc={previewDoc?.doc}
-        onClose={() => setPreviewDoc(null)}
-        actions={adminActions}
-      />
+      <PreviewModal doc={previewDoc} onClose={() => setPreviewDoc(null)} actions={adminActions} />
     </div>
   );
 }

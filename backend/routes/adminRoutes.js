@@ -12,20 +12,21 @@ const isAdmin = (req, res, next) => {
   next();
 };
 
-// All admin routes require authentication AND admin role
 router.use(auth);
 router.use(isAdmin);
 
 // Statistics
 router.get('/stats', adminController.getStats);
 
-// Users management
+// Users management — list / suspend / delete
 router.get('/users', adminController.getAllUsers);
+router.patch('/users/:userId/active', adminController.setUserActive);
+router.delete('/users/:userId', adminController.deleteUser);
 
 // Phone / contact lookup (audit-logged)
 router.get('/users/:userId/contact', adminController.getUserContact);
 
-// Audit log viewer
+// Audit log
 router.get('/audit-log', adminController.getAuditLog);
 
 // Tutors management
@@ -36,14 +37,13 @@ router.post('/tutors/:tutorId/reject', adminController.rejectTutor);
 router.get('/tutors', adminController.getAllTutorsAdmin);
 router.patch('/tutors/:tutorId/elite', adminController.toggleTutorElite);
 
-// Tutor requests (Feature 3) — admin-only management of incoming
-// "Request a Tutor" form submissions.
+// Tutor requests
 router.get('/tutor-requests', tutorRequestController.adminListRequests);
 router.get('/tutor-requests/:id', tutorRequestController.adminGetRequest);
 router.patch('/tutor-requests/:id', tutorRequestController.adminUpdateRequest);
 router.get('/tutor-requests/:id/shortlist', tutorRequestController.adminGetShortlist);
 
-// Subscriptions management
+// Subscriptions
 router.get('/subscriptions', adminController.getAllSubscriptions);
 router.post('/subscriptions/activate', adminController.activateSubscription);
 

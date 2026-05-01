@@ -1,9 +1,11 @@
 const Document = require('../models/Document');
 const supabase = require('../config/supabase');
+const pool = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const { logAdminAction } = require('../utils/auditLog');
 
 const BUCKET = 'documents';
+const REQUIRED_APPROVED_UPLOADS = 1;
 
 const VALID_TYPES = ['past_paper', 'notes', 'memo', 'tutorial', 'other'];
 const VALID_STATUSES_FOR_LIST = ['pending', 'approved', 'rejected'];
@@ -25,6 +27,54 @@ function missingTableResponse(res) {
     error: 'documents_table_missing',
     message: 'The documents library has not been set up yet. Run backend/migrations/documents_2026_04_28.sql in your Supabase SQL editor, then try again.'
   });
+}
+
+/**
+ * Decide whether a given user can browse the shared document library.
+ * Rules:
+ *   - admin            → always unlocked
+ *   - tutor (approved) → unlocked
+ *   - student          → needs ≥ REQUIRED_APPROVED_UPLOADS approved uploads
+ *   - everyone else    → locked
+ *
+ * Returns a richly-typed status object the UI can render directly.
+ */
+async function getAccessStatus(userId, userRole) {
+  if (userRole === 'admin') {
+    return { unlocked: true, reason: 'admin' };
+  }
+
+  if (userRole === 'tutor') {
+    let approval = null;
+    try {
+      const r = await pool.query(
+        'SELECT approval_status FROM tutor_profiles WHERE user_id = $1',
+        [userId]
+      );
+      approval = r.rows[0]?.approval_status || null;
+    } catch { /* ignore — tutor_profiles always present */ }
+
+    if (approval === 'approved') {
+      return { unlocked: true, reason: 'approved_tutor' };
+    }
+    return {
+      unlocked: false,
+      reason: approval === 'rejected' ? 'tutor_rejected' : 'tutor_pending_approval',
+      tutorApprovalStatus: approval || 'no_profile'
+    };
+  }
+
+  // Default: students.
+  const approved = await Document.approvedUploadCountByUser(userId);
+  const total    = await Document.totalUploadCountByUser(userId);
+  const unlocked = approved >= REQUIRED_APPROVED_UPLOADS;
+  return {
+    unlocked,
+    reason: unlocked ? 'approved_upload' : (total === 0 ? 'no_upload' : 'pending_upload'),
+    approvedUploads: approved,
+    totalUploads: total,
+    requiredApprovedUploads: REQUIRED_APPROVED_UPLOADS
+  };
 }
 
 // =====================================================================
@@ -99,14 +149,31 @@ exports.upload = async (req, res) => {
 };
 
 // =====================================================================
-// LIST — PRIVATE per uploader.
-// Each student only ever sees their OWN uploads (any status).
-// Admins see everything via the admin endpoints.
+// LIST — GATED. The shared library opens once you're unlocked.
+//   - admin and approved tutor → always unlocked
+//   - student → after 1 approved upload of their own
+// Locked users get 403 + the reason so the UI can prompt them.
 // =====================================================================
 exports.list = async (req, res) => {
   try {
-    const docs = await Document.listByUploader(req.userId);
-    res.json({ documents: docs, total: docs.length, page: 1, totalPages: 1 });
+    const status = await getAccessStatus(req.userId, req.userRole);
+
+    if (!status.unlocked) {
+      const messages = {
+        no_upload:                'Upload at least one past paper, set of notes, or memo to unlock the library.',
+        pending_upload:           'Your uploads are awaiting admin approval. The library unlocks as soon as one is approved.',
+        tutor_pending_approval:   'Your tutor profile is awaiting admin approval. Once approved you\'ll have access to the library.',
+        tutor_rejected:           'Your tutor profile was not approved. Update your profile and resubmit to gain access.'
+      };
+      return res.status(403).json({
+        error: 'locked',
+        ...status,
+        message: messages[status.reason] || 'You do not yet have access to the library.'
+      });
+    }
+
+    const result = await Document.listApproved(req.query);
+    res.json({ ...result, unlocked: true });
   } catch (error) {
     console.error('List documents error:', error);
     if (isMissingTable(error)) return missingTableResponse(res);
@@ -124,7 +191,14 @@ exports.getOne = async (req, res) => {
     if (!doc) return res.status(404).json({ error: 'Not found' });
 
     const isOwner = doc.uploader_user_id === userId;
-    if (!isOwner && !isAdmin) return res.status(404).json({ error: 'Not found' });
+
+    // Owner & admin can always see (any status).
+    if (!isOwner && !isAdmin) {
+      // Library viewers — must be unlocked AND doc must be approved.
+      if (doc.status !== 'approved') return res.status(404).json({ error: 'Not found' });
+      const status = await getAccessStatus(userId, req.userRole);
+      if (!status.unlocked) return res.status(403).json({ error: 'locked', ...status });
+    }
 
     Document.incrementViewCount(id).catch(() => {});
     res.json({ document: doc });
@@ -147,18 +221,12 @@ exports.listMyUploads = async (req, res) => {
 };
 
 /**
- * In private mode the "status" endpoint only reports counts. There's no
- * unlock gate any more, but the UI still uses it to render summary numbers.
+ * Status used by the UI to decide locked vs library view.
  */
 exports.getMyStatus = async (req, res) => {
   try {
-    const approved = await Document.approvedUploadCountByUser(req.userId);
-    const total = await Document.totalUploadCountByUser(req.userId);
-    res.json({
-      unlocked: true,            // always true now — private library
-      approvedUploads: approved,
-      totalUploads: total
-    });
+    const status = await getAccessStatus(req.userId, req.userRole);
+    res.json(status);
   } catch (error) {
     console.error('Get my status error:', error);
     if (isMissingTable(error)) return missingTableResponse(res);
