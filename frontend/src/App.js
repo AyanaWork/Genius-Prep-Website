@@ -16,6 +16,7 @@ import authService from './services/auth';
 import GPADashboard from './pages/GPA/GPADashboard';
 import TutorApprovalPanel from './pages/Admin/TutorApprovalPanel';
 import AdminDashboard from './pages/Admin/AdminDashboard';
+import UserManagement from './pages/Admin/UserManagement';
 import SubscriptionPage from './pages/GPA/SubscriptionPage';
 import PaymentSuccess from './pages/Payment/PaymentSuccess';
 import PaymentCancel from './pages/Payment/PaymentCancel';
@@ -87,6 +88,11 @@ function App() {
           <Route path="/admin/dashboard" element={
             <ProtectedRoute allowedRole="admin">
               <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/users" element={
+            <ProtectedRoute allowedRole="admin">
+              <UserManagement />
             </ProtectedRoute>
           } />
           <Route path="/admin/bookings" element={

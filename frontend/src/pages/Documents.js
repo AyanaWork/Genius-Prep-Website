@@ -361,19 +361,27 @@ function LibraryView({ onPreview }) {
 // =====================================================================
 // Locked screen — explains how to unlock
 // =====================================================================
-function LockedView({ status, isTutor }) {
-  const isPending = status?.reason === 'pending_upload';
+function LockedView({ status, isTutor, onGoToProfile }) {
+  const reason = status?.reason;
   return (
     <div className="glass-card rounded-2xl p-8 text-center border border-white/10 mb-6">
       <div className="text-5xl mb-3">🔒</div>
       <h2 className="text-2xl font-bold mb-2">Library locked</h2>
       <p className="text-gray-400 mb-4 max-w-xl mx-auto">
-        {isTutor && status?.reason === 'tutor_pending_approval' && 'Your tutor profile is awaiting admin approval. The library unlocks as soon as you\'re approved.'}
-        {isTutor && status?.reason === 'tutor_rejected' && 'Your tutor profile was not approved. Update your profile and resubmit to gain access.'}
-        {!isTutor && status?.reason === 'no_upload' && 'Upload at least one past paper, set of notes, or memo to unlock the full library and see what other students have shared.'}
-        {!isTutor && isPending && 'Your uploads are awaiting admin approval. The library unlocks as soon as one of them is approved.'}
+        {isTutor && reason === 'tutor_pending_approval' && 'Your tutor profile is awaiting admin approval. The library unlocks as soon as you\'re approved.'}
+        {isTutor && reason === 'tutor_rejected' && 'Your tutor profile was not approved. Update your profile and resubmit to gain access.'}
+        {!isTutor && reason === 'no_profile' && 'Complete your student profile first, then upload at least one document to unlock the library.'}
+        {!isTutor && reason === 'no_upload' && 'Upload at least one past paper, set of notes, or memo to unlock the full library and see what other students have shared.'}
+        {!isTutor && reason === 'pending_upload' && 'Your uploads are awaiting admin approval. The library unlocks as soon as one of them is approved.'}
       </p>
-      {!isTutor && (
+
+      {!isTutor && reason === 'no_profile' && (
+        <button onClick={onGoToProfile} className="mt-2 px-5 py-2.5 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition">
+          Complete your profile →
+        </button>
+      )}
+
+      {!isTutor && reason !== 'no_profile' && (
         <p className="text-xs text-gray-500">
           Required: {status?.requiredApprovedUploads ?? 1} approved upload — you have{' '}
           <span className="text-[#00CC99] font-semibold">{status?.approvedUploads ?? 0}</span> approved
@@ -587,7 +595,7 @@ function Documents() {
         <AdminDocumentsView refreshKey={adminRefreshKey} onPreview={handleAdminPreview} />
       ) : (
         <>
-          {!status?.unlocked && <LockedView status={status} isTutor={isTutor} />}
+          {!status?.unlocked && <LockedView status={status} isTutor={isTutor} onGoToProfile={() => window.location.assign('/student/profile/edit')} />}
           {status?.unlocked && <LibraryView onPreview={handlePreview} />}
           <UploadCard onUploaded={refresh} />
           <MyUploadsList items={myUploads} onPreview={handlePreview} onDelete={handleDelete} />
