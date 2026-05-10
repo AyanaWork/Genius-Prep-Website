@@ -17,7 +17,9 @@ const ALLOWED_MIME = new Set([
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   'text/plain'
 ]);
-const MAX_BYTES = 20 * 1024 * 1024;
+// Document library size cap: 100 MB. Multer enforces this at the wire,
+// but we re-check here so manual / direct callers also fail cleanly.
+const MAX_BYTES = 100 * 1024 * 1024;
 
 function isMissingTable(err) {
   return err && (err.code === '42P01' || /relation .* does not exist/i.test(err.message || ''));
@@ -110,7 +112,9 @@ exports.upload = async (req, res) => {
     if (!ALLOWED_MIME.has(file.mimetype)) {
       return res.status(400).json({ error: `Unsupported file type: ${file.mimetype}.` });
     }
-    if (file.size > MAX_BYTES) return res.status(400).json({ error: 'File too large (20 MB max)' });
+    if (file.size > MAX_BYTES) {
+      return res.status(413).json({ error: 'File too large', message: 'Documents must be 100 MB or smaller.' });
+    }
 
     const { docType, subject, moduleCode, institution, year, semester, title, description } = req.body;
     if (!docType || !VALID_TYPES.includes(docType)) return res.status(400).json({ error: 'Invalid document type' });

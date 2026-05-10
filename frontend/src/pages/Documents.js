@@ -91,6 +91,12 @@ function UploadCard({ onUploaded }) {
     setErr(''); setMsg('');
     if (!file) return setErr('Choose a file to upload');
     if (form.title.trim().length < 3) return setErr('Title needs at least 3 characters');
+    // Client-side cap. Mirrors the 100 MB limit enforced by multer on the server.
+    const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+    if (file.size > MAX_UPLOAD_BYTES) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      return setErr(`File is ${sizeMb} MB — documents must be 100 MB or smaller.`);
+    }
     setSubmitting(true);
     try {
       await documentService.upload({ file, ...form });
@@ -108,7 +114,7 @@ function UploadCard({ onUploaded }) {
   return (
     <div className="glass-card rounded-2xl p-6 mb-6 border border-white/10">
       <h3 className="text-xl font-bold mb-1">Upload a study resource</h3>
-      <p className="text-sm text-gray-400 mb-4">Files go through admin review before they appear in the library.</p>
+      <p className="text-sm text-gray-400 mb-4">Files go through admin review before they appear in the library. Maximum file size: 100 MB.</p>
       {err && <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-xl mb-3">{err}</div>}
       {msg && <div className="bg-green-500/20 border border-green-500 text-green-300 p-3 rounded-xl mb-3">{msg}</div>}
       <form onSubmit={submit} className="space-y-4">
