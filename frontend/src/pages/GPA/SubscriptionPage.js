@@ -32,7 +32,7 @@ function SubscriptionPage() {
     },
     monthly: {
       name: 'Monthly Access',
-      price: 250,
+      price: 200,
       duration: '1 month',
       subscriptionType: 'monthly',
       badge: 'POPULAR',

@@ -186,7 +186,9 @@ function GPADashboard() {
     setError('');
 
     try {
-      const result = await gpaService.answerQuestion(userMessage.content);
+      // Send the full conversation so Lwazi (DeepSeek R1) has multi-turn context.
+      const historyForApi = newMessages.map(({ role, content }) => ({ role, content }));
+      const result = await gpaService.chat(historyForApi);
       const assistantMessage = { role: 'assistant', content: result.answer, timestamp: new Date().toISOString() };
       const updatedMessages = [...newMessages, assistantMessage];
       setMessages(updatedMessages);

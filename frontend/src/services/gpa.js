@@ -36,12 +36,19 @@ class GPAService {
     return response.data;
   }
 
-  // Answer a question
+  // Answer a single question (no conversation history)
   async answerQuestion(question, context) {
     const response = await api.post('/gpa/answer-question', {
       question,
       context
     });
+    return response.data;
+  }
+
+  // Conversational chat — sends the full message history so Lwazi (DeepSeek R1)
+  // can hold a multi-turn conversation.
+  async chat(messages) {
+    const response = await api.post('/gpa/chat', { messages });
     return response.data;
   }
 

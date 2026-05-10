@@ -67,7 +67,7 @@ function PrivacyPolicy() {
               <li><strong>Tutors:</strong> Your name and booking details are shared with tutors you book</li>
               <li><strong>Paystack:</strong> Payment details are passed to Paystack for secure processing</li>
               <li><strong>Cloudinary:</strong> Profile images are stored via Cloudinary</li>
-              <li><strong>OpenAI:</strong> GPA queries are processed via the OpenAI API; no personally identifiable information is shared</li>
+              <li><strong>DeepSeek:</strong> Lwazi AI queries are processed via the DeepSeek API; no personally identifiable information is shared</li>
               <li><strong>Legal authorities:</strong> If required by law or court order</li>
             </ul>
           </section>

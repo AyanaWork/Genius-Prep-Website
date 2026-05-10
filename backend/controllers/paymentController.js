@@ -54,7 +54,7 @@ exports.generatePayment = async (req, res) => {
       });
     }
 
-    const amountMap = { annual: 700, semester: 450, monthly: 250, daily: 100 };
+    const amountMap = { annual: 700, semester: 450, monthly: 200, daily: 100 };
     const amount = amountMap[subscriptionType];
     const paymentId = `GPA_${userId}_${Date.now()}`;
 

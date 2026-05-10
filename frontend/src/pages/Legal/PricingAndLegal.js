@@ -103,7 +103,7 @@ function PricingAndLegal() {
                   <h4 className="text-xl font-bold mb-1">Monthly</h4>
                   <p className="text-gray-400 text-xs mb-4">Great for ongoing study support</p>
                   <div className="flex items-end gap-1 mb-4">
-                    <span className="text-4xl font-black text-[#00CC99]">R250</span>
+                    <span className="text-4xl font-black text-[#00CC99]">R200</span>
                     <span className="text-gray-400 mb-1">/ month</span>
                   </div>
                   <ul className="space-y-2 mb-6 flex-1">
@@ -250,7 +250,7 @@ function PricingAndLegal() {
               { title: '1. Introduction', text: 'Welcome to Genius Accelerator. By accessing or using our platform at geniusaccelerator.co.za, you agree to be bound by these Terms and Conditions. Please read them carefully before using our services.' },
               { title: '2. Services', text: 'We offer academic tutoring (online and in-person), home-school support, relocation tutoring, exam preparation, academic coaching, upskilling courses, and access to the Lwazi.' },
               { title: '3. User Accounts', text: 'Users must provide accurate information, maintain account security, and notify us of unauthorized use. We may suspend accounts that violate these terms.' },
-              { title: '4. Payment Terms', text: 'Minimum booking is 3 hours. Full payment is required before session confirmation. Lwazi subscriptions are available at R100/day, R250/month, R450/semester, or R700/year. Payments are processed via Paystack.' },
+              { title: '4. Payment Terms', text: 'Minimum booking is 3 hours. Full payment is required before session confirmation. Lwazi subscriptions are available at R100/day, R200/month, R450/semester, or R700/year. Payments are processed via Paystack.' },
               { title: '5. Governing Law', text: 'These terms are governed by the laws of the Republic of South Africa. Disputes are subject to the jurisdiction of Gauteng courts.' },
             ].map((section, i) => (
               <section key={i}>
@@ -285,7 +285,7 @@ function PricingAndLegal() {
             {[
               { title: 'What We Collect', text: 'We collect identity info (name, photo), contact info (email, phone), academic info, payment info (processed by Paystack. We do not store card details), and usage data.' },
               { title: 'How We Use It', text: 'To manage your account, match students with tutors, process bookings and payments, provide the Lwazi, and improve our platform.' },
-              { title: 'Who We Share With', text: 'We share with tutors (booking details only), Paystack (payment processing), Cloudinary (image storage), and OpenAI (GPA queries. No personal data shared). We never sell your data.' },
+              { title: 'Who We Share With', text: 'We share with tutors (booking details only), Paystack (payment processing), Cloudinary (image storage), and DeepSeek (Lwazi AI queries. No personal data shared). We never sell your data.' },
               { title: 'Your Rights (POPIA)', text: 'You have the right to access, correct, or delete your personal information, and to object to its processing. Contact us at admin@geniusaccelerator.co.za.' },
             ].map((section, i) => (
               <section key={i}>

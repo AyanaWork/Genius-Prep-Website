@@ -1,4 +1,6 @@
-const openaiService = require('../services/openai');
+// Lwazi AI is powered by DeepSeek R1. The variable name is kept generic
+// so the rest of the controller doesn't have to change.
+const aiService = require('../services/deepseek');
 const pool = require('../config/database');
 
 const FREE_USAGE_LIMIT = 0;
@@ -81,7 +83,7 @@ exports.generateNotes = async (req, res) => {
       });
     }
 
-    const result = await openaiService.generateNotes(topic, educationLevel || 'university');
+    const result = await aiService.generateNotes(topic, educationLevel || 'university');
 
     if (access.type === 'free') {
       await incrementUsage(userId);
@@ -124,7 +126,7 @@ exports.generateTest = async (req, res) => {
       });
     }
 
-    const result = await openaiService.generateTest(
+    const result = await aiService.generateTest(
       subject,
       topics,
       numQuestions || 10,
@@ -171,7 +173,7 @@ exports.answerQuestion = async (req, res) => {
       });
     }
 
-    const result = await openaiService.answerQuestion(question, context);
+    const result = await aiService.answerQuestion(question, context);
 
     if (access.type === 'free') {
       await incrementUsage(userId);
@@ -189,6 +191,56 @@ exports.answerQuestion = async (req, res) => {
   } catch (error) {
     console.error('Answer question error:', error);
     res.status(500).json({ error: error.message || 'Failed to answer question' });
+  }
+};
+
+// Conversational chat — DeepSeek R1 sees the full message history so it
+// can hold a real multi-turn conversation. Used by the Lwazi chat UI.
+exports.chat = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { messages } = req.body;
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'messages must be a non-empty array' });
+    }
+
+    // Sanitise + cap history to the last 20 turns to keep prompts small
+    const safeMessages = messages
+      .filter((m) => m && m.content && (m.role === 'user' || m.role === 'assistant'))
+      .slice(-20)
+      .map((m) => ({ role: m.role, content: String(m.content) }));
+
+    if (safeMessages.length === 0) {
+      return res.status(400).json({ error: 'No valid messages provided' });
+    }
+
+    const access = await checkGPAAccess(userId);
+    if (!access.hasAccess) {
+      return res.status(403).json({
+        error: 'Lwazi requires an active subscription',
+        requiresSubscription: true,
+      });
+    }
+
+    const result = await aiService.chat(safeMessages);
+
+    if (access.type === 'free') {
+      await incrementUsage(userId);
+    }
+
+    res.json({
+      success: true,
+      answer: result.content,
+      reasoning: result.reasoning,
+      answeredAt: new Date(),
+      accessInfo: access.type === 'free'
+        ? { remaining: access.remaining - 1 }
+        : { type: 'unlimited' },
+    });
+  } catch (error) {
+    console.error('Chat error:', error);
+    res.status(500).json({ error: error.message || 'Failed to get response' });
   }
 };
 
@@ -211,7 +263,7 @@ exports.analyzeContent = async (req, res) => {
       });
     }
 
-    const result = await openaiService.analyzeContent(content, analysisType || 'summary');
+    const result = await aiService.analyzeContent(content, analysisType || 'summary');
 
     if (access.type === 'free') {
       await incrementUsage(userId);
@@ -347,7 +399,7 @@ exports.analyzePDF = async (req, res) => {
       });
     }
 
-    const result = await openaiService.analyzeContent(
+    const result = await aiService.analyzeContent(
       pdfText, 
       analysisType || 'summary'
     );
