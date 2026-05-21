@@ -15,7 +15,7 @@ function TermsAndConditions() {
           >
             ← Back to Pricing & Legal
           </button>
-          <h1 className="text-4xl font-black">Terms and Conditions</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">Terms and Conditions</h1>
           <p className="text-gray-400 mt-2">Genius Accelerator | Last updated: January 2026</p>
         </div>
       </div>
@@ -70,7 +70,7 @@ function TermsAndConditions() {
               <li>Full payment is required before a session is confirmed</li>
               <li>All prices are listed in South African Rand (ZAR) and include VAT where applicable</li>
               <li>Payments are processed securely through Paystack</li>
-              <li>GPA subscriptions are available at R100 per day, R250 per month, R450 per semester, or R700 per year</li>
+              <li>Lwazi subscriptions are available at R100 per day, R200 per month, R450 per semester, or R700 per year</li>
             </ul>
           </section>
 

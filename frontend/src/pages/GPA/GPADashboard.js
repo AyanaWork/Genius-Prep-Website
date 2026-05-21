@@ -186,7 +186,9 @@ function GPADashboard() {
     setError('');
 
     try {
-      const result = await gpaService.answerQuestion(userMessage.content);
+      // Send the full conversation so Lwazi (DeepSeek R1) has multi-turn context.
+      const historyForApi = newMessages.map(({ role, content }) => ({ role, content }));
+      const result = await gpaService.chat(historyForApi);
       const assistantMessage = { role: 'assistant', content: result.answer, timestamp: new Date().toISOString() };
       const updatedMessages = [...newMessages, assistantMessage];
       setMessages(updatedMessages);
@@ -366,7 +368,7 @@ function GPADashboard() {
         <div className="flex-1 flex flex-col m-4 ml-0">
           <div className="glass-card rounded-3xl p-4 mb-4">
             <h1 className="text-xl font-bold">
-              {activeConversation ? conversations.find(c => c.id === activeConversation)?.title || 'Chat' : 'GPA AI Assistant'}
+              {activeConversation ? conversations.find(c => c.id === activeConversation)?.title || 'Chat' : 'Lwazi'}
             </h1>
             <p className="text-sm text-gray-400">Your AI study companion</p>
           </div>
@@ -376,7 +378,7 @@ function GPADashboard() {
             {messages.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">🎓</div>
-                <h2 className="text-2xl font-bold mb-2">Welcome to GPA!</h2>
+                <h2 className="text-2xl font-bold mb-2">Welcome to Lwazi!</h2>
                 <p className="text-gray-400 mb-6 max-w-md mx-auto">
                   Ask me anything about your studies. I can help with notes, practice tests, explanations, and more.
                 </p>

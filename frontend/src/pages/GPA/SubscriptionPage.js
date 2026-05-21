@@ -23,7 +23,7 @@ function SubscriptionPage() {
       badge: null,
       description: 'Perfect for exam day or a single study session',
       features: [
-        'Full GPA AI access for 24 hours',
+        'Full Lwazi access for 24 hours',
         'Generate notes, tests & memos',
         'PDF document analysis',
         'Academic Q&A support',
@@ -32,14 +32,14 @@ function SubscriptionPage() {
     },
     monthly: {
       name: 'Monthly Access',
-      price: 250,
+      price: 200,
       duration: '1 month',
       subscriptionType: 'monthly',
       badge: 'POPULAR',
       badgeColor: 'from-[#00CC99] to-emerald-500',
       description: 'Great for ongoing study support',
       features: [
-        'Full GPA AI access for 30 days',
+        'Full Lwazi access for 30 days',
         'Generate notes, tests & memos',
         'PDF document analysis',
         'Academic Q&A support',
@@ -55,7 +55,7 @@ function SubscriptionPage() {
       badge: null,
       description: 'Ideal for a full academic semester',
       features: [
-        'Full GPA AI access for 6 months',
+        'Full Lwazi access for 6 months',
         'Generate notes, tests & memos',
         'PDF document analysis',
         'Academic Q&A support',
@@ -73,7 +73,7 @@ function SubscriptionPage() {
       badgeColor: 'from-yellow-500 to-orange-500',
       description: 'Best value — full year of academic support',
       features: [
-        'Full GPA AI access for 12 months',
+        'Full Lwazi access for 12 months',
         'Generate notes, tests & memos',
         'PDF document analysis',
         'Academic Q&A support',
@@ -121,7 +121,7 @@ function SubscriptionPage() {
       {/* Main Content */}
       <div className="pt-24 pb-16 px-6 container mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-black mb-4 text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">
             Subscribe to GPA 🚀
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
@@ -210,7 +210,7 @@ function SubscriptionPage() {
         {/* Back Link */}
         <div className="text-center mt-8">
           <button onClick={() => navigate('/gpa')} className="text-gray-400 hover:text-white transition">
-            ← Back to GPA Dashboard
+            ← Back to Lwazi
           </button>
         </div>
 

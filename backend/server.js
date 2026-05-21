@@ -19,20 +19,17 @@ const allowedOrigins = [
   "https://genius-prep-website.vercel.app",
   "https://genius-prep-tuition.vercel.app",
   "https://www.geniusaccelerator.co.za",
-  "https://geniusaccelerator.co.za",  
+  "https://geniusaccelerator.co.za",
   process.env.FRONTEND_URL,
   "http://localhost:3000",
-].filter(Boolean); // removes undefined entries
+].filter(Boolean);
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin
       if (!origin) return callback(null, true);
-
       if (allowedOrigins.indexOf(origin) === -1) {
-        const msg =
-          "The CORS policy for this site does not allow access from the specified Origin.";
+        const msg = "The CORS policy for this site does not allow access from the specified Origin.";
         return callback(new Error(msg), false);
       }
       return callback(null, true);
@@ -46,15 +43,10 @@ app.use(
   }),
 );
 
-// ============================================
-// BODY PARSER MIDDLEWARE
-// ============================================
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// ============================================
-// IMPORT ROUTES
-// ============================================
+// Routes
 const authRoutes = require("./routes/authRoutes");
 const tutorRoutes = require("./routes/tutorRoutes");
 const studentRoutes = require("./routes/studentRoutes");
@@ -67,10 +59,8 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const adminBookingRoutes = require("./routes/adminBookingRoutes");
 const tutorRequestRoutes = require("./routes/tutorRequestRoutes");
+const documentRoutes = require("./routes/documentRoutes");
 
-// ============================================
-// TEST ROUTES
-// ============================================
 app.get("/", (req, res) => {
   res.json({ message: "Genius Prep API is running!" });
 });
@@ -78,19 +68,13 @@ app.get("/", (req, res) => {
 app.get("/api/test-db", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
-    res.json({
-      message: "Database connected!",
-      time: result.rows[0].now,
-    });
+    res.json({ message: "Database connected!", time: result.rows[0].now });
   } catch (err) {
     console.error("Database test error:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ============================================
-// API ROUTES
-// ============================================
 app.use("/api/auth", authRoutes);
 app.use("/api/tutors", tutorRoutes);
 app.use("/api/students", studentRoutes);
@@ -103,14 +87,12 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/admin", adminBookingRoutes);
 app.use("/api/tutor-requests", tutorRequestRoutes);
+app.use("/api/documents", documentRoutes);
 
 app.get("/api/test-payment-route", (req, res) => {
   res.json({ message: "Payment routes loaded", version: "1.0.1" });
 });
 
-// ============================================
-// ERROR HANDLING
-// ============================================
 app.use((err, req, res, next) => {
   console.error("Error:", err);
   res.status(err.status || 500).json({
@@ -118,9 +100,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ============================================
-// START SERVER
-// ============================================
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`CORS enabled for: ${allowedOrigins.join(", ")}`);

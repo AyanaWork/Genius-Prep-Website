@@ -111,7 +111,7 @@ function TutorProfileForm() {
       <div className="pt-24 pb-16 px-6 container mx-auto">
         <div className="max-w-5xl mx-auto">
           <div className="glass-card rounded-3xl p-8 md:p-12">
-            <h1 className="text-3xl md:text-4xl font-black mb-2 text-center">Your Tutor Profile</h1>
+            <h1 className="text-3xl md:text-4xl font-black mb-2 text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">Your Tutor Profile</h1>
             <p className="text-gray-400 text-center mb-8">Create an impressive profile to attract students</p>
 
             <form onSubmit={handleSubmit} className="space-y-6">

@@ -29,7 +29,7 @@ function TutorLogin() {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <img src={companyLogo} alt="Logo" className="h-12 w-auto mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-white mb-2">Tutor Login</h1>
+          <h1 className="text-3xl font-bold mb-2 text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">Tutor Login</h1>
         </div>
         <div className="glass-card rounded-3xl p-8">
           {error && <div className="bg-red-500/20 border border-red-500 text-red-300 p-3 rounded-xl mb-4">{error}</div>}

@@ -10,10 +10,13 @@ import StudentProfileForm from './pages/student/StudentProfileForm';
 import PublicTutorProfile from './pages/tutor/PublicTutorProfile';
 import BrowseTutors from './pages/BrowseTutors';
 import RequestTutor from './pages/RequestTutor';
+import MyTutorRequests from './pages/MyTutorRequests';
+import Documents from './pages/Documents';
 import authService from './services/auth';
 import GPADashboard from './pages/GPA/GPADashboard';
 import TutorApprovalPanel from './pages/Admin/TutorApprovalPanel';
 import AdminDashboard from './pages/Admin/AdminDashboard';
+import UserManagement from './pages/Admin/UserManagement';
 import SubscriptionPage from './pages/GPA/SubscriptionPage';
 import PaymentSuccess from './pages/Payment/PaymentSuccess';
 import PaymentCancel from './pages/Payment/PaymentCancel';
@@ -24,18 +27,10 @@ import PricingAndLegal from './pages/Legal/PricingAndLegal';
 import AdminBookings from './pages/Admin/AdminBookings';
 import Layout from './components/layouts/Layout';
 
-// Protected Route Component
 function ProtectedRoute({ children, allowedRole }) {
   const user = authService.getCurrentUser();
-
-  if (!authService.isLoggedIn()) {
-    return <Navigate to="/login" />;
-  }
-
-  if (allowedRole && user.role !== allowedRole) {
-    return <Navigate to={`/${user.role}/dashboard`} />;
-  }
-
+  if (!authService.isLoggedIn()) return <Navigate to="/login" />;
+  if (allowedRole && user.role !== allowedRole) return <Navigate to={`/${user.role}/dashboard`} />;
   return children;
 }
 
@@ -47,12 +42,20 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Routes with persistent Navbar */}
         <Route element={<Layout />}>
           <Route path="/tutors" element={<BrowseTutors />} />
           <Route path="/tutors/:id" element={<PublicTutorProfile />} />
-          {/* Public — no login required for the tutor request form */}
           <Route path="/request-tutor" element={<RequestTutor />} />
+          <Route path="/my-requests" element={
+            <ProtectedRoute>
+              <MyTutorRequests />
+            </ProtectedRoute>
+          } />
+          <Route path="/documents" element={
+            <ProtectedRoute>
+              <Documents />
+            </ProtectedRoute>
+          } />
 
           <Route path="/student/dashboard" element={
             <ProtectedRoute allowedRole="student">
@@ -87,6 +90,11 @@ function App() {
               <AdminDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/admin/users" element={
+            <ProtectedRoute allowedRole="admin">
+              <UserManagement />
+            </ProtectedRoute>
+          } />
           <Route path="/admin/bookings" element={
             <ProtectedRoute allowedRole="admin">
               <AdminBookings />
@@ -95,7 +103,6 @@ function App() {
           <Route path="/admin/tutors" element={<TutorApprovalPanel />} />
         </Route>
 
-        {/* Routes without Navbar */}
         <Route path="/subscription" element={<SubscriptionPage />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/cancel" element={<PaymentCancel />} />

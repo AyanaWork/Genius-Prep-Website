@@ -120,7 +120,7 @@ function TutorDashboard() {
           </div>
         ) : !profile ? (
           <div className="glass-card rounded-3xl p-12 text-center max-w-2xl mx-auto">
-            <h1 className="text-4xl font-black mb-4">Become a Tutor</h1>
+            <h1 className="text-4xl md:text-5xl font-black mb-4 text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">Become a Tutor</h1>
             <p className="text-gray-300 mb-8">Complete your tutor profile to start accepting students.</p>
             <button onClick={() => navigate('/tutor/profile/edit')} className="px-8 py-4 bg-[#00CC99] text-[#0f172a] rounded-xl font-bold hover:scale-105 transition">Create Profile</button>
           </div>

@@ -14,18 +14,15 @@ router.get('/subscription/status', gpaController.checkSubscriptionStatus);
 // Create/activate subscription
 router.post('/subscription/create', gpaController.createSubscription);
 
-// AI Features (all require active subscription)
-router.post('/generate-notes', gpaController.generateNotes);
-router.post('/generate-test', gpaController.generateTest);
-router.post('/answer-question', gpaController.answerQuestion);
-router.post('/analyze-content', gpaController.analyzeContent);
-
-// GPA routes that need subscription
-router.post('/generate-notes', auth, checkSubscription, gpaController.generateNotes);
-router.post('/generate-test', auth, checkSubscription, gpaController.generateTest);
-router.post('/answer-question', auth, checkSubscription, gpaController.answerQuestion);
-router.post('/analyze-content', auth, checkSubscription, gpaController.analyzeContent);
-router.post('/analyze-pdf', auth, checkSubscription, gpaController.analyzePDF);
+// Lwazi AI features — ALL require an active GPA subscription.
+// (auth is already applied via router.use(auth) above; checkSubscription
+// enforces that req.userId has a non-expired gpa_subscriptions row.)
+router.post('/generate-notes', checkSubscription, gpaController.generateNotes);
+router.post('/generate-test', checkSubscription, gpaController.generateTest);
+router.post('/answer-question', checkSubscription, gpaController.answerQuestion);
+router.post('/chat', checkSubscription, gpaController.chat);
+router.post('/analyze-content', checkSubscription, gpaController.analyzeContent);
+router.post('/analyze-pdf', checkSubscription, gpaController.analyzePDF);
 
 // Get all conversations for current user
 router.get('/conversations', auth, async (req, res) => {
@@ -123,7 +120,5 @@ router.delete('/conversations/:conversationId', auth, async (req, res) => {
     res.status(500).json({ error: 'Failed to delete conversation' });
   }
 });
-
-router.post('/analyze-pdf', auth, gpaController.analyzePDF);
 
 module.exports = router;

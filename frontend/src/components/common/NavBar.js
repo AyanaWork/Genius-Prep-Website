@@ -12,12 +12,8 @@ function Navbar() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
-    const user = authService.getCurrentUser();
-    setCurrentUser(user);
-
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+    setCurrentUser(authService.getCurrentUser());
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -29,21 +25,29 @@ function Navbar() {
     setMobileMenuOpen(false);
   };
 
-  const isActive = (path) => {
-    return location.pathname === path || location.pathname.startsWith(path);
-  };
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path);
 
-  // Determine which nav links to show
   const showStudentLinks = currentUser?.role === 'student';
   const showTutorLinks = currentUser?.role === 'tutor';
   const showAdminLinks = currentUser?.role === 'admin';
+
+  // Visibility rules:
+  //   - Documents       → students AND tutors AND admins
+  //   - Request a Tutor → students only
+  //   - My Requests     → students only
+  //   - Browse Tutors   → students only
+  //   - User Management → admins only
+  const canSeeDocuments     = showStudentLinks || showTutorLinks || showAdminLinks;
+  const canSeeRequestTutor  = showStudentLinks;
+  const canSeeMyRequests    = showStudentLinks;
+  const canSeeBrowseTutors  = showStudentLinks;
+  const canSeeUserManagement = showAdminLinks;
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
       scrolled ? 'bg-[#0f172a]/80 backdrop-blur-md border-b border-white/10 py-3' : 'bg-transparent py-5'
     }`}>
       <div className="container mx-auto px-6 flex items-center justify-between">
-        {/* Logo */}
         <button onClick={() => navigate('/')} className="flex items-center gap-3 group">
           <img src={companyLogo} alt="Genius Accelerator" className="h-12 w-auto object-contain transition-transform group-hover:scale-105" />
           <div className="flex flex-col">
@@ -52,47 +56,53 @@ function Navbar() {
           </div>
         </button>
 
-        {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center gap-6">
-          {/* Home */}
           <button onClick={() => navigate('/')} className={`text-sm font-medium transition ${
             isActive('/') && location.pathname === '/' ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
           }`}>Home</button>
 
-          {/* Browse Tutors - visible for students, tutors, and non-logged-in users? Usually all can browse */}
-          {currentUser?.role === 'student' && (
+          {canSeeBrowseTutors && (
             <button onClick={() => navigate('/tutors')} className={`text-sm font-medium transition ${
               isActive('/tutors') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
             }`}>Browse Tutors</button>
           )}
 
-          {/* Request a Tutor - visible to everyone (public form) */}
-          <button onClick={() => navigate('/request-tutor')} className={`text-sm font-medium transition ${
-            isActive('/request-tutor') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
-          }`}>Request a Tutor</button>
-
-          {/* GPA AI */}
-          {(currentUser?.role === 'student' || currentUser?.role === 'tutor') && (showStudentLinks || showTutorLinks) && (
-            <button 
-              onClick={() => navigate('/gpa')} 
-              className={`text-sm font-medium transition ${
-                isActive('/gpa') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
-              }`}
-            >
-              GPA AI
-            </button>
+          {canSeeRequestTutor && (
+            <button onClick={() => navigate('/request-tutor')} className={`text-sm font-medium transition ${
+              isActive('/request-tutor') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
+            }`}>Request a Tutor</button>
           )}
 
-          {/* Dashboard - role-specific */}
+          {canSeeMyRequests && (
+            <button onClick={() => navigate('/my-requests')} className={`text-sm font-medium transition ${
+              isActive('/my-requests') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
+            }`}>My Requests</button>
+          )}
+
+          {canSeeDocuments && (
+            <button onClick={() => navigate('/documents')} className={`text-sm font-medium transition ${
+              isActive('/documents') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
+            }`}>Documents</button>
+          )}
+
+          {canSeeUserManagement && (
+            <button onClick={() => navigate('/admin/users')} className={`text-sm font-medium transition ${
+              isActive('/admin/users') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
+            }`}>User Management</button>
+          )}
+
+          {(showStudentLinks || showTutorLinks) && (
+            <button onClick={() => navigate('/gpa')} className={`text-sm font-medium transition ${
+              isActive('/gpa') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
+            }`}>Lwazi</button>
+          )}
+
           {currentUser && (
             <button onClick={() => navigate(`/${currentUser.role}/dashboard`)} className={`text-sm font-medium transition ${
               isActive(`/${currentUser.role}/dashboard`) ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
-            }`}>
-              Dashboard
-            </button>
+            }`}>Dashboard</button>
           )}
 
-          {/* Admin specific links */}
           {showAdminLinks && (
             <button onClick={() => navigate('/admin/bookings')} className={`text-sm font-medium transition ${
               isActive('/admin/bookings') ? 'text-[#00CC99]' : 'text-white/70 hover:text-[#00CC99]'
@@ -100,7 +110,6 @@ function Navbar() {
           )}
         </div>
 
-        {/* Right side - Auth buttons or Profile dropdown */}
         <div className="hidden md:flex items-center gap-6">
           {!currentUser ? (
             <>
@@ -127,34 +136,33 @@ function Navbar() {
                     <p className="text-sm font-medium text-white">{currentUser.displayName || currentUser.email}</p>
                     <p className="text-xs text-gray-400">{currentUser.email}</p>
                   </div>
-
-                  {/* Role-specific menu items */}
                   {showStudentLinks && (
                     <>
-                      <button onClick={() => { navigate('/student/dashboard'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99] hover:bg-[#0f172a]/5 transition">📊 Dashboard</button>
-                      <button onClick={() => { navigate('/student/profile/edit'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99] hover:bg-[#0f172a]/5 transition">✏️ Edit Profile</button>
-                      <button onClick={() => { navigate('/gpa'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99] hover:bg-[#0f172a]/5 transition">🤖 GPA AI</button>
+                      <button onClick={() => { navigate('/student/dashboard'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Dashboard</button>
+                      <button onClick={() => { navigate('/student/profile/edit'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Edit Profile</button>
+                      <button onClick={() => { navigate('/my-requests'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">My Requests</button>
+                      <button onClick={() => { navigate('/documents'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Documents</button>
+                      <button onClick={() => { navigate('/gpa'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Lwazi</button>
                     </>
                   )}
-
                   {showTutorLinks && (
                     <>
-                      <button onClick={() => { navigate('/tutor/dashboard'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99] hover:bg-[#0f172a]/5 transition">📊 Dashboard</button>
-                      <button onClick={() => { navigate('/tutor/profile/edit'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99] hover:bg-[#0f172a]/5 transition">✏️ Edit Profile</button>
-                      <button onClick={() => { if (currentUser.tutorProfileId) navigate(`/tutors/${currentUser.tutorProfileId}`); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99] hover:bg-[#0f172a]/5 transition">👁️ Public Profile</button>
+                      <button onClick={() => { navigate('/tutor/dashboard'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Dashboard</button>
+                      <button onClick={() => { navigate('/tutor/profile/edit'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Edit Profile</button>
+                      <button onClick={() => { navigate('/documents'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Documents</button>
+                      <button onClick={() => { if (currentUser.tutorProfileId) navigate(`/tutors/${currentUser.tutorProfileId}`); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Public Profile</button>
                     </>
                   )}
-
                   {showAdminLinks && (
                     <>
-                      <button onClick={() => { navigate('/admin/dashboard'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99] hover:bg-[#0f172a]/5 transition">📊 Dashboard</button>
-                      <button onClick={() => { navigate('/admin/bookings'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99] hover:bg-[#0f172a]/5 transition">📅 Bookings</button>
-                      <button onClick={() => { navigate('/admin/tutor-verification'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99] hover:bg-[#0f172a]/5 transition">✅ Tutor Verification</button>
+                      <button onClick={() => { navigate('/admin/dashboard'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Dashboard</button>
+                      <button onClick={() => { navigate('/admin/users'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">User Management</button>
+                      <button onClick={() => { navigate('/admin/bookings'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Bookings</button>
+                      <button onClick={() => { navigate('/documents'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-sm text-white/70 hover:text-[#00CC99]">Documents</button>
                     </>
                   )}
-
                   <div className="border-t border-white/10 mt-2 pt-2">
-                    <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition">🚪 Logout</button>
+                    <button onClick={handleLogout} className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10">Logout</button>
                   </div>
                 </div>
               )}
@@ -162,7 +170,6 @@ function Navbar() {
           )}
         </div>
 
-        {/* Mobile menu button */}
         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden text-[#00CC99]">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
@@ -170,15 +177,27 @@ function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#0f172a]/95 backdrop-blur-md border-t border-white/10 mt-3 py-4">
           <div className="container mx-auto px-6 flex flex-col gap-3">
             <button onClick={() => { navigate('/'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Home</button>
-            <button onClick={() => { navigate('/tutors'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Browse Tutors</button>
-            <button onClick={() => { navigate('/request-tutor'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Request a Tutor</button>
-            {currentUser && (showStudentLinks || showTutorLinks) && (
-              <button onClick={() => { navigate('/gpa'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">GPA AI</button>
+            {canSeeBrowseTutors && (
+              <button onClick={() => { navigate('/tutors'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Browse Tutors</button>
+            )}
+            {canSeeRequestTutor && (
+              <button onClick={() => { navigate('/request-tutor'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Request a Tutor</button>
+            )}
+            {canSeeMyRequests && (
+              <button onClick={() => { navigate('/my-requests'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">My Requests</button>
+            )}
+            {canSeeDocuments && (
+              <button onClick={() => { navigate('/documents'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Documents</button>
+            )}
+            {canSeeUserManagement && (
+              <button onClick={() => { navigate('/admin/users'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">User Management</button>
+            )}
+            {(showStudentLinks || showTutorLinks) && (
+              <button onClick={() => { navigate('/gpa'); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Lwazi</button>
             )}
             {currentUser && (
               <button onClick={() => { navigate(`/${currentUser.role}/dashboard`); setMobileMenuOpen(false); }} className="text-left text-white/70 hover:text-[#00CC99] py-2">Dashboard</button>

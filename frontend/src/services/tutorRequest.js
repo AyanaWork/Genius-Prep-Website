@@ -1,29 +1,40 @@
 import api from './api';
 
 class TutorRequestService {
-  // PUBLIC submission — no auth needed.
+  // Public submission. Sent with auth header if logged in (interceptor),
+  // so the backend can attach requester_user_id.
   async create(payload) {
-    const response = await api.post('/tutor-requests', payload);
-    return response.data;
+    const res = await api.post('/tutor-requests', payload);
+    return res.data;
   }
 
-  // ADMIN list / read / update — auth header is added by the api interceptor.
+  // Logged-in student: see your own requests (matched by user_id OR email).
+  async listMine() {
+    const res = await api.get('/tutor-requests/my');
+    return res.data;
+  }
+  async getMine(id) {
+    const res = await api.get(`/tutor-requests/my/${id}`);
+    return res.data;
+  }
+
+  // Admin
   async adminList(status) {
     const qs = status ? `?status=${encodeURIComponent(status)}` : '';
-    const response = await api.get(`/admin/tutor-requests${qs}`);
-    return response.data;
+    const res = await api.get(`/admin/tutor-requests${qs}`);
+    return res.data;
   }
   async adminGet(id) {
-    const response = await api.get(`/admin/tutor-requests/${id}`);
-    return response.data;
+    const res = await api.get(`/admin/tutor-requests/${id}`);
+    return res.data;
   }
   async adminUpdate(id, patch) {
-    const response = await api.patch(`/admin/tutor-requests/${id}`, patch);
-    return response.data;
+    const res = await api.patch(`/admin/tutor-requests/${id}`, patch);
+    return res.data;
   }
   async adminShortlist(id) {
-    const response = await api.get(`/admin/tutor-requests/${id}/shortlist`);
-    return response.data;
+    const res = await api.get(`/admin/tutor-requests/${id}/shortlist`);
+    return res.data;
   }
 }
 

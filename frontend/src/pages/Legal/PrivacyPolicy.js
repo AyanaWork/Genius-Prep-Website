@@ -15,7 +15,7 @@ function PrivacyPolicy() {
           >
             ← Back to Pricing & Legal
           </button>
-          <h1 className="text-4xl font-black">Privacy Policy</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-center leading-[1.15] pb-2 bg-gradient-to-r from-[#00CC99] to-emerald-400 bg-clip-text text-transparent">Privacy Policy</h1>
           <p className="text-gray-400 mt-2">Genius Accelerator | Last updated: January 2026 | POPIA Compliant</p>
         </div>
       </div>
@@ -51,7 +51,7 @@ function PrivacyPolicy() {
               <li>To create and manage your account on the Platform</li>
               <li>To match students with suitable tutors</li>
               <li>To process bookings and payments</li>
-              <li>To provide access to the GPA AI tool</li>
+              <li>To provide access to the Lwazi</li>
               <li>To send important notifications about your bookings and account</li>
               <li>To improve our services and platform experience</li>
               <li>To comply with legal obligations</li>
@@ -67,7 +67,7 @@ function PrivacyPolicy() {
               <li><strong>Tutors:</strong> Your name and booking details are shared with tutors you book</li>
               <li><strong>Paystack:</strong> Payment details are passed to Paystack for secure processing</li>
               <li><strong>Cloudinary:</strong> Profile images are stored via Cloudinary</li>
-              <li><strong>OpenAI:</strong> GPA queries are processed via the OpenAI API; no personally identifiable information is shared</li>
+              <li><strong>DeepSeek:</strong> Lwazi AI queries are processed via the DeepSeek API; no personally identifiable information is shared</li>
               <li><strong>Legal authorities:</strong> If required by law or court order</li>
             </ul>
           </section>

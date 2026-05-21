@@ -50,7 +50,7 @@ export function PaymentSuccess() {
             </p>
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-green-800">
-                ✔ You now have unlimited access to all GPA AI features!
+                ✔ You now have unlimited access to all Lwazi features!
               </p>
             </div>
             <button

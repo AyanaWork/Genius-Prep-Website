@@ -131,12 +131,105 @@ function Home() {
           </button>
 
           {/* Mobile menu button */}
-          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden text-[#00CC99]">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+            aria-expanded={mobileMenuOpen}
+            className="md:hidden text-[#00CC99] p-2 -mr-2 rounded-lg hover:bg-white/5 active:bg-white/10 transition"
+          >
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
             </svg>
           </button>
         </div>
+
+        {/* Mobile menu drawer */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-3 mx-4 rounded-2xl bg-[#0f172a]/95 backdrop-blur-md border border-white/10 shadow-2xl">
+            <div className="flex flex-col py-3">
+              {['Process', 'Options', 'Courses'].map((item) => (
+                <a
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-6 py-3 text-base font-medium text-white/80 hover:text-[#00CC99] hover:bg-white/5 transition"
+                >
+                  {item}
+                </a>
+              ))}
+
+              {!currentUser ? (
+                <>
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); navigate('/login'); }}
+                    className="text-left px-6 py-3 text-base font-semibold text-white/80 hover:text-[#00CC99] hover:bg-white/5 transition"
+                  >
+                    Login
+                  </button>
+                  <div className="px-6 pt-2 pb-3">
+                    <button
+                      onClick={() => { setMobileMenuOpen(false); navigate('/register'); }}
+                      className="w-full px-6 py-3 rounded-full font-bold text-sm bg-[#00CC99] hover:bg-[#00b386] text-[#0f172a] shadow-[0_0_20px_rgba(0,204,153,0.3)] transition-all"
+                    >
+                      Get Started
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); navigate(`/${currentUser.role}/dashboard`); }}
+                    className="text-left px-6 py-3 text-base font-semibold text-white/80 hover:text-[#00CC99] hover:bg-white/5 transition"
+                  >
+                    Dashboard
+                  </button>
+                  {currentUser.role === 'student' && (
+                    <>
+                      <button
+                        onClick={() => { setMobileMenuOpen(false); navigate('/tutors'); }}
+                        className="text-left px-6 py-3 text-base text-white/80 hover:text-[#00CC99] hover:bg-white/5 transition"
+                      >
+                        Browse Tutors
+                      </button>
+                      <button
+                        onClick={() => { setMobileMenuOpen(false); navigate('/request-tutor'); }}
+                        className="text-left px-6 py-3 text-base text-white/80 hover:text-[#00CC99] hover:bg-white/5 transition"
+                      >
+                        Request a Tutor
+                      </button>
+                      <button
+                        onClick={() => { setMobileMenuOpen(false); navigate('/my-requests'); }}
+                        className="text-left px-6 py-3 text-base text-white/80 hover:text-[#00CC99] hover:bg-white/5 transition"
+                      >
+                        My Requests
+                      </button>
+                      <button
+                        onClick={() => { setMobileMenuOpen(false); navigate('/gpa'); }}
+                        className="text-left px-6 py-3 text-base text-white/80 hover:text-[#00CC99] hover:bg-white/5 transition"
+                      >
+                        Lwazi
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); navigate('/documents'); }}
+                    className="text-left px-6 py-3 text-base text-white/80 hover:text-[#00CC99] hover:bg-white/5 transition"
+                  >
+                    Documents
+                  </button>
+                  <div className="px-6 pt-2 pb-3 border-t border-white/10 mt-2">
+                    <button
+                      onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+                      className="w-full px-6 py-3 rounded-full font-bold text-sm bg-red-600 hover:bg-red-700 text-white transition-all"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* HERO SECTION */}
@@ -183,13 +276,13 @@ function Home() {
               </button>
             )}
 
-            {/* GPA AI button – always visible to logged in users */}
+            {/* Lwazi button – always visible to logged in users */}
             {(!currentUser || currentUser.role === 'student') && (
               <button
                 onClick={() => navigate('/gpa')}
                 className="px-10 py-4 glass-card rounded-xl font-bold text-lg hover:border-[#00CC99]/50 transition-all"
               >
-                GPA AI Assistant ⚡
+                Lwazi ⚡
               </button>
             )}
           </div>
@@ -271,7 +364,7 @@ function Home() {
             {[
               { img: tutoringImg, title: "1-on-1 Mentoring", desc: "Focused private sessions for University and High School excellence." },
               // { img: examImg, title: "Exam Crushing", desc: "Intensive prep for NBTs, SATs, and Matric finals." },
-              { img: assistantImg, title: "AI Learning Tools", desc: "Harness the power of GPA AI to generate notes and mock tests." },
+              { img: assistantImg, title: "AI Learning Tools", desc: "Harness the power of Lwazi to generate notes and mock tests." },
               // { img: booksImg, title: "Curriculum Support", desc: "Full coverage for NSC, IEB, Cambridge, and IB." },
               { img: upskillingImg, title: "Skill Up", desc: "Python, Data Science, and Machine Learning courses." },
               // { img: relocationImg, title: "Global Transition", desc: "Curriculum alignment for students moving abroad." }
@@ -444,7 +537,7 @@ function Home() {
               <ul className="space-y-4">
                 <li><Link to="/tutors" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Find Tutors</Link></li>
                 <li><Link to="/tutor/register" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Become a Mentor</Link></li>
-                <li><Link to="/gpa" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">GPA AI Tool</Link></li>
+                <li><Link to="/gpa" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Lwazi</Link></li>
                 <li><Link to="/pricing-legal" className="text-gray-500 hover:text-[#00CC99] transition-colors text-sm">Pricing</Link></li>
               </ul>
             </div>
